@@ -1,9 +1,43 @@
 export const dynamic = "force-dynamic";
 
-import { getAnnouncements } from "@/app/actions/admin";
-import { getCommuteSchedules } from "@/app/actions/commute";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Announcement, CommuteSchedule } from "@/models";
 import { Card, CardHeader, CardContent, Badge } from "@/components/ui";
 import Link from "next/link";
+
+async function getAnnouncements() {
+    await connectToDatabase();
+    const announcements = await Announcement.find({ isActive: true })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean();
+    return announcements.map((a) => ({
+        _id: a._id.toString(),
+        title: a.title,
+        content: a.content,
+        category: a.category,
+        priority: a.priority,
+        createdAt: a.createdAt,
+    }));
+}
+
+async function getCommuteSchedules() {
+    await connectToDatabase();
+    const schedules = await CommuteSchedule.find({ isActive: true })
+        .sort({ date: 1, departureTime: 1 })
+        .lean();
+    return schedules.map((s) => ({
+        _id: s._id.toString(),
+        busNumber: s.busNumber,
+        busColor: s.busColor,
+        route: s.route,
+        stops: s.stops,
+        departureTime: s.departureTime,
+        arrivalTime: s.arrivalTime,
+        date: s.date,
+        capacity: s.capacity,
+    }));
+}
 
 export default async function VolunteerDashboard() {
     const announcements = await getAnnouncements();
@@ -38,33 +72,25 @@ export default async function VolunteerDashboard() {
                                         <div
                                             key={announcement._id}
                                             className={`p-4 rounded-lg border-l-4 ${announcement.priority === "high"
-                                                ? "border-l-red-500 bg-red-50 dark:bg-red-900/10"
+                                                ? "bg-red-50 dark:bg-red-900/20 border-red-500"
                                                 : announcement.priority === "medium"
-                                                    ? "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/10"
-                                                    : "border-l-gray-300 bg-gray-50 dark:bg-gray-800/50"
+                                                    ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500"
+                                                    : "bg-gray-50 dark:bg-gray-800/50 border-gray-300"
                                                 }`}
                                         >
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Badge
-                                                    variant={
-                                                        announcement.priority === "high"
-                                                            ? "danger"
-                                                            : announcement.priority === "medium"
-                                                                ? "warning"
-                                                                : "neutral"
-                                                    }
-                                                >
-                                                    {announcement.category}
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                                                    {announcement.title}
+                                                </h3>
+                                                <Badge variant={announcement.priority === "high" ? "danger" : announcement.priority === "medium" ? "warning" : "neutral"}>
+                                                    {announcement.priority}
                                                 </Badge>
-                                                <span className="text-xs text-gray-500">
-                                                    {new Date(announcement.createdAt).toLocaleDateString()}
-                                                </span>
                                             </div>
-                                            <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                                {announcement.title}
-                                            </h4>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 {announcement.content}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-2">
+                                                {new Date(announcement.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
                                     ))}
@@ -79,7 +105,7 @@ export default async function VolunteerDashboard() {
 
                     {/* Commute Schedule */}
                     <Card>
-                        <CardHeader title="🚌 Bus Schedule" />
+                        <CardHeader title="🚌 Commute Schedule" />
                         <CardContent className="max-h-[500px] overflow-y-auto">
                             {schedules.length > 0 ? (
                                 <div className="space-y-4">
@@ -88,81 +114,60 @@ export default async function VolunteerDashboard() {
                                             key={schedule._id}
                                             className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
                                         >
-                                            <div className="flex items-center gap-3 mb-3">
+                                            <div className="flex items-center gap-3 mb-2">
                                                 <div
-                                                    className="w-6 h-6 rounded-full"
-                                                    style={{ backgroundColor: schedule.busColor.toLowerCase() }}
-                                                />
-                                                <span className="font-bold text-gray-900 dark:text-gray-100">
+                                                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                                                    style={{ backgroundColor: schedule.busColor || "#6366f1" }}
+                                                >
                                                     {schedule.busNumber}
-                                                </span>
-                                                <Badge variant="primary">
-                                                    {schedule.departureTime} - {schedule.arrivalTime}
-                                                </Badge>
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                                        {schedule.route}
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500">
+                                                        {schedule.departureTime} → {schedule.arrivalTime}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                {schedule.route}
-                                            </p>
-                                            <div className="mt-2 flex flex-wrap gap-1">
-                                                {schedule.stops.map((stop, idx) => (
-                                                    <span
-                                                        key={idx}
-                                                        className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded"
-                                                    >
-                                                        {stop}
-                                                    </span>
-                                                ))}
+                                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                Stops: {schedule.stops?.join(" → ")}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <p className="text-center text-gray-500 py-8">
-                                    No schedules available yet
+                                    No schedules available
                                 </p>
                             )}
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Venue Info */}
-                <Card className="mt-8">
-                    <CardHeader title="📍 Venue Information" />
-                    <CardContent>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                                    Main Venue
-                                </h4>
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    Innovation Hub, Tech Park
-                                    <br />
-                                    123 Technology Avenue
-                                    <br />
-                                    Innovation District
-                                </p>
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                                    Facilities
-                                </h4>
-                                <div className="flex flex-wrap gap-2">
-                                    <Badge variant="primary">WiFi</Badge>
-                                    <Badge variant="primary">Parking</Badge>
-                                    <Badge variant="primary">Cafeteria</Badge>
-                                    <Badge variant="primary">Rest Rooms</Badge>
-                                    <Badge variant="primary">First Aid</Badge>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Back Button */}
-                <div className="mt-8 text-center">
-                    <Link href="/" className="btn-outline">
-                        Back to Home
-                    </Link>
+                {/* Quick Links */}
+                <div className="mt-8">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                        Quick Links
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Link href="/events" className="card-hover p-4 text-center">
+                            <span className="text-2xl">📝</span>
+                            <p className="mt-2 font-medium">Register Team</p>
+                        </Link>
+                        <Link href="/team" className="card-hover p-4 text-center">
+                            <span className="text-2xl">👥</span>
+                            <p className="mt-2 font-medium">Team Portal</p>
+                        </Link>
+                        <Link href="/" className="card-hover p-4 text-center">
+                            <span className="text-2xl">🏠</span>
+                            <p className="mt-2 font-medium">Home</p>
+                        </Link>
+                        <Link href="/api/auth/signin" className="card-hover p-4 text-center">
+                            <span className="text-2xl">🔐</span>
+                            <p className="mt-2 font-medium">Staff Login</p>
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
