@@ -3,53 +3,11 @@
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useState } from "react";
-import { UserRole } from "@/types";
-
-const roleNavItems: Record<UserRole, { label: string; href: string }[]> = {
-    super_admin: [
-        { label: "Dashboard", href: "/admin" },
-        { label: "All Admins", href: "/admin/users" },
-        { label: "Teams", href: "/admin/teams" },
-        { label: "Jury", href: "/jury" },
-    ],
-    accommodation_admin: [
-        { label: "Dashboard", href: "/admin/accommodation" },
-        { label: "Bookings", href: "/admin/accommodation/bookings" },
-    ],
-    food_admin: [
-        { label: "Dashboard", href: "/admin/food" },
-        { label: "Menu", href: "/admin/food/menu" },
-        { label: "Coupons", href: "/admin/food/coupons" },
-    ],
-    commute_admin: [
-        { label: "Dashboard", href: "/admin/commute" },
-        { label: "Schedule", href: "/admin/commute/schedule" },
-    ],
-    venue_admin: [
-        { label: "Dashboard", href: "/admin/venue" },
-        { label: "Announcements", href: "/admin/venue/announcements" },
-    ],
-    guest: [
-        { label: "Overview", href: "/guest" },
-    ],
-    jury_admin: [
-        { label: "Dashboard", href: "/jury" },
-        { label: "Questions", href: "/jury/questions" },
-        { label: "Submissions", href: "/jury/submissions" },
-    ],
-    jury_member: [
-        { label: "My Evaluations", href: "/jury/evaluate" },
-    ],
-    volunteer: [
-        { label: "Dashboard", href: "/volunteer" },
-    ],
-};
+import Image from "next/image";
 
 export function Navbar() {
     const { data: session, status } = useSession();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    const userRole = (session?.user as { role?: UserRole })?.role;
 
     return (
         <nav className="sticky top-0 z-50 glass border-b border-gray-200 dark:border-gray-800">
@@ -74,30 +32,27 @@ export function Navbar() {
                             Home
                         </Link>
                         <Link
-                            href="/register"
+                            href="/events"
                             className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                         >
                             Register Team
                         </Link>
                         <Link
-                            href="/accommodation"
+                            href="/team"
                             className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                         >
-                            Accommodation
+                            Team Portal
                         </Link>
 
-                        {/* Role-based navigation */}
-                        {session && userRole && roleNavItems[userRole] && (
+                        {/* Admin links for logged in users */}
+                        {session && (
                             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-800">
-                                {roleNavItems[userRole].map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
+                                <Link
+                                    href="/admin"
+                                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                                >
+                                    Dashboard
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -112,17 +67,14 @@ export function Navbar() {
                                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                         {session.user?.name}
                                     </span>
-                                    {userRole && (
-                                        <span className="text-xs text-gray-500 capitalize">
-                                            {userRole.replace("_", " ")}
-                                        </span>
-                                    )}
                                 </div>
                                 {session.user?.image && (
-                                    <img
+                                    <Image
                                         src={session.user.image}
                                         alt={session.user.name || "User"}
-                                        className="w-9 h-9 rounded-full border-2 border-primary-200 dark:border-primary-800"
+                                        width={36}
+                                        height={36}
+                                        className="rounded-full border-2 border-primary-200 dark:border-primary-800"
                                     />
                                 )}
                                 <button
@@ -138,7 +90,7 @@ export function Navbar() {
                                     Volunteer
                                 </Link>
                                 <button onClick={() => signIn("google")} className="btn-primary text-sm">
-                                    Admin Login
+                                    Staff Login
                                 </button>
                             </div>
                         )}
@@ -187,34 +139,30 @@ export function Navbar() {
                                 Home
                             </Link>
                             <Link
-                                href="/register"
+                                href="/events"
                                 className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Register Team
                             </Link>
                             <Link
-                                href="/accommodation"
+                                href="/team"
                                 className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Accommodation
+                                Team Portal
                             </Link>
 
-                            {/* Role-based mobile navigation */}
-                            {session && userRole && roleNavItems[userRole] && (
+                            {session && (
                                 <>
                                     <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
-                                    {roleNavItems[userRole].map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                        >
-                                            {item.label}
-                                        </Link>
-                                    ))}
+                                    <Link
+                                        href="/admin"
+                                        className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        Dashboard
+                                    </Link>
                                 </>
                             )}
                         </div>
