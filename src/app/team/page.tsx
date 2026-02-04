@@ -65,7 +65,7 @@ export default function TeamPortalPage() {
                         </form>
 
                         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-                            <p className="text-sm text-gray-500 mb-2">Don't have a team yet?</p>
+                            <p className="text-sm text-gray-500 mb-2">Don&apos;t have a team yet?</p>
                             <a href="/events" className="text-primary-500 hover:underline font-medium">
                                 Register Now →
                             </a>

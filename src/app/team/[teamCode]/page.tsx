@@ -45,7 +45,7 @@ export default async function TeamDetailPage({ params }: Props) {
                 {team.status === "pending" && (
                     <Card className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10">
                         <CardContent className="py-4 text-center text-yellow-800 dark:text-yellow-200">
-                            ⏳ Your registration is under review. You'll be notified once approved.
+                            ⏳ Your registration is under review. You&apos;ll be notified once approved.
                         </CardContent>
                     </Card>
                 )}

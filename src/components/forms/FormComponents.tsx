@@ -272,3 +272,24 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
 );
 
 Radio.displayName = "Radio";
+
+// FormGroup Component
+interface FormGroupProps {
+    label: string;
+    required?: boolean;
+    children: React.ReactNode;
+    className?: string;
+}
+
+export const FormGroup = ({ label, required, children, className }: FormGroupProps) => {
+    return (
+        <div className={cn("form-group", className)}>
+            <label className="label">
+                {label}
+                {required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            {children}
+        </div>
+    );
+};
+
