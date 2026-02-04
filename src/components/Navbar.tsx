@@ -134,7 +134,7 @@ export function Navbar() {
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <Link href="/volunteer/login" className="btn-ghost text-sm">
+                                <Link href="/volunteer" className="btn-ghost text-sm">
                                     Volunteer
                                 </Link>
                                 <button onClick={() => signIn("google")} className="btn-primary text-sm">

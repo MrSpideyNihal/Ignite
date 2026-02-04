@@ -349,7 +349,7 @@ export default function HomePage() {
                                 Accommodation
                             </Link>
                             <Link
-                                href="/volunteer/login"
+                                href="/volunteer"
                                 className="hover:text-white transition-colors"
                             >
                                 Volunteers
