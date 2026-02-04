@@ -15,18 +15,18 @@ export async function syncUserWithDatabase() {
     try {
         await connectToDatabase();
 
-        let dbUser = await User.findOne({ email: session.user.email });
+        let dbUser = await User.findOne({ email: session.user.email.toLowerCase() });
 
         if (!dbUser) {
             // Check if this is the super admin email
-            const isSuperAdmin = session.user.email === process.env.SUPER_ADMIN_EMAIL;
+            const isSuperAdmin = session.user.email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
-            // Create new user
+            // Create new user with V2 schema
             dbUser = await User.create({
-                email: session.user.email,
+                email: session.user.email.toLowerCase(),
                 name: session.user.name || "Unknown",
                 image: session.user.image,
-                role: isSuperAdmin ? "super_admin" : "guest",
+                globalRole: isSuperAdmin ? "super_admin" : "user",
             });
         } else {
             // Update name and image if changed
@@ -41,8 +41,7 @@ export async function syncUserWithDatabase() {
             _id: dbUser._id.toString(),
             email: dbUser.email,
             name: dbUser.name,
-            role: dbUser.role,
-            assignedTeams: dbUser.assignedTeams || [],
+            globalRole: dbUser.globalRole,
         };
     } catch (error) {
         console.error("Error syncing user with database:", error);
@@ -60,15 +59,14 @@ export async function getCurrentUserWithRole() {
 
     try {
         await connectToDatabase();
-        const dbUser = await User.findOne({ email: session.user.email }).lean();
+        const dbUser = await User.findOne({ email: session.user.email.toLowerCase() }).lean();
 
         if (dbUser) {
             return {
                 _id: dbUser._id.toString(),
                 email: dbUser.email,
                 name: dbUser.name,
-                role: dbUser.role,
-                assignedTeams: dbUser.assignedTeams || [],
+                globalRole: dbUser.globalRole,
             };
         }
 
