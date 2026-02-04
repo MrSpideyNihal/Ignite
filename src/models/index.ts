@@ -19,7 +19,3 @@ export { EvaluationSubmission } from "./EvaluationSubmission";
 export { Announcement } from "./Announcement";
 export { CommuteSchedule } from "./CommuteSchedule";
 export { VenueInfo } from "./VenueInfo";
-
-// Legacy - will be removed
-export { Member } from "./Member";
-export { AccommodationBooking } from "./AccommodationBooking";
