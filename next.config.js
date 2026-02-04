@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Output standalone for Netlify deployment
+    output: "standalone",
     // Enable server actions
     experimental: {
         serverActions: {
@@ -14,6 +16,7 @@ const nextConfig = {
                 hostname: "lh3.googleusercontent.com",
             },
         ],
+        unoptimized: true,
     },
     // Environment variables that can be exposed to the browser
     env: {
