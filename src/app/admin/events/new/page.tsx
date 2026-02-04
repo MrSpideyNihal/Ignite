@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useTransition } from "react";
 import { createEvent } from "@/app/actions/event";
 import { Input, Select, Button, FormGroup, Textarea } from "@/components/forms";
 import { Card, CardHeader, CardContent, Alert } from "@/components/ui";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const currentYear = new Date().getFullYear();
 const yearOptions = Array.from({ length: 10 }, (_, i) => ({
@@ -13,10 +14,19 @@ const yearOptions = Array.from({ length: 10 }, (_, i) => ({
 }));
 
 export default function CreateEventPage() {
-    const [state, formAction, isPending] = useActionState(createEvent, {
-        success: false,
-        message: "",
-    });
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+    const [message, setMessage] = useState({ success: false, text: "" });
+
+    const handleSubmit = async (formData: FormData) => {
+        startTransition(async () => {
+            const result = await createEvent({ success: false, message: "" }, formData);
+            setMessage({ success: result.success, text: result.message });
+            if (result.success) {
+                setTimeout(() => router.push("/admin"), 1500);
+            }
+        });
+    };
 
     return (
         <div className="min-h-screen py-8">
@@ -29,13 +39,13 @@ export default function CreateEventPage() {
                 <Card>
                     <CardHeader title="Event Details" />
                     <CardContent>
-                        {state.message && (
-                            <Alert type={state.success ? "success" : "error"} className="mb-6">
-                                {state.message}
+                        {message.text && (
+                            <Alert type={message.success ? "success" : "error"} className="mb-6">
+                                {message.text}
                             </Alert>
                         )}
 
-                        <form action={formAction} className="space-y-6">
+                        <form action={handleSubmit} className="space-y-6">
                             <FormGroup label="Event Name" required>
                                 <Input
                                     name="name"
