@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 export default function HomePage() {
+    console.log("🏠 IGNITE Home Page Loaded");
+
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen" style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
             {/* Hero Section */}
             <section className="relative overflow-hidden hero-gradient">
                 <div className="absolute inset-0 animated-bg opacity-5"></div>

@@ -32,12 +32,14 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    console.log("🚀 IGNITE App Layout Loaded - Build Time:", new Date().toISOString());
+
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className="min-h-screen bg-white dark:bg-gray-950 antialiased">
+            <body className="min-h-screen bg-white dark:bg-gray-950 antialiased" style={{ backgroundColor: '#f3f4f6', minHeight: '100vh' }}>
                 <Providers>
                     <Navbar />
-                    <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+                    <main className="min-h-[calc(100vh-4rem)]" style={{ padding: '20px' }}>{children}</main>
                     <Toaster
                         position="top-right"
                         toastOptions={{
