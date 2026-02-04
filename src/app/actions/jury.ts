@@ -1,349 +1,423 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/mongodb";
-import { EvaluationQuestion, EvaluationSubmission, Team, User } from "@/models";
-import { auth } from "@/lib/auth";
+import {
+    EvaluationQuestion,
+    JuryAssignment,
+    EvaluationSubmission,
+    Team,
+    User,
+    EventRole,
+} from "@/models";
+import { requireEventRole, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import * as XLSX from "xlsx";
+import { ActionState } from "@/types";
 
-const QuestionSchema = z.object({
-    question: z.string().min(5, "Question is required"),
-    description: z.string().optional(),
-    maxScore: z.number().min(1).max(10).default(10),
-    order: z.number().default(0),
-});
+// Get evaluation questions for an event
+export async function getEventQuestions(eventId: string) {
+    await connectToDatabase();
 
-export interface JuryActionState {
-    success: boolean;
-    message: string;
+    const questions = await EvaluationQuestion.find({ eventId, isActive: true })
+        .sort({ order: 1 })
+        .lean();
+
+    return questions.map((q) => ({
+        _id: q._id.toString(),
+        question: q.question,
+        description: q.description,
+        maxScore: q.maxScore,
+        weightage: q.weightage,
+        order: q.order,
+    }));
 }
 
-// Add evaluation question
-export async function addEvaluationQuestion(
-    prevState: JuryActionState,
-    formData: FormData
-): Promise<JuryActionState> {
-    const session = await auth();
-    const userRole = (session?.user as { role?: string })?.role;
-
-    if (!session?.user || (userRole !== "super_admin" && userRole !== "jury_admin")) {
-        return { success: false, message: "Not authorized" };
+// Create evaluation question (jury admin)
+export async function createQuestion(
+    eventId: string,
+    data: {
+        question: string;
+        description?: string;
+        maxScore: number;
+        weightage: number;
     }
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
 
     try {
         await connectToDatabase();
 
-        const data = {
-            question: (formData.get("question") as string).trim(),
-            description: (formData.get("description") as string)?.trim() || "",
-            maxScore: parseInt(formData.get("maxScore") as string) || 10,
-            order: parseInt(formData.get("order") as string) || 0,
-        };
-
-        const validation = QuestionSchema.safeParse(data);
-        if (!validation.success) {
-            return { success: false, message: validation.error.errors[0].message };
-        }
+        const lastQuestion = await EvaluationQuestion.findOne({ eventId })
+            .sort({ order: -1 })
+            .lean();
+        const order = (lastQuestion?.order || 0) + 1;
 
         await EvaluationQuestion.create({
+            eventId,
             ...data,
+            order,
             isActive: true,
         });
 
-        revalidatePath("/jury");
-        revalidatePath("/jury/questions");
-
-        return { success: true, message: "Question added successfully" };
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: "Question added" };
     } catch (error) {
-        console.error("Error adding question:", error);
-        return { success: false, message: "An error occurred" };
+        console.error("Error creating question:", error);
+        return { success: false, message: "Failed to add question" };
     }
 }
 
-// Get all evaluation questions
-export async function getEvaluationQuestions() {
+// Update question
+export async function updateQuestion(
+    eventId: string,
+    questionId: string,
+    data: Partial<{
+        question: string;
+        description: string;
+        maxScore: number;
+        weightage: number;
+    }>
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
+
     try {
         await connectToDatabase();
-
-        const questions = await EvaluationQuestion.find({ isActive: true })
-            .sort({ order: 1 })
-            .lean();
-
-        return questions.map((q) => ({
-            _id: q._id.toString(),
-            question: q.question,
-            description: q.description,
-            maxScore: q.maxScore,
-            order: q.order,
-        }));
+        await EvaluationQuestion.findByIdAndUpdate(questionId, data);
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: "Question updated" };
     } catch (error) {
-        console.error("Error fetching questions:", error);
-        return [];
+        console.error("Error updating question:", error);
+        return { success: false, message: "Failed to update" };
     }
 }
 
 // Delete question
-export async function deleteEvaluationQuestion(id: string): Promise<JuryActionState> {
-    const session = await auth();
-    const userRole = (session?.user as { role?: string })?.role;
-
-    if (!session?.user || (userRole !== "super_admin" && userRole !== "jury_admin")) {
-        return { success: false, message: "Not authorized" };
-    }
+export async function deleteQuestion(
+    eventId: string,
+    questionId: string
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
 
     try {
         await connectToDatabase();
-        await EvaluationQuestion.findByIdAndUpdate(id, { isActive: false });
-        revalidatePath("/jury/questions");
-        return { success: true, message: "Question deleted" };
+        await EvaluationQuestion.findByIdAndUpdate(questionId, { isActive: false });
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: "Question removed" };
     } catch (error) {
         console.error("Error deleting question:", error);
-        return { success: false, message: "An error occurred" };
+        return { success: false, message: "Failed to remove" };
     }
 }
 
-// Assign team to jury member
-export async function assignTeamToJury(
-    juryMemberId: string,
-    teamCode: string
-): Promise<JuryActionState> {
-    const session = await auth();
-    const userRole = (session?.user as { role?: string })?.role;
+// Get jury members for an event
+export async function getEventJuryMembers(eventId: string) {
+    await connectToDatabase();
 
-    if (!session?.user || (userRole !== "super_admin" && userRole !== "jury_admin")) {
-        return { success: false, message: "Not authorized" };
-    }
+    const juryRoles = await EventRole.find({
+        eventId,
+        role: "jury_member",
+    }).lean();
+
+    const members = await Promise.all(
+        juryRoles.map(async (role) => {
+            const user = await User.findById(role.userId).lean();
+            const assignmentCount = await JuryAssignment.countDocuments({
+                eventId,
+                juryUserId: role.userId,
+            });
+            const submittedCount = await EvaluationSubmission.countDocuments({
+                eventId,
+                juryUserId: role.userId,
+                status: { $in: ["submitted", "locked"] },
+            });
+
+            return {
+                _id: user?._id.toString() || "",
+                email: user?.email || role.userEmail,
+                name: user?.name || role.userEmail,
+                assignmentCount,
+                submittedCount,
+            };
+        })
+    );
+
+    return members;
+}
+
+// Assign jury member to teams
+export async function assignJuryToTeams(
+    eventId: string,
+    juryUserId: string,
+    teamIds: string[]
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
 
     try {
         await connectToDatabase();
 
-        const jury = await User.findById(juryMemberId);
-        if (!jury || jury.role !== "jury_member") {
+        const user = await User.findById(juryUserId);
+        if (!user) {
             return { success: false, message: "Jury member not found" };
         }
 
-        const team = await Team.findOne({ teamCode: teamCode.toUpperCase() });
-        if (!team) {
-            return { success: false, message: "Team not found" };
+        for (const teamId of teamIds) {
+            const team = await Team.findById(teamId);
+            if (!team) continue;
+
+            // Check if already assigned
+            const existing = await JuryAssignment.findOne({ juryUserId, teamId });
+            if (existing) continue;
+
+            await JuryAssignment.create({
+                eventId,
+                juryUserId,
+                juryEmail: user.email,
+                juryName: user.name,
+                teamId,
+                teamCode: team.teamCode,
+            });
+
+            // Create empty submission
+            await EvaluationSubmission.create({
+                eventId,
+                teamId,
+                teamCode: team.teamCode,
+                projectName: team.projectName,
+                juryUserId,
+                juryName: user.name,
+                juryEmail: user.email,
+                status: "draft",
+                ratings: [],
+                totalScore: 0,
+                maxPossibleScore: 0,
+                weightedScore: 0,
+            });
         }
 
-        if (!jury.assignedTeams.includes(team.teamCode)) {
-            jury.assignedTeams.push(team.teamCode);
-            await jury.save();
-        }
-
-        revalidatePath("/jury");
-        revalidatePath("/jury/evaluate");
-
-        return { success: true, message: `Team ${teamCode} assigned to ${jury.name}` };
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: `Assigned ${teamIds.length} teams` };
     } catch (error) {
-        console.error("Error assigning team:", error);
-        return { success: false, message: "An error occurred" };
+        console.error("Error assigning teams:", error);
+        return { success: false, message: "Failed to assign teams" };
     }
 }
 
-// Get jury members
-export async function getJuryMembers() {
+// Get assignments for a jury member
+export async function getJuryAssignments(eventId: string) {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    await connectToDatabase();
+
+    const submissions = await EvaluationSubmission.find({
+        eventId,
+        juryUserId: user.id,
+    }).lean();
+
+    return submissions.map((s) => ({
+        _id: s._id.toString(),
+        teamId: s.teamId.toString(),
+        teamCode: s.teamCode,
+        projectName: s.projectName,
+        status: s.status,
+        totalScore: s.totalScore,
+        maxPossibleScore: s.maxPossibleScore,
+        submittedAt: s.submittedAt?.toISOString(),
+    }));
+}
+
+// Save evaluation (draft)
+export async function saveEvaluation(
+    eventId: string,
+    submissionId: string,
+    ratings: Array<{
+        questionId: string;
+        questionText: string;
+        score: number;
+        maxScore: number;
+        comment?: string;
+    }>,
+    overallComment?: string
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_member"]);
+    const user = await getCurrentUser();
+    if (!user) return { success: false, message: "Not authenticated" };
+
     try {
         await connectToDatabase();
 
-        const members = await User.find({ role: "jury_member" }).lean();
+        const submission = await EvaluationSubmission.findById(submissionId);
+        if (!submission) {
+            return { success: false, message: "Submission not found" };
+        }
 
-        return members.map((m) => ({
-            _id: m._id.toString(),
-            name: m.name,
-            email: m.email,
-            assignedTeams: m.assignedTeams || [],
-        }));
+        if (submission.juryUserId.toString() !== user.id) {
+            return { success: false, message: "Not authorized" };
+        }
+
+        if (submission.status === "locked") {
+            return { success: false, message: "Evaluation is locked" };
+        }
+
+        const totalScore = ratings.reduce((sum, r) => sum + r.score, 0);
+        const maxPossible = ratings.reduce((sum, r) => sum + r.maxScore, 0);
+
+        await EvaluationSubmission.findByIdAndUpdate(submissionId, {
+            ratings,
+            overallComment,
+            totalScore,
+            maxPossibleScore: maxPossible,
+            status: "draft",
+        });
+
+        return { success: true, message: "Saved as draft" };
     } catch (error) {
-        console.error("Error fetching jury members:", error);
-        return [];
+        console.error("Error saving evaluation:", error);
+        return { success: false, message: "Failed to save" };
     }
 }
 
 // Submit evaluation
 export async function submitEvaluation(
-    prevState: JuryActionState,
-    formData: FormData
-): Promise<JuryActionState> {
-    const session = await auth();
-    const userRole = (session?.user as { role?: string })?.role;
-    const userId = (session?.user as { id?: string })?.id;
-
-    if (!session?.user || userRole !== "jury_member") {
-        return { success: false, message: "Not authorized" };
-    }
+    eventId: string,
+    submissionId: string
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_member"]);
+    const user = await getCurrentUser();
+    if (!user) return { success: false, message: "Not authenticated" };
 
     try {
         await connectToDatabase();
 
-        const teamCode = formData.get("teamCode") as string;
-        const overallComment = formData.get("overallComment") as string;
-        const isLock = formData.get("lock") === "true";
-
-        const team = await Team.findOne({ teamCode: teamCode.toUpperCase() });
-        if (!team) {
-            return { success: false, message: "Team not found" };
+        const submission = await EvaluationSubmission.findById(submissionId);
+        if (!submission) {
+            return { success: false, message: "Submission not found" };
         }
 
-        const questions = await EvaluationQuestion.find({ isActive: true }).lean();
+        if (submission.juryUserId.toString() !== user.id) {
+            return { success: false, message: "Not authorized" };
+        }
 
-        const ratings = questions.map((q) => ({
-            questionId: q._id,
-            questionText: q.question,
-            score: parseInt(formData.get(`rating_${q._id}`) as string) || 0,
-            comment: (formData.get(`comment_${q._id}`) as string) || "",
-        }));
+        if (submission.status === "locked") {
+            return { success: false, message: "Already locked" };
+        }
 
-        const totalScore = ratings.reduce((sum, r) => sum + r.score, 0);
-        const maxPossibleScore = questions.reduce((sum, q) => sum + q.maxScore, 0);
+        if (!submission.ratings || submission.ratings.length === 0) {
+            return { success: false, message: "Please score all questions first" };
+        }
 
-        // Check if submission exists
-        let submission = await EvaluationSubmission.findOne({
-            teamId: team._id,
-            juryMemberId: userId,
+        await EvaluationSubmission.findByIdAndUpdate(submissionId, {
+            status: "submitted",
+            submittedAt: new Date(),
         });
 
-        if (submission) {
-            if (submission.isLocked) {
-                return { success: false, message: "This evaluation has been locked" };
-            }
-
-            submission.ratings = ratings;
-            submission.overallComment = overallComment;
-            submission.totalScore = totalScore;
-            submission.isLocked = isLock;
-            if (isLock) submission.lockedAt = new Date();
-            await submission.save();
-        } else {
-            submission = await EvaluationSubmission.create({
-                teamId: team._id,
-                teamCode: team.teamCode,
-                projectName: team.projectName,
-                projectCode: team.projectCode,
-                juryMemberId: userId,
-                juryMemberName: session.user.name || "Jury",
-                juryMemberEmail: session.user.email || "",
-                ratings,
-                overallComment,
-                totalScore,
-                maxPossibleScore,
-                isLocked: isLock,
-                lockedAt: isLock ? new Date() : undefined,
-            });
-        }
-
-        revalidatePath("/jury/evaluate");
-        revalidatePath("/jury/submissions");
-
-        return {
-            success: true,
-            message: isLock ? "Evaluation submitted and locked" : "Evaluation saved",
-        };
+        revalidatePath(`/${eventId}/jury/evaluate`);
+        return { success: true, message: "Evaluation submitted" };
     } catch (error) {
         console.error("Error submitting evaluation:", error);
-        return { success: false, message: "An error occurred" };
+        return { success: false, message: "Failed to submit" };
     }
 }
 
-// Get submissions for jury admin
-export async function getAllSubmissions() {
+// Lock all evaluations (jury admin)
+export async function lockAllEvaluations(eventId: string): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
+
     try {
         await connectToDatabase();
 
-        const submissions = await EvaluationSubmission.find()
-            .sort({ teamCode: 1, juryMemberName: 1 })
-            .lean();
+        await EvaluationSubmission.updateMany(
+            { eventId, status: "submitted" },
+            { status: "locked", lockedAt: new Date() }
+        );
 
-        return submissions.map((s) => ({
-            _id: s._id.toString(),
-            teamCode: s.teamCode,
-            projectName: s.projectName,
-            juryMemberName: s.juryMemberName,
-            totalScore: s.totalScore,
-            maxPossibleScore: s.maxPossibleScore,
-            isLocked: s.isLocked,
-            createdAt: s.createdAt,
-        }));
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: "All evaluations locked" };
     } catch (error) {
-        console.error("Error fetching submissions:", error);
-        return [];
+        console.error("Error locking:", error);
+        return { success: false, message: "Failed to lock" };
     }
 }
 
-// Get jury member's evaluations
-export async function getMyEvaluations() {
-    const session = await auth();
-    const userId = (session?.user as { id?: string })?.id;
-
-    if (!userId) return { assignedTeams: [], submissions: [] };
+// Send back evaluation (jury admin)
+export async function sendBackEvaluation(
+    eventId: string,
+    submissionId: string,
+    reason: string
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
 
     try {
         await connectToDatabase();
 
-        const user = await User.findById(userId).lean();
-        const submissions = await EvaluationSubmission.find({ juryMemberId: userId }).lean();
+        await EvaluationSubmission.findByIdAndUpdate(submissionId, {
+            status: "sent_back",
+            sentBackAt: new Date(),
+            sentBackReason: reason,
+        });
 
-        // Get team details for assigned teams
-        const assignedTeamCodes = user?.assignedTeams || [];
-        const teams = await Team.find({ teamCode: { $in: assignedTeamCodes } }).lean();
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: "Sent back for revision" };
+    } catch (error) {
+        console.error("Error sending back:", error);
+        return { success: false, message: "Failed to send back" };
+    }
+}
 
-        return {
-            assignedTeams: teams.map((t) => ({
-                _id: t._id.toString(),
-                teamCode: t.teamCode,
-                projectName: t.projectName,
-                projectCode: t.projectCode,
-            })),
-            submissions: submissions.map((s) => ({
-                _id: s._id.toString(),
+// Get all submissions for event (jury admin)
+export async function getAllSubmissions(eventId: string) {
+    await connectToDatabase();
+
+    const submissions = await EvaluationSubmission.find({ eventId })
+        .sort({ teamCode: 1 })
+        .lean();
+
+    return submissions.map((s) => ({
+        _id: s._id.toString(),
+        teamCode: s.teamCode,
+        projectName: s.projectName,
+        juryName: s.juryName,
+        juryEmail: s.juryEmail,
+        status: s.status,
+        totalScore: s.totalScore,
+        maxPossibleScore: s.maxPossibleScore,
+        submittedAt: s.submittedAt?.toISOString(),
+    }));
+}
+
+// Get team scores summary
+export async function getTeamScoresSummary(eventId: string) {
+    await connectToDatabase();
+
+    const submissions = await EvaluationSubmission.find({
+        eventId,
+        status: { $in: ["submitted", "locked"] },
+    }).lean();
+
+    // Group by team
+    const teamScores: Record<
+        string,
+        { teamCode: string; projectName: string; scores: number[]; avg: number }
+    > = {};
+
+    for (const s of submissions) {
+        const key = s.teamId.toString();
+        if (!teamScores[key]) {
+            teamScores[key] = {
                 teamCode: s.teamCode,
-                totalScore: s.totalScore,
-                maxPossibleScore: s.maxPossibleScore,
-                isLocked: s.isLocked,
-            })),
-        };
-    } catch (error) {
-        console.error("Error fetching evaluations:", error);
-        return { assignedTeams: [], submissions: [] };
-    }
-}
-
-// Export evaluations to Excel
-export async function exportEvaluationsToExcel(): Promise<{ success: boolean; data?: string; message?: string }> {
-    const session = await auth();
-    const userRole = (session?.user as { role?: string })?.role;
-
-    if (!session?.user || (userRole !== "super_admin" && userRole !== "jury_admin")) {
-        return { success: false, message: "Not authorized" };
+                projectName: s.projectName,
+                scores: [],
+                avg: 0,
+            };
+        }
+        teamScores[key].scores.push(s.totalScore);
     }
 
-    try {
-        await connectToDatabase();
-
-        const submissions = await EvaluationSubmission.find().lean();
-
-        const data = submissions.map((s) => ({
-            "Team Code": s.teamCode,
-            "Project Name": s.projectName,
-            "Jury Member": s.juryMemberName,
-            "Total Score": s.totalScore,
-            "Max Score": s.maxPossibleScore,
-            "Percentage": `${Math.round((s.totalScore / s.maxPossibleScore) * 100)}%`,
-            "Status": s.isLocked ? "Locked" : "Draft",
-            "Comment": s.overallComment || "",
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Evaluations");
-
-        const buffer = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
-
-        return { success: true, data: buffer };
-    } catch (error) {
-        console.error("Error exporting:", error);
-        return { success: false, message: "Export failed" };
-    }
+    // Calculate averages
+    return Object.values(teamScores)
+        .map((t) => ({
+            ...t,
+            avg: t.scores.reduce((a, b) => a + b, 0) / t.scores.length,
+            evaluationCount: t.scores.length,
+        }))
+        .sort((a, b) => b.avg - a.avg);
 }

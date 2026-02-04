@@ -1,81 +1,69 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { CouponStatus } from "@/types";
 
-export interface ICouponDocument extends Document {
-    code: string;
+export type CouponType = "lunch" | "tea" | "dinner" | "kit";
+
+export interface ICoupon extends Document {
+    _id: mongoose.Types.ObjectId;
+    eventId: mongoose.Types.ObjectId;
     teamId: mongoose.Types.ObjectId;
-    teamCode: string;
     memberId: mongoose.Types.ObjectId;
     memberName: string;
-    type: "lunch" | "tea" | "dinner";
+    couponCode: string;
+    type: CouponType;
     date: Date;
-    status: CouponStatus;
+    isUsed: boolean;
     usedAt?: Date;
-    usedBy?: string;
+    usedBy?: mongoose.Types.ObjectId;
+    scannedByName?: string;
     createdAt: Date;
+    updatedAt: Date;
 }
 
-const CouponSchema = new Schema<ICouponDocument>(
+const CouponSchema = new Schema<ICoupon>(
     {
-        code: {
-            type: String,
+        eventId: {
+            type: Schema.Types.ObjectId,
+            ref: "Event",
             required: true,
-            unique: true,
-            uppercase: true,
             index: true,
         },
         teamId: {
             type: Schema.Types.ObjectId,
             ref: "Team",
             required: true,
-        },
-        teamCode: {
-            type: String,
-            required: true,
-            uppercase: true,
+            index: true,
         },
         memberId: {
             type: Schema.Types.ObjectId,
-            ref: "Member",
+            ref: "TeamMember",
             required: true,
+            index: true,
         },
-        memberName: {
+        memberName: { type: String, required: true },
+        couponCode: {
             type: String,
             required: true,
+            unique: true,
+            uppercase: true,
+            index: true,
         },
         type: {
             type: String,
-            enum: ["lunch", "tea", "dinner"],
+            enum: ["lunch", "tea", "dinner", "kit"],
             required: true,
         },
-        date: {
-            type: Date,
-            required: true,
-        },
-        status: {
-            type: String,
-            enum: ["issued", "used"],
-            default: "issued",
-        },
-        usedAt: {
-            type: Date,
-        },
-        usedBy: {
-            type: String,
-        },
+        date: { type: Date, required: true },
+        isUsed: { type: Boolean, default: false, index: true },
+        usedAt: { type: Date },
+        usedBy: { type: Schema.Types.ObjectId, ref: "User" },
+        scannedByName: { type: String },
     },
-    {
-        timestamps: { createdAt: true, updatedAt: false },
-    }
+    { timestamps: true }
 );
 
-// Indexes
-CouponSchema.index({ teamId: 1 });
-CouponSchema.index({ memberId: 1 });
-CouponSchema.index({ status: 1 });
-CouponSchema.index({ type: 1, date: 1 });
-CouponSchema.index({ code: 1, status: 1 });
+// Compound indexes
+CouponSchema.index({ eventId: 1, type: 1, isUsed: 1 });
+CouponSchema.index({ memberId: 1, type: 1, date: 1 });
 
-export const Coupon: Model<ICouponDocument> =
-    mongoose.models.Coupon ||
-    mongoose.model<ICouponDocument>("Coupon", CouponSchema);
+export const Coupon: Model<ICoupon> =
+    mongoose.models.Coupon || mongoose.model<ICoupon>("Coupon", CouponSchema);

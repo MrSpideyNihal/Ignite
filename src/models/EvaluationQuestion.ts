@@ -1,59 +1,38 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export interface IEvaluationQuestionDocument extends Document {
+export interface IEvaluationQuestion extends Document {
+    _id: mongoose.Types.ObjectId;
+    eventId: mongoose.Types.ObjectId;
     question: string;
     description?: string;
     maxScore: number;
+    weightage: number;
     order: number;
-    category?: string;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
 
-const EvaluationQuestionSchema = new Schema<IEvaluationQuestionDocument>(
+const EvaluationQuestionSchema = new Schema<IEvaluationQuestion>(
     {
-        question: {
-            type: String,
+        eventId: {
+            type: Schema.Types.ObjectId,
+            ref: "Event",
             required: true,
-            trim: true,
+            index: true,
         },
-        description: {
-            type: String,
-            trim: true,
-        },
-        maxScore: {
-            type: Number,
-            required: true,
-            min: 1,
-            max: 10,
-            default: 10,
-        },
-        order: {
-            type: Number,
-            required: true,
-            default: 0,
-        },
-        category: {
-            type: String,
-            trim: true,
-        },
-        isActive: {
-            type: Boolean,
-            default: true,
-        },
+        question: { type: String, required: true },
+        description: { type: String },
+        maxScore: { type: Number, default: 10 },
+        weightage: { type: Number, default: 1 },
+        order: { type: Number, default: 0 },
+        isActive: { type: Boolean, default: true },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
-// Indexes
-EvaluationQuestionSchema.index({ isActive: 1, order: 1 });
+EvaluationQuestionSchema.index({ eventId: 1, isActive: 1, order: 1 });
 
-export const EvaluationQuestion: Model<IEvaluationQuestionDocument> =
+export const EvaluationQuestion: Model<IEvaluationQuestion> =
     mongoose.models.EvaluationQuestion ||
-    mongoose.model<IEvaluationQuestionDocument>(
-        "EvaluationQuestion",
-        EvaluationQuestionSchema
-    );
+    mongoose.model<IEvaluationQuestion>("EvaluationQuestion", EvaluationQuestionSchema);

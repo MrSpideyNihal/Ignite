@@ -1,46 +1,38 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { ProjectName, ProjectCode, PROJECT_NAMES, PROJECT_CODES } from "@/types";
 
-export interface IGuideSubdoc {
-    name: string;
-    email: string;
-    phone: string;
-}
-
-export interface ITeamDocument extends Document {
+export interface ITeam extends Document {
+    _id: mongoose.Types.ObjectId;
+    eventId: mongoose.Types.ObjectId;
     teamCode: string;
-    projectName: ProjectName;
-    projectCode: ProjectCode;
-    guide: IGuideSubdoc;
-    memberCount: number;
+    projectName: string;
+    projectCode: string;
+    status: "pending" | "approved" | "rejected";
+    teamLead: {
+        name: string;
+        email?: string;
+        phone: string;
+    };
+    guide?: {
+        name: string;
+        email?: string;
+        phone?: string;
+    };
+    registrationDate: Date;
+    approvedBy?: mongoose.Types.ObjectId;
+    approvedAt?: Date;
+    rejectionReason?: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-const GuideSchema = new Schema<IGuideSubdoc>(
+const TeamSchema = new Schema<ITeam>(
     {
-        name: {
-            type: String,
+        eventId: {
+            type: Schema.Types.ObjectId,
+            ref: "Event",
             required: true,
-            trim: true,
+            index: true,
         },
-        email: {
-            type: String,
-            required: true,
-            trim: true,
-            lowercase: true,
-        },
-        phone: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-    },
-    { _id: false }
-);
-
-const TeamSchema = new Schema<ITeamDocument>(
-    {
         teamCode: {
             type: String,
             required: true,
@@ -48,35 +40,35 @@ const TeamSchema = new Schema<ITeamDocument>(
             uppercase: true,
             index: true,
         },
-        projectName: {
+        projectName: { type: String, required: true },
+        projectCode: { type: String, required: true },
+        status: {
             type: String,
-            enum: PROJECT_NAMES,
-            required: true,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+            index: true,
         },
-        projectCode: {
-            type: String,
-            enum: PROJECT_CODES,
-            required: true,
+        teamLead: {
+            name: { type: String, required: true },
+            email: { type: String },
+            phone: { type: String, required: true },
         },
         guide: {
-            type: GuideSchema,
-            required: true,
+            name: { type: String },
+            email: { type: String },
+            phone: { type: String },
         },
-        memberCount: {
-            type: Number,
-            required: true,
-            min: 1,
-            max: 8,
-        },
+        registrationDate: { type: Date, default: Date.now },
+        approvedBy: { type: Schema.Types.ObjectId, ref: "User" },
+        approvedAt: { type: Date },
+        rejectionReason: { type: String },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
-// Indexes
-TeamSchema.index({ projectCode: 1 });
-TeamSchema.index({ createdAt: -1 });
+// Compound indexes
+TeamSchema.index({ eventId: 1, status: 1 });
+TeamSchema.index({ eventId: 1, projectCode: 1 });
 
-export const Team: Model<ITeamDocument> =
-    mongoose.models.Team || mongoose.model<ITeamDocument>("Team", TeamSchema);
+export const Team: Model<ITeam> =
+    mongoose.models.Team || mongoose.model<ITeam>("Team", TeamSchema);

@@ -1,33 +1,25 @@
-// Re-export all models for easy importing
+// Core models
 export { User } from "./User";
-export type { IUserDocument } from "./User";
+export { Event } from "./Event";
+export { EventRole } from "./EventRole";
 
+// Team models
 export { Team } from "./Team";
-export type { ITeamDocument, IGuideSubdoc } from "./Team";
+export { TeamMember } from "./TeamMember";
 
-export { Member } from "./Member";
-export type { IMemberDocument } from "./Member";
-
-export { AccommodationBooking } from "./AccommodationBooking";
-export type { IAccommodationBookingDocument } from "./AccommodationBooking";
-
+// Coupon/QR system
 export { Coupon } from "./Coupon";
-export type { ICouponDocument } from "./Coupon";
 
-export { Announcement } from "./Announcement";
-export type { IAnnouncementDocument } from "./Announcement";
-
-export { CommuteSchedule } from "./CommuteSchedule";
-export type { ICommuteScheduleDocument } from "./CommuteSchedule";
-
-export { VenueInfo } from "./VenueInfo";
-export type { IVenueInfoDocument } from "./VenueInfo";
-
+// Jury system
 export { EvaluationQuestion } from "./EvaluationQuestion";
-export type { IEvaluationQuestionDocument } from "./EvaluationQuestion";
-
+export { JuryAssignment } from "./JuryAssignment";
 export { EvaluationSubmission } from "./EvaluationSubmission";
-export type {
-    IEvaluationSubmissionDocument,
-    IRatingSubdoc,
-} from "./EvaluationSubmission";
+
+// Announcements
+export { Announcement } from "./Announcement";
+export { CommuteSchedule } from "./CommuteSchedule";
+export { VenueInfo } from "./VenueInfo";
+
+// Legacy - will be removed
+export { Member } from "./Member";
+export { AccommodationBooking } from "./AccommodationBooking";

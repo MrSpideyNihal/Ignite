@@ -1,61 +1,139 @@
-import { UserRole } from "@/types";
-import { auth } from "./auth";
-import { redirect } from "next/navigation";
-import { getCurrentUserWithRole, syncUserWithDatabase } from "./db-auth";
+"use server";
 
+import { auth } from "./auth";
+import { connectToDatabase } from "./mongodb";
+import { User, EventRole } from "@/models";
+import { redirect } from "next/navigation";
+import { EventRoleType, GlobalRole } from "@/types";
+
+export interface AuthUser {
+    id: string;
+    email: string;
+    name: string;
+    globalRole: GlobalRole;
+}
+
+export interface EventRoleInfo {
+    eventId: string;
+    role: EventRoleType;
+}
+
+// Get session
 export async function getSession() {
     return await auth();
 }
 
-export async function getCurrentUser() {
+// Get current user with database info
+export async function getCurrentUser(): Promise<AuthUser | null> {
     const session = await getSession();
-    return session?.user;
+    if (!session?.user?.email) return null;
+
+    await connectToDatabase();
+
+    let dbUser = await User.findOne({ email: session.user.email.toLowerCase() });
+
+    if (!dbUser) {
+        // Create user on first login
+        const isSuperAdmin = session.user.email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+
+        dbUser = await User.create({
+            email: session.user.email.toLowerCase(),
+            name: session.user.name || "User",
+            image: session.user.image,
+            globalRole: isSuperAdmin ? "super_admin" : "user",
+        });
+    }
+
+    return {
+        id: dbUser._id.toString(),
+        email: dbUser.email,
+        name: dbUser.name,
+        globalRole: dbUser.globalRole,
+    };
 }
 
-export async function requireAuth() {
-    const session = await getSession();
-    if (!session?.user) {
+// Check if user is super admin
+export async function requireSuperAdmin(): Promise<AuthUser> {
+    const user = await getCurrentUser();
+
+    if (!user) {
         redirect("/api/auth/signin");
     }
 
-    // Sync user with database on protected page access
-    const dbUser = await syncUserWithDatabase();
-
-    return { session, dbUser };
-}
-
-export async function requireRole(allowedRoles: UserRole[]) {
-    const { session, dbUser } = await requireAuth();
-
-    if (!dbUser || !allowedRoles.includes(dbUser.role as UserRole)) {
+    if (user.globalRole !== "super_admin") {
         redirect("/unauthorized");
     }
 
-    return { session, dbUser };
+    return user;
 }
 
-export async function requireAdmin() {
-    return requireRole([
-        "super_admin",
-        "accommodation_admin",
-        "food_admin",
-        "commute_admin",
-        "venue_admin",
-    ]);
+// Check if user has any role for an event
+export async function getUserEventRole(
+    eventId: string
+): Promise<EventRoleType | null> {
+    const user = await getCurrentUser();
+    if (!user) return null;
+
+    await connectToDatabase();
+
+    const eventRole = await EventRole.findOne({
+        eventId,
+        userId: user.id,
+    });
+
+    return eventRole?.role || null;
 }
 
-export async function requireSuperAdmin() {
-    return requireRole(["super_admin"]);
+// Require a specific event role
+export async function requireEventRole(
+    eventId: string,
+    allowedRoles: EventRoleType[]
+): Promise<{ user: AuthUser; role: EventRoleType }> {
+    const user = await getCurrentUser();
+
+    if (!user) {
+        redirect("/api/auth/signin");
+    }
+
+    // Super admin always has access
+    if (user.globalRole === "super_admin") {
+        return { user, role: "jury_admin" }; // Default to jury_admin for super admin
+    }
+
+    const role = await getUserEventRole(eventId);
+
+    if (!role || !allowedRoles.includes(role)) {
+        redirect("/unauthorized");
+    }
+
+    return { user, role };
 }
 
-export async function requireJury() {
-    return requireRole(["super_admin", "jury_admin", "jury_member"]);
+// Check access without redirect (for conditional rendering)
+export async function checkEventAccess(
+    eventId: string,
+    allowedRoles: EventRoleType[]
+): Promise<boolean> {
+    const user = await getCurrentUser();
+    if (!user) return false;
+
+    if (user.globalRole === "super_admin") return true;
+
+    const role = await getUserEventRole(eventId);
+    return !!role && allowedRoles.includes(role);
 }
 
-export async function requireJuryAdmin() {
-    return requireRole(["super_admin", "jury_admin"]);
-}
+// Get all event roles for current user
+export async function getUserAllEventRoles(): Promise<EventRoleInfo[]> {
+    const user = await getCurrentUser();
+    if (!user) return [];
 
-export function hasRole(userRole: UserRole | undefined, allowedRoles: UserRole[]): boolean {
-    return !!userRole && allowedRoles.includes(userRole);
+    await connectToDatabase();
+
+    const roles = await EventRole.find({ userId: user.id }).lean();
+
+    return roles.map((r) => ({
+        eventId: r.eventId.toString(),
+        role: r.role as EventRoleType,
+    }));
 }

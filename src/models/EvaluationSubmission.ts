@@ -1,130 +1,100 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export interface IRatingSubdoc {
+export type SubmissionStatus = "draft" | "submitted" | "locked" | "sent_back";
+
+export interface IRating {
     questionId: mongoose.Types.ObjectId;
     questionText: string;
     score: number;
+    maxScore: number;
     comment?: string;
 }
 
-export interface IEvaluationSubmissionDocument extends Document {
+export interface IEvaluationSubmission extends Document {
+    _id: mongoose.Types.ObjectId;
+    eventId: mongoose.Types.ObjectId;
     teamId: mongoose.Types.ObjectId;
     teamCode: string;
     projectName: string;
-    projectCode: string;
-    juryMemberId: mongoose.Types.ObjectId;
-    juryMemberName: string;
-    juryMemberEmail: string;
-    ratings: IRatingSubdoc[];
+    juryUserId: mongoose.Types.ObjectId;
+    juryName: string;
+    juryEmail: string;
+    status: SubmissionStatus;
+    ratings: IRating[];
     overallComment?: string;
     totalScore: number;
     maxPossibleScore: number;
-    isLocked: boolean;
+    weightedScore: number;
+    submittedAt?: Date;
     lockedAt?: Date;
+    sentBackAt?: Date;
+    sentBackReason?: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-const RatingSchema = new Schema<IRatingSubdoc>(
+const EvaluationSubmissionSchema = new Schema<IEvaluationSubmission>(
     {
-        questionId: {
+        eventId: {
             type: Schema.Types.ObjectId,
-            ref: "EvaluationQuestion",
+            ref: "Event",
             required: true,
+            index: true,
         },
-        questionText: {
-            type: String,
-            required: true,
-        },
-        score: {
-            type: Number,
-            required: true,
-            min: 0,
-            max: 10,
-        },
-        comment: {
-            type: String,
-            trim: true,
-        },
-    },
-    { _id: false }
-);
-
-const EvaluationSubmissionSchema = new Schema<IEvaluationSubmissionDocument>(
-    {
         teamId: {
             type: Schema.Types.ObjectId,
             ref: "Team",
             required: true,
             index: true,
         },
-        teamCode: {
-            type: String,
-            required: true,
-            uppercase: true,
-        },
-        projectName: {
-            type: String,
-            required: true,
-        },
-        projectCode: {
-            type: String,
-            required: true,
-        },
-        juryMemberId: {
+        teamCode: { type: String, required: true },
+        projectName: { type: String, required: true },
+        juryUserId: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
             index: true,
         },
-        juryMemberName: {
+        juryName: { type: String, required: true },
+        juryEmail: { type: String, required: true, lowercase: true },
+        status: {
             type: String,
-            required: true,
+            enum: ["draft", "submitted", "locked", "sent_back"],
+            default: "draft",
+            index: true,
         },
-        juryMemberEmail: {
-            type: String,
-            required: true,
-        },
-        ratings: [RatingSchema],
-        overallComment: {
-            type: String,
-            trim: true,
-            maxlength: 1000,
-        },
-        totalScore: {
-            type: Number,
-            required: true,
-            default: 0,
-        },
-        maxPossibleScore: {
-            type: Number,
-            required: true,
-            default: 0,
-        },
-        isLocked: {
-            type: Boolean,
-            default: false,
-        },
-        lockedAt: {
-            type: Date,
-        },
+        ratings: [
+            {
+                questionId: { type: Schema.Types.ObjectId, ref: "EvaluationQuestion" },
+                questionText: { type: String },
+                score: { type: Number, default: 0 },
+                maxScore: { type: Number, default: 10 },
+                comment: { type: String },
+            },
+        ],
+        overallComment: { type: String },
+        totalScore: { type: Number, default: 0 },
+        maxPossibleScore: { type: Number, default: 0 },
+        weightedScore: { type: Number, default: 0 },
+        submittedAt: { type: Date },
+        lockedAt: { type: Date },
+        sentBackAt: { type: Date },
+        sentBackReason: { type: String },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
-// Compound index for unique jury-team combination
+// Unique: one submission per jury per team
 EvaluationSubmissionSchema.index(
-    { teamId: 1, juryMemberId: 1 },
+    { juryUserId: 1, teamId: 1 },
     { unique: true }
 );
-EvaluationSubmissionSchema.index({ isLocked: 1 });
-EvaluationSubmissionSchema.index({ teamCode: 1 });
+EvaluationSubmissionSchema.index({ eventId: 1, status: 1 });
+EvaluationSubmissionSchema.index({ eventId: 1, teamId: 1 });
 
-export const EvaluationSubmission: Model<IEvaluationSubmissionDocument> =
+export const EvaluationSubmission: Model<IEvaluationSubmission> =
     mongoose.models.EvaluationSubmission ||
-    mongoose.model<IEvaluationSubmissionDocument>(
+    mongoose.model<IEvaluationSubmission>(
         "EvaluationSubmission",
         EvaluationSubmissionSchema
     );

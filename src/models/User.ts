@@ -1,79 +1,36 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { UserRole } from "@/types";
 
-export interface IUserDocument extends Document {
+export type GlobalRole = "super_admin" | "user";
+
+export interface IUser extends Document {
+    _id: mongoose.Types.ObjectId;
     email: string;
     name: string;
     image?: string;
-    role: UserRole;
-    phone?: string;
-    yearOfPassing?: number;
-    branch?: string;
-    assignedTeams: string[];
+    globalRole: GlobalRole;
     createdAt: Date;
     updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUserDocument>(
+const UserSchema = new Schema<IUser>(
     {
         email: {
             type: String,
             required: true,
             unique: true,
             lowercase: true,
-            trim: true,
             index: true,
         },
-        name: {
+        name: { type: String, required: true },
+        image: { type: String },
+        globalRole: {
             type: String,
-            required: true,
-            trim: true,
+            enum: ["super_admin", "user"],
+            default: "user",
         },
-        image: {
-            type: String,
-        },
-        role: {
-            type: String,
-            enum: [
-                "super_admin",
-                "accommodation_admin",
-                "food_admin",
-                "commute_admin",
-                "venue_admin",
-                "guest",
-                "jury_admin",
-                "jury_member",
-                "volunteer",
-            ],
-            default: "guest",
-        },
-        phone: {
-            type: String,
-            trim: true,
-        },
-        yearOfPassing: {
-            type: Number,
-            min: 2020,
-            max: 2035,
-        },
-        branch: {
-            type: String,
-            enum: ["CSE", "IT", "ECE", "Mechanical", "Civil", "Electrical", "Others"],
-        },
-        assignedTeams: [
-            {
-                type: String,
-            },
-        ],
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
-// Indexes for better query performance
-UserSchema.index({ role: 1 });
-UserSchema.index({ email: 1, role: 1 });
-
-export const User: Model<IUserDocument> =
-    mongoose.models.User || mongoose.model<IUserDocument>("User", UserSchema);
+export const User: Model<IUser> =
+    mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
