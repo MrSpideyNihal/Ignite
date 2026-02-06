@@ -31,17 +31,20 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     await connectToDatabase();
 
     let dbUser = await User.findOne({ email: session.user.email.toLowerCase() });
+    const isSuperAdmin = session.user.email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
     if (!dbUser) {
         // Create user on first login
-        const isSuperAdmin = session.user.email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
-
         dbUser = await User.create({
             email: session.user.email.toLowerCase(),
             name: session.user.name || "User",
             image: session.user.image,
             globalRole: isSuperAdmin ? "super_admin" : "user",
         });
+    } else if (isSuperAdmin && dbUser.globalRole !== "super_admin") {
+        // Auto-upgrade super admin if email matches
+        dbUser.globalRole = "super_admin";
+        await dbUser.save();
     }
 
     return {
