@@ -168,7 +168,7 @@ function UserCard({
                     {/* Global Role Badge */}
                     <div>
                         <Badge
-                            variant={user.globalRole === "super_admin" ? "error" : "neutral"}
+                            variant={user.globalRole === "super_admin" ? "danger" : "neutral"}
                         >
                             {user.globalRole === "super_admin" ? "Super Admin" : "User"}
                         </Badge>
@@ -178,9 +178,11 @@ function UserCard({
                     {user.eventRoles.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                             {user.eventRoles.map((role, idx) => (
-                                <Badge key={idx} variant="primary" className="text-xs">
-                                    {role.eventYear}: {roleDisplayNames[role.role] || role.role}
-                                </Badge>
+                                <span key={idx} className="text-xs">
+                                    <Badge variant="primary">
+                                        {role.eventYear}: {roleDisplayNames[role.role] || role.role}
+                                    </Badge>
+                                </span>
                             ))}
                         </div>
                     )}

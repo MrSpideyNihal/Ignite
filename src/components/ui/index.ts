@@ -9,4 +9,6 @@ export {
     PageLoading,
     Alert,
     Modal,
+    Button,
+    Input,
 } from "./UIComponents";

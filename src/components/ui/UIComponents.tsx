@@ -318,3 +318,70 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
         </div>
     );
 }
+
+// Button Component
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    variant?: "primary" | "outline" | "ghost" | "danger";
+    size?: "sm" | "md" | "lg";
+    children: React.ReactNode;
+}
+
+export function Button({
+    variant = "primary",
+    size = "md",
+    children,
+    className,
+    disabled,
+    ...props
+}: ButtonProps) {
+    const baseStyles = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+
+    const variants = {
+        primary: "bg-ignite-600 hover:bg-ignite-700 text-white focus:ring-ignite-500",
+        outline: "border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-gray-500",
+        ghost: "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300",
+        danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500",
+    };
+
+    const sizes = {
+        sm: "px-3 py-1.5 text-sm",
+        md: "px-4 py-2 text-sm",
+        lg: "px-6 py-3 text-base",
+    };
+
+    return (
+        <button
+            className={cn(baseStyles, variants[variant], sizes[size], className)}
+            disabled={disabled}
+            {...props}
+        >
+            {children}
+        </button>
+    );
+}
+
+// Input Component
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    error?: string;
+}
+
+export function Input({ className, error, ...props }: InputProps) {
+    return (
+        <div className="w-full">
+            <input
+                className={cn(
+                    "w-full px-3 py-2 rounded-lg border transition-colors",
+                    "bg-white dark:bg-gray-800",
+                    "border-gray-300 dark:border-gray-600",
+                    "text-gray-900 dark:text-gray-100",
+                    "placeholder-gray-400 dark:placeholder-gray-500",
+                    "focus:outline-none focus:ring-2 focus:ring-ignite-500 focus:border-transparent",
+                    error && "border-red-500 focus:ring-red-500",
+                    className
+                )}
+                {...props}
+            />
+            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        </div>
+    );
+}
