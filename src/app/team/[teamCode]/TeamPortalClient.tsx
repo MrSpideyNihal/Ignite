@@ -115,7 +115,7 @@ export default function TeamPortalClient({ teamCode, members, isApproved, eventD
                         <p>📅 Passing: {member.yearOfPassing}</p>
                     </div>
 
-                    {member.isAttending && !isApproved && (
+                    {member.isAttending && (
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <div className="grid md:grid-cols-2 gap-4">
                                 {/* Food Preference */}
@@ -209,24 +209,7 @@ export default function TeamPortalClient({ teamCode, members, isApproved, eventD
                         </div>
                     )}
 
-                    {/* Show badges for approved */}
-                    {member.isAttending && isApproved && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            <Badge variant={member.foodPreference === "veg" ? "success" : "danger"}>
-                                {member.foodPreference === "veg" ? "🥗 Veg" : "🍗 Non-Veg"}
-                            </Badge>
-                            {member.accommodation?.required && (
-                                <Badge variant="primary">
-                                    🏨 {member.accommodation.type === "suite" ? "Suite" : "Dorm"}
-                                    {member.accommodation.dates && member.accommodation.dates.length > 0 && (
-                                        <span className="ml-1 opacity-75">
-                                            ({member.accommodation.dates.length} nights)
-                                        </span>
-                                    )}
-                                </Badge>
-                            )}
-                        </div>
-                    )}
+
                 </div>
             ))}
         </div>
