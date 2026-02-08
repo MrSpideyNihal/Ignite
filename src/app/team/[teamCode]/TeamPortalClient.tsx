@@ -14,7 +14,7 @@ interface Member {
     branch: string;
     yearOfPassing: number;
     isAttending: boolean;
-    accommodation?: { required: boolean; type?: string };
+    accommodation?: { required: boolean; type?: string; dates?: string[] };
     foodPreference: string;
 }
 
@@ -22,10 +22,18 @@ interface Props {
     teamCode: string;
     members: Member[];
     isApproved: boolean;
+    eventDate: string;
 }
 
-export default function TeamPortalClient({ teamCode, members, isApproved }: Props) {
+export default function TeamPortalClient({ teamCode, members, isApproved, eventDate }: Props) {
     const [isPending, startTransition] = useTransition();
+
+    // Generate available dates (Event date - 1, Event date, Event date + 1)
+    const availableDates = [
+        new Date(new Date(eventDate).setDate(new Date(eventDate).getDate() - 1)),
+        new Date(eventDate),
+        new Date(new Date(eventDate).setDate(new Date(eventDate).getDate() + 1)),
+    ].map(d => d.toISOString().split('T')[0]);
 
     const handleToggleAttending = async (memberId: string, isAttending: boolean) => {
         startTransition(async () => {
@@ -52,11 +60,12 @@ export default function TeamPortalClient({ teamCode, members, isApproved }: Prop
     const handleUpdateAccommodation = async (
         memberId: string,
         required: boolean,
-        type?: "dorm" | "suite"
+        type?: "dorm" | "suite",
+        dates?: string[]
     ) => {
         startTransition(async () => {
             const result = await updateTeamMember(teamCode, memberId, {
-                accommodation: { required, type },
+                accommodation: { required, type, dates },
             });
             if (result.success) {
                 toast.success("Accommodation updated");
@@ -72,8 +81,8 @@ export default function TeamPortalClient({ teamCode, members, isApproved }: Prop
                 <div
                     key={member._id}
                     className={`p-4 rounded-lg border ${member.isAttending
-                            ? "bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
-                            : "bg-gray-100 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 opacity-60"
+                        ? "bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                        : "bg-gray-100 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 opacity-60"
                         }`}
                 >
                     <div className="flex items-start justify-between mb-3">
@@ -91,8 +100,8 @@ export default function TeamPortalClient({ teamCode, members, isApproved }: Prop
                                 onClick={() => handleToggleAttending(member._id, !member.isAttending)}
                                 disabled={isPending}
                                 className={`text-sm px-3 py-1 rounded ${member.isAttending
-                                        ? "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300"
-                                        : "bg-green-100 dark:bg-green-900/30 text-green-700"
+                                    ? "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300"
+                                    : "bg-green-100 dark:bg-green-900/30 text-green-700"
                                     }`}
                             >
                                 {member.isAttending ? "Mark Not Attending" : "Mark Attending"}
@@ -128,45 +137,92 @@ export default function TeamPortalClient({ teamCode, members, isApproved }: Prop
                                 </div>
 
                                 {/* Accommodation */}
-                                <div>
-                                    <label className="text-sm text-gray-500 block mb-1">
-                                        Accommodation
-                                    </label>
-                                    <select
-                                        value={
-                                            !member.accommodation?.required
-                                                ? "none"
-                                                : member.accommodation.type || "dorm"
-                                        }
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (val === "none") {
-                                                handleUpdateAccommodation(member._id, false);
-                                            } else {
-                                                handleUpdateAccommodation(member._id, true, val as "dorm" | "suite");
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-sm text-gray-500 block mb-1">
+                                            Accommodation Type
+                                        </label>
+                                        <select
+                                            value={
+                                                !member.accommodation?.required
+                                                    ? "none"
+                                                    : member.accommodation.type || "dorm"
                                             }
-                                        }}
-                                        disabled={isPending}
-                                        className="input text-sm"
-                                    >
-                                        <option value="none">Not Required</option>
-                                        <option value="dorm">🛏️ Dormitory</option>
-                                        <option value="suite">🏨 Suite</option>
-                                    </select>
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                const currentDates = member.accommodation?.dates || [];
+                                                if (val === "none") {
+                                                    handleUpdateAccommodation(member._id, false, undefined, []);
+                                                } else {
+                                                    handleUpdateAccommodation(member._id, true, val as "dorm" | "suite", currentDates);
+                                                }
+                                            }}
+                                            disabled={isPending}
+                                            className="input text-sm"
+                                        >
+                                            <option value="none">Not Required</option>
+                                            <option value="dorm">🛏️ Dormitory</option>
+                                            <option value="suite">🏨 Suite</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Dates Selection - Only show if accommodation is required */}
+                                    {member.accommodation?.required && (
+                                        <div>
+                                            <label className="text-sm text-gray-500 block mb-1">
+                                                Select Dates
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {availableDates.map((date) => {
+                                                    const isSelected = member.accommodation?.dates?.includes(date);
+                                                    return (
+                                                        <button
+                                                            key={date}
+                                                            onClick={() => {
+                                                                const currentDates = member.accommodation?.dates || [];
+                                                                const newDates = isSelected
+                                                                    ? currentDates.filter(d => d !== date)
+                                                                    : [...currentDates, date];
+
+                                                                handleUpdateAccommodation(
+                                                                    member._id,
+                                                                    true,
+                                                                    member.accommodation?.type as "dorm" | "suite",
+                                                                    newDates
+                                                                );
+                                                            }}
+                                                            disabled={isPending}
+                                                            className={`text-xs px-2 py-1 rounded border ${isSelected
+                                                                ? "bg-primary-100 border-primary-500 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                                                                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400"
+                                                                }`}
+                                                        >
+                                                            {new Date(date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Show food badge for approved */}
+                    {/* Show badges for approved */}
                     {member.isAttending && isApproved && (
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2">
                             <Badge variant={member.foodPreference === "veg" ? "success" : "danger"}>
                                 {member.foodPreference === "veg" ? "🥗 Veg" : "🍗 Non-Veg"}
                             </Badge>
                             {member.accommodation?.required && (
                                 <Badge variant="primary">
                                     🏨 {member.accommodation.type === "suite" ? "Suite" : "Dorm"}
+                                    {member.accommodation.dates && member.accommodation.dates.length > 0 && (
+                                        <span className="ml-1 opacity-75">
+                                            ({member.accommodation.dates.length} nights)
+                                        </span>
+                                    )}
                                 </Badge>
                             )}
                         </div>

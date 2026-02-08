@@ -14,6 +14,11 @@ export default async function TeamDetailPage({ params }: Props) {
     const team = await getTeamByCode(params.teamCode);
     if (!team) notFound();
 
+    // Fetch event for dates
+    const { Event } = await import("@/models");
+    const event = await Event.findById(team.eventId).lean();
+    const eventDate = event?.date ? new Date(event.date) : new Date();
+
     const statusColors = {
         pending: "warning",
         approved: "success",
@@ -141,7 +146,12 @@ export default async function TeamDetailPage({ params }: Props) {
                 <Card className="mt-6">
                     <CardHeader title={`Team Members (${team.members.length})`} />
                     <CardContent>
-                        <TeamPortalClient teamCode={team.teamCode} members={team.members} isApproved={team.status === "approved"} />
+                        <TeamPortalClient
+                            teamCode={team.teamCode}
+                            members={team.members}
+                            isApproved={team.status === "approved"}
+                            eventDate={eventDate.toISOString()}
+                        />
                     </CardContent>
                 </Card>
             </div>

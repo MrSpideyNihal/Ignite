@@ -178,7 +178,12 @@ export async function getTeamByCode(teamCode: string) {
             phone: m.phone,
             email: m.email,
             isAttending: m.isAttending,
-            accommodation: m.accommodation,
+            accommodation: m.accommodation ? {
+                required: m.accommodation.required || false,
+                type: m.accommodation.type,
+                dates: m.accommodation.dates?.map(d => d.toISOString()) || [],
+                roomAssignment: m.accommodation.roomAssignment
+            } : undefined,
             foodPreference: m.foodPreference,
         })),
     };
@@ -278,7 +283,11 @@ export async function updateTeamMember(
     memberId: string,
     data: {
         isAttending?: boolean;
-        accommodation?: { required: boolean; type?: "dorm" | "suite" };
+        accommodation?: {
+            required: boolean;
+            type?: "dorm" | "suite";
+            dates?: string[];
+        };
         foodPreference?: "veg" | "non-veg";
     }
 ): Promise<ActionState> {
