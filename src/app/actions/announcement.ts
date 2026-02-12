@@ -1,3 +1,5 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/mongodb";
 import { Announcement, EventRole } from "@/models";
 import { auth } from "@/lib/auth";
@@ -50,7 +52,7 @@ async function checkPermission(eventId: string) {
         return { authorized: false, message: "Insufficient permissions" };
     }
 
-    return { authorized: true, user: session.user };
+    return { authorized: true, user };
 }
 
 export async function createAnnouncement(
