@@ -74,11 +74,11 @@ export async function getEvents() {
         _id: e._id.toString(),
         name: e.name,
         year: e.year,
-        date: e.date.toISOString(),
-        description: e.description,
-        venue: e.venue,
+        date: e.date ? new Date(e.date).toISOString() : new Date().toISOString(),
+        description: e.description || "",
+        venue: e.venue || "",
         status: e.status,
-        settings: e.settings,
+        settings: e.settings || { registrationOpen: false, evaluationOpen: false, maxTeamSize: 5 },
     }));
 }
 
@@ -94,11 +94,11 @@ export async function getActiveEvents() {
         _id: e._id.toString(),
         name: e.name,
         year: e.year,
-        date: e.date.toISOString(),
-        description: e.description,
-        venue: e.venue,
+        date: e.date ? new Date(e.date).toISOString() : new Date().toISOString(),
+        description: e.description || "",
+        venue: e.venue || "",
         status: e.status,
-        settings: e.settings,
+        settings: e.settings || { registrationOpen: false, evaluationOpen: false, maxTeamSize: 5 },
     }));
 }
 
