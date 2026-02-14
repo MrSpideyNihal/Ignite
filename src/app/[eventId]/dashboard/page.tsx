@@ -39,11 +39,13 @@ export default async function EventDashboard({ params }: PageProps) {
 
     const quickLinks = [
         { href: `/${eventId}/teams`, label: "Teams", icon: "👥", description: "Manage team registrations" },
+        { href: `/${eventId}/import`, label: "Import Teams", icon: "📥", description: "Bulk import via Excel" },
         { href: `/${eventId}/jury`, label: "Jury", icon: "⚖️", description: "Evaluation management" },
         { href: `/${eventId}/food`, label: "Food", icon: "🍽️", description: "Food preferences & coupons" },
         { href: `/${eventId}/logistics`, label: "Logistics", icon: "📦", description: "QR scanning & attendance" },
         { href: `/${eventId}/accommodation`, label: "Accommodation", icon: "🏨", description: "Room assignments" },
         { href: `/${eventId}/announcements`, label: "Announcements", icon: "📢", description: "Event updates" },
+        { href: `/${eventId}/commute`, label: "Commute", icon: "🚌", description: "Bus schedules" },
     ];
 
     return (

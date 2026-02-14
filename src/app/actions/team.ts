@@ -62,6 +62,13 @@ export async function registerTeam(
     try {
         await connectToDatabase();
 
+        // Require authentication
+        const { auth } = await import("@/lib/auth");
+        const session = await auth();
+        if (!session?.user?.email) {
+            return { success: false, message: "You must sign in with Google before registering a team" };
+        }
+
         // Check event exists and registration is open
         const event = await Event.findById(eventId);
         if (!event) {
@@ -157,6 +164,52 @@ export async function getTeamByCode(teamCode: string) {
     const team = await Team.findOne({ teamCode: teamCode.toUpperCase() }).lean();
     if (!team) return null;
 
+    const members = await TeamMember.find({ teamId: team._id }).lean();
+
+    return {
+        _id: team._id.toString(),
+        eventId: team.eventId.toString(),
+        teamCode: team.teamCode,
+        projectName: team.projectName,
+        projectCode: team.projectCode,
+        status: team.status,
+        teamLead: team.teamLead,
+        guide: team.guide,
+        members: members.map((m) => ({
+            _id: m._id.toString(),
+            prefix: m.prefix,
+            name: m.name,
+            college: m.college,
+            branch: m.branch,
+            yearOfPassing: m.yearOfPassing,
+            phone: m.phone,
+            email: m.email,
+            isAttending: m.isAttending,
+            accommodation: m.accommodation ? {
+                required: m.accommodation.required || false,
+                type: m.accommodation.type,
+                dates: m.accommodation.dates?.map(d => d.toISOString()) || [],
+                roomAssignment: m.accommodation.roomAssignment
+            } : undefined,
+            foodPreference: m.foodPreference,
+        })),
+    };
+}
+
+// Get team by team lead phone number
+export async function getTeamByPhone(phone: string) {
+    await connectToDatabase();
+
+    // Clean phone number — only keep digits
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (cleanPhone.length < 10) return null;
+
+    // Search by last 10 digits to handle country code prefix
+    const phoneRegex = new RegExp(cleanPhone.slice(-10) + "$");
+    const team = await Team.findOne({ "teamLead.phone": { $regex: phoneRegex } }).lean();
+    if (!team) return null;
+
+    // Reuse the same format as getTeamByCode
     const members = await TeamMember.find({ teamId: team._id }).lean();
 
     return {

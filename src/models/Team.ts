@@ -69,6 +69,7 @@ const TeamSchema = new Schema<ITeam>(
 // Compound indexes
 TeamSchema.index({ eventId: 1, status: 1 });
 TeamSchema.index({ eventId: 1, projectCode: 1 });
+TeamSchema.index({ "teamLead.phone": 1 });
 
 export const Team: Model<ITeam> =
     mongoose.models.Team || mongoose.model<ITeam>("Team", TeamSchema);

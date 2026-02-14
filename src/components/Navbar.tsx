@@ -48,7 +48,7 @@ export function Navbar() {
                         {session && (
                             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-800">
                                 <Link
-                                    href="/admin"
+                                    href="/my-dashboard"
                                     className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                                 >
                                     Dashboard
@@ -157,7 +157,7 @@ export function Navbar() {
                                 <>
                                     <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
                                     <Link
-                                        href="/admin"
+                                        href="/my-dashboard"
                                         className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >

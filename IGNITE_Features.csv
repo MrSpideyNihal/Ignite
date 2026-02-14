@@ -1,0 +1,57 @@
+#,Category,Feature,Description,Status
+1,Website & Public Pages,Landing Page,Beautiful homepage with IGNITE branding and navigation,Working
+2,Website & Public Pages,Events Page,Browse all active IGNITE events and their details,Working
+3,Website & Public Pages,Team Registration,Register your team for an event with project details,Working
+4,Website & Public Pages,Team Portal,Access your team's dashboard using a unique team code,Working
+5,Website & Public Pages,Accommodation Page,View accommodation options and manage bookings,Working
+6,Website & Public Pages,Volunteer Dashboard,Announcements and bus schedules for volunteers,Working
+7,Login & Security,Google Sign-In,One-click login using Google account,Working
+8,Login & Security,Role-Based Access,Different access levels for admins and committee and jury,Working
+9,Login & Security,Super Admin,Auto-detects the main admin by email,Working
+10,Login & Security,Protected Routes,Unauthorized users are redirected to sign-in,Working
+11,Super Admin Panel,Admin Dashboard,Overview of all events with quick stats,Working
+12,Super Admin Panel,Create New Event,Set up a new IGNITE event with date and venue and settings,Working
+13,Super Admin Panel,Manage Event Settings,Toggle registration open/close and evaluation on/off,Working
+14,Super Admin Panel,Assign Committee Members,Add people to Registration or Food or Logistics or Jury committees,Working
+15,Super Admin Panel,Manage Users,View all users and promote to admin or remove users,Working
+16,Super Admin Panel,Create Users Manually,Add users by email without them needing to sign up first,Working
+17,Team Management,Team Registration Form,Submit team name and project name and all member details,Working
+18,Team Management,Auto Team Code,Each team gets a unique 6-digit code to access their portal,Working
+19,Team Management,Team Portal Dashboard,View and edit team info and member details and preferences,Working
+20,Team Management,Mark Attendance,Team members can mark if they are attending or not,Working
+21,Team Management,Food Preference,Each member can choose Veg or Non-Veg,Working
+22,Team Management,Accommodation Booking,Select accommodation type and dates needed,Working
+23,Team Management,Edit After Approval,Teams can still update preferences after being approved,Working
+24,Team Management,Teams List (Committee),Registration committee can see all team submissions,Working
+25,Team Management,Approve/Reject Teams,Committee can approve or reject team registrations,Working
+26,Team Management,Auto Coupon Generation,Food coupons are automatically created when a team is approved,Working
+27,Jury & Evaluation,Jury Admin Dashboard,Manage all jury-related activities for an event,Working
+28,Jury & Evaluation,Create Evaluation Questions,Add questions with score ranges for jury to grade,Working
+29,Jury & Evaluation,Edit/Delete Questions,Modify evaluation criteria anytime,Working
+30,Jury & Evaluation,Assign Jury to Teams,Assign which jury member evaluates which team,Working
+31,Jury & Evaluation,Jury Evaluation Page,Jury members see their assigned teams and score them,Working
+32,Jury & Evaluation,Score Submission,Jury submits scores for each question per team,Working
+33,Jury & Evaluation,Lock/Unlock Evaluations,Lock evaluations to prevent further changes,Working
+34,Jury & Evaluation,Progress Tracking,See how many evaluations are complete vs pending,Working
+35,QR Code & Coupons,Logistics Dashboard,View all coupons and their usage stats,Working
+36,QR Code & Coupons,QR/Code Scanner,Scan or enter coupon codes to mark meals as used,Working
+37,QR Code & Coupons,Mark Coupon Used,Manually mark a coupon as redeemed,Working
+38,QR Code & Coupons,Coupon Statistics,See how many lunch/tea/dinner/kit coupons are used vs available,Working
+39,Food Management,Food Dashboard,Overview of all food-related data for the event,Working
+40,Food Management,Veg/Non-Veg Count,See total counts of dietary preferences,Working
+41,Food Management,Meal-wise Statistics,Track coupon usage per meal type,Working
+42,Accommodation,Accommodation Dashboard,Admin view of all accommodation requests,Working
+43,Accommodation,Date-wise Breakdown,See how many people need rooms on each date,Working
+44,Accommodation,Room Type Stats,Breakdown by accommodation type (hostel or hotel etc),Working
+45,Announcements,Announcements Page,View all event announcements sorted by priority,Working
+46,Announcements,Create Announcement,Committee members can post announcements,Working
+47,Announcements,Delete Announcement,Remove outdated announcements,Working
+48,Announcements,Filter by Category,Filter announcements by type (general or food or logistics etc),Working
+49,Commute & Transport,Commute Page,View transport info for the event,Working
+50,Commute & Transport,Bus Schedule,Display bus routes and timings and stops,Working
+51,Data Export,Export Teams Data,Download all team details as Excel file,Working
+52,Data Export,Export Food Data,Download food preference data as Excel,Working
+53,Data Export,Export Coupons,Download coupon usage report as Excel,Working
+54,Data Export,Export Accommodation,Download accommodation requests as Excel,Working
+55,Data Export,Export Evaluations,Download jury scores and results as Excel,Working
+56,Data Export,Export Attendance,Download meal attendance records as Excel,Working
