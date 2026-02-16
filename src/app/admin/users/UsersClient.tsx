@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Card, CardContent, Badge, Button, Input } from "@/components/ui";
 import { updateUserGlobalRole, deleteUser, createUser } from "@/app/actions/user";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface EventRole {
     eventName: string;
@@ -147,10 +148,12 @@ function UserCard({
                     {/* User Info */}
                     <div className="flex items-center gap-3 flex-1">
                         {user.image ? (
-                            <img
+                            <Image
                                 src={user.image}
                                 alt={user.name}
-                                className="w-10 h-10 rounded-full"
+                                width={40}
+                                height={40}
+                                className="rounded-full"
                             />
                         ) : (
                             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">

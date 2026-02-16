@@ -68,7 +68,6 @@ const TeamMemberSchema = new Schema<ITeamMember>(
 );
 
 // Compound indexes
-TeamMemberSchema.index({ teamId: 1 });
 TeamMemberSchema.index({ eventId: 1, isAttending: 1 });
 
 export const TeamMember: Model<ITeamMember> =
