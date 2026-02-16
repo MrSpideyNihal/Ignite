@@ -19,3 +19,6 @@ export { EvaluationSubmission } from "./EvaluationSubmission";
 export { Announcement } from "./Announcement";
 export { CommuteSchedule } from "./CommuteSchedule";
 export { VenueInfo } from "./VenueInfo";
+
+// Password reset
+export { PasswordResetToken } from "./PasswordResetToken";

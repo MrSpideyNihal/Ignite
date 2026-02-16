@@ -112,6 +112,22 @@ export default async function EventDashboard({ params }: PageProps) {
                 <h2 className="text-xl font-semibold mt-8 mb-4">Export Data</h2>
                 <Card>
                     <CardContent className="p-6">
+                        {/* Export All Button - Prominent */}
+                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <a
+                                href={`/api/export-all/${eventId}`}
+                                className="btn-primary inline-flex items-center gap-2 text-lg px-6 py-3"
+                                download
+                            >
+                                📦 Export All Data (ZIP)
+                            </a>
+                            <p className="text-sm text-gray-500 mt-2">
+                                Download all event data (teams, food, coupons, accommodation, evaluations, attendance) in one ZIP file
+                            </p>
+                        </div>
+
+                        {/* Individual Exports */}
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Or export individually:</p>
                         <div className="flex flex-wrap gap-3">
                             <a href={`/api/export/${eventId}/teams`} className="btn-outline" download>
                                 Teams

@@ -7,6 +7,7 @@ export interface IUser extends Document {
     email: string;
     name: string;
     image?: string;
+    passwordHash?: string; // bcrypt hash, only for email/password users
     globalRole: GlobalRole;
     createdAt: Date;
     updatedAt: Date;
@@ -23,6 +24,7 @@ const UserSchema = new Schema<IUser>(
         },
         name: { type: String, required: true },
         image: { type: String },
+        passwordHash: { type: String }, // Optional, for email/password auth
         globalRole: {
             type: String,
             enum: ["super_admin", "user"],
