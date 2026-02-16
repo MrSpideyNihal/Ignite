@@ -100,8 +100,24 @@
 | 55 | Export Evaluations | Download jury scores and results as Excel | ✅ Working |
 | 56 | Export Attendance | Download meal attendance records as Excel | ✅ Working |
 
+## ✨ New Features (Latest Updates)
+
+| # | Feature | Description | Status |
+|---|---------|-------------|--------|
+| 57 | Smart Dashboard Navigation | Committee members automatically routed to their event dashboards | ✅ Working |
+| 58 | Excel Team Import | Bulk import teams via Excel/CSV file upload | ✅ Working |
+| 59 | Phone Portal Access | Access team portal using team lead phone number | ✅ Working |
+| 60 | Google Login Required | Teams must sign in with Google before registration | ✅ Working |
+
+## 🔮 Future Enhancements
+
+| # | Feature | Description | Status |
+|---|---------|-------------|--------|
+| 61 | Single Export All Button | Download all event data in one click | 📋 Planned |
+| 62 | Reset Password for Admin | Admin password reset functionality | 📋 Planned |
+
 ---
 
-**Total Features: 56 | All Working ✅**
+**Total Features: 60 | Working: 60 ✅ | Planned: 2 📋**
 
 *IGNITE V2 — Built for Darsana IGNITE event management*
