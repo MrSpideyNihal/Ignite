@@ -59,5 +59,4 @@
 58,Team Management,Excel Team Import,Bulk import teams via Excel/CSV file upload,Working
 59,Website & Public Pages,Phone Portal Access,Access team portal using team lead phone number,Working
 60,Login & Security,Google Login Required,Teams must sign in with Google before registration,Working
-61,Data Export,Single Export All Button,Download all event data in one click,Not Started
-62,Login & Security,Reset Password for Admin,Admin password reset functionality,Future
+61,Data Export,Export All Data,Download all event data in one ZIP file,Working

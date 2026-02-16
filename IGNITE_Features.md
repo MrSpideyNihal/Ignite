@@ -108,16 +108,10 @@
 | 58 | Excel Team Import | Bulk import teams via Excel/CSV file upload | ✅ Working |
 | 59 | Phone Portal Access | Access team portal using team lead phone number | ✅ Working |
 | 60 | Google Login Required | Teams must sign in with Google before registration | ✅ Working |
-
-## 🔮 Future Enhancements
-
-| # | Feature | Description | Status |
-|---|---------|-------------|--------|
-| 61 | Single Export All Button | Download all event data in one click | 📋 Planned |
-| 62 | Reset Password for Admin | Admin password reset functionality | 📋 Planned |
+| 61 | Export All Data | Download all event data in one ZIP file | ✅ Working |
 
 ---
 
-**Total Features: 60 | Working: 60 ✅ | Planned: 2 📋**
+**Total Features: 61 | All Working ✅**
 
 *IGNITE V2 — Built for Darsana IGNITE event management*
