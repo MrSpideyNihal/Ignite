@@ -1,7 +1,7 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/mongodb";
-import { Event, EventRole, User } from "@/models";
+import { Event, EventRole, User, Team, TeamMember, Coupon, EvaluationSubmission, EvaluationQuestion, JuryAssignment } from "@/models";
 import { requireSuperAdmin, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -291,5 +291,44 @@ export async function duplicateEvent(
     } catch (error) {
         console.error("Error duplicating event:", error);
         return { success: false, message: "Failed to duplicate event" };
+    }
+}
+
+// Delete event and all related data
+export async function deleteEvent(eventId: string): Promise<ActionState> {
+    await requireSuperAdmin();
+
+    try {
+        await connectToDatabase();
+
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return { success: false, message: "Event not found" };
+        }
+
+        // Get all team IDs for this event
+        const teams = await Team.find({ eventId }).select("_id");
+        const teamIds = teams.map(t => t._id);
+
+        // Delete all related data in parallel
+        await Promise.all([
+            TeamMember.deleteMany({ eventId }),
+            Coupon.deleteMany({ eventId }),
+            JuryAssignment.deleteMany({ eventId }),
+            EvaluationSubmission.deleteMany({ eventId }),
+            EvaluationQuestion.deleteMany({ eventId }),
+            EventRole.deleteMany({ eventId }),
+            Team.deleteMany({ eventId }),
+        ]);
+
+        // Delete the event itself
+        await Event.findByIdAndDelete(eventId);
+
+        revalidatePath("/admin");
+        revalidatePath("/admin/events");
+        return { success: true, message: `Event "${event.name}" and all related data deleted` };
+    } catch (error) {
+        console.error("Error deleting event:", error);
+        return { success: false, message: "Failed to delete event" };
     }
 }

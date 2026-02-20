@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateEventStatus, updateEventSettings, addEventRole, removeEventRole } from "@/app/actions/event";
+import { useRouter } from "next/navigation";
+import { updateEventStatus, updateEventSettings, addEventRole, removeEventRole, deleteEvent } from "@/app/actions/event";
 import { Input, Select, Button } from "@/components/forms";
 import { Badge } from "@/components/ui";
 import toast from "react-hot-toast";
@@ -41,6 +42,7 @@ const roleOptions = [
 
 export default function EventManageClient({ event, roles = [], showRoles }: Props) {
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
     const [newEmail, setNewEmail] = useState("");
     const [newRole, setNewRole] = useState<EventRoleType>("jury_member");
 
@@ -167,8 +169,8 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                             onClick={() => handleStatusChange(status as "draft" | "active" | "archived")}
                             disabled={isPending || event.status === status}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${event.status === status
-                                    ? "bg-primary-500 text-white"
-                                    : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                ? "bg-primary-500 text-white"
+                                : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                                 }`}
                         >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -191,6 +193,35 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                     onChange={(v) => handleSettingToggle("evaluationOpen", v)}
                     disabled={isPending}
                 />
+            </div>
+
+            {/* Delete Event */}
+            <div className="pt-6 mt-6 border-t border-red-200 dark:border-red-900">
+                <label className="block text-sm font-medium text-red-600 dark:text-red-400 mb-2">
+                    Danger Zone
+                </label>
+                <button
+                    onClick={() => {
+                        const first = confirm(`Are you sure you want to delete "${event.name}"? This will delete ALL teams, members, coupons, evaluations, and roles.`);
+                        if (!first) return;
+                        const second = confirm("This action is IRREVERSIBLE. Type OK to confirm.");
+                        if (!second) return;
+                        startTransition(async () => {
+                            const result = await deleteEvent(event._id);
+                            if (result.success) {
+                                toast.success(result.message);
+                                router.push("/admin");
+                            } else {
+                                toast.error(result.message);
+                            }
+                        });
+                    }}
+                    disabled={isPending}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                    🗑️ Delete Event
+                </button>
+                <p className="text-xs text-red-400 mt-1">Permanently deletes this event and all associated data.</p>
             </div>
         </div>
     );
