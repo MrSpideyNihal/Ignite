@@ -1,10 +1,11 @@
 import { requireEventRole } from "@/lib/auth-utils";
 import { getEvent } from "@/app/actions/event";
 import { getEventTeams, getTeamStats } from "@/app/actions/team";
-import { Card, CardHeader, CardContent, Badge, StatCard } from "@/components/ui";
+import { Card, CardContent, StatCard } from "@/components/ui";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import TeamsClient from "./TeamsClient";
+import ImportClient from "../import/ImportClient";
 
 export const dynamic = "force-dynamic";
 
@@ -32,9 +33,11 @@ export default async function TeamsPage({ params }: Props) {
                         </h1>
                         <p className="text-gray-500">{event.name}</p>
                     </div>
-                    <Link href={`/admin/events/${params.eventId}`} className="btn-outline text-sm">
-                        ← Back to Event
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <Link href={`/admin/events/${params.eventId}`} className="btn-outline text-sm">
+                            ← Back to Event
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -66,8 +69,12 @@ export default async function TeamsPage({ params }: Props) {
                     </CardContent>
                 </Card>
 
-                {/* Teams List */}
-                <TeamsClient eventId={params.eventId} teams={teams} />
+                {/* Teams List + Import (Client Component handles tabs) */}
+                <TeamsClient
+                    eventId={params.eventId}
+                    teams={teams}
+                    maxTeamSize={event.settings?.maxTeamSize || 6}
+                />
             </div>
         </div>
     );
