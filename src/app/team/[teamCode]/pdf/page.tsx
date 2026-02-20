@@ -5,6 +5,7 @@ import { Team } from "@/models";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import QRCode from "qrcode";
+import PrintButton from "./PrintButton";
 
 interface Props {
     params: { teamCode: string };
@@ -57,95 +58,132 @@ export default async function CouponPDFPage({ params }: Props) {
     };
 
     return (
-        <html>
-            <head>
-                <title>{team.teamCode} — Food Coupons</title>
-                <style>{`
-                    * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body { font-family: Arial, sans-serif; background: #f5f5f5; }
-                    .page-header { text-align: center; padding: 20px; background: #1a1a2e; color: white; }
-                    .page-header h1 { font-size: 22px; }
-                    .page-header p { font-size: 14px; opacity: 0.7; margin-top: 4px; }
-                    .print-btn {
-                        display: block; margin: 16px auto; padding: 10px 28px;
-                        background: #6366f1; color: white; border: none;
-                        border-radius: 8px; font-size: 15px; cursor: pointer;
-                    }
-                    .member-section { padding: 16px; }
-                    .member-name {
-                        font-size: 16px; font-weight: bold; color: #1a1a2e;
-                        padding: 8px 12px; background: #e0e7ff;
-                        border-radius: 8px; margin-bottom: 12px;
-                    }
-                    .coupons-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                        gap: 12px; margin-bottom: 20px;
-                    }
-                    .coupon-card {
-                        background: white; border: 2px dashed #6366f1;
-                        border-radius: 12px; padding: 16px;
-                        text-align: center; page-break-inside: avoid;
-                    }
-                    .coupon-card .meal-label {
-                        font-size: 14px; font-weight: bold; color: #4338ca;
-                        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
-                    }
-                    .coupon-card img { width: 140px; height: 140px; display: block; margin: 0 auto 8px; }
-                    .coupon-card .code {
-                        font-family: monospace; font-size: 13px; color: #374151;
-                        background: #f3f4f6; padding: 4px 8px; border-radius: 4px;
-                    }
-                    .coupon-card .member-label { font-size: 11px; color: #9ca3af; margin-top: 6px; }
-                    .no-coupon {
-                        background: #f9fafb; border: 2px dashed #d1d5db;
-                        border-radius: 12px; padding: 16px;
-                        text-align: center; color: #9ca3af; font-size: 13px;
-                    }
-                    @media print {
-                        .print-btn { display: none; }
-                        body { background: white; }
-                        .page-header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; }
-                        .coupon-card { border-color: #6366f1 !important; }
-                    }
-                `}</style>
-            </head>
-            <body>
-                <div className="page-header">
-                    <h1>🎟️ Food Coupons — {team.teamCode}</h1>
-                    <p>{event?.name ?? ""} | {team.projectName}</p>
+        <>
+            {/* Print-specific CSS */}
+            <style>{`
+                @media print {
+                    .print-hide { display: none !important; }
+                    nav, header, footer, .navbar { display: none !important; }
+                    body { background: white !important; }
+                    .pdf-header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .coupon-card-border { border-color: #6366f1 !important; }
+                }
+            `}</style>
+
+            <div className="min-h-screen" style={{ background: "#f5f5f5", fontFamily: "Arial, sans-serif" }}>
+                {/* Header */}
+                <div
+                    className="pdf-header"
+                    style={{
+                        textAlign: "center",
+                        padding: "20px",
+                        background: "#1a1a2e",
+                        color: "white",
+                    }}
+                >
+                    <h1 style={{ fontSize: "22px", margin: 0 }}>🎟️ Food Coupons — {team.teamCode}</h1>
+                    <p style={{ fontSize: "14px", opacity: 0.7, marginTop: "4px" }}>
+                        {event?.name ?? ""} | {team.projectName}
+                    </p>
                 </div>
 
-                {/* Print button via inline JS — safe in server component HTML context */}
-                {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
-                <button className="print-btn" id="print-btn">🖨️ Print / Save PDF</button>
-                <script dangerouslySetInnerHTML={{ __html: `document.getElementById('print-btn').onclick = function(){ window.print(); }` }} />
+                {/* Print Button — client component */}
+                <PrintButton />
 
+                {/* Coupons per member */}
                 {members.map((member) => {
                     const memberCoupons = memberCouponMap[member._id.toString()] ?? {};
                     return (
-                        <div key={member._id.toString()} className="member-section">
-                            <div className="member-name">👤 {member.prefix}. {member.name}</div>
-                            <div className="coupons-grid">
+                        <div key={member._id.toString()} style={{ padding: "16px" }}>
+                            <div
+                                style={{
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    color: "#1a1a2e",
+                                    padding: "8px 12px",
+                                    background: "#e0e7ff",
+                                    borderRadius: "8px",
+                                    marginBottom: "12px",
+                                }}
+                            >
+                                👤 {member.prefix}. {member.name}
+                            </div>
+                            <div
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                                    gap: "12px",
+                                    marginBottom: "20px",
+                                }}
+                            >
                                 {mealSlots.map((slot) => {
                                     const c = memberCoupons[slot];
                                     if (!c) {
                                         return (
-                                            <div key={slot} className="no-coupon">
-                                                {mealEmojis[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}<br />
-                                                <span>No coupon</span>
+                                            <div
+                                                key={slot}
+                                                style={{
+                                                    background: "#f9fafb",
+                                                    border: "2px dashed #d1d5db",
+                                                    borderRadius: "12px",
+                                                    padding: "16px",
+                                                    textAlign: "center",
+                                                    color: "#9ca3af",
+                                                    fontSize: "13px",
+                                                }}
+                                            >
+                                                {mealEmojis[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}
+                                                <br />
+                                                <span>No coupon generated</span>
                                             </div>
                                         );
                                     }
                                     return (
-                                        <div key={slot} className="coupon-card">
-                                            <div className="meal-label">
+                                        <div
+                                            key={slot}
+                                            className="coupon-card-border"
+                                            style={{
+                                                background: "white",
+                                                border: "2px dashed #6366f1",
+                                                borderRadius: "12px",
+                                                padding: "16px",
+                                                textAlign: "center",
+                                                pageBreakInside: "avoid",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    fontSize: "14px",
+                                                    fontWeight: "bold",
+                                                    color: "#4338ca",
+                                                    textTransform: "uppercase",
+                                                    letterSpacing: "1px",
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
                                                 {mealEmojis[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}
                                             </div>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={c.qrUrl} alt={`QR for ${c.code}`} />
-                                            <div className="code">{c.code}</div>
-                                            <div className="member-label">{member.name}</div>
+                                            <img
+                                                src={c.qrUrl}
+                                                alt={`QR for ${c.code}`}
+                                                style={{ width: 140, height: 140, display: "block", margin: "0 auto 8px" }}
+                                            />
+                                            <div
+                                                style={{
+                                                    fontFamily: "monospace",
+                                                    fontSize: "13px",
+                                                    color: "#374151",
+                                                    background: "#f3f4f6",
+                                                    padding: "4px 8px",
+                                                    borderRadius: "4px",
+                                                }}
+                                            >
+                                                {c.code}
+                                            </div>
+                                            <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "6px" }}>
+                                                {member.name}
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -153,7 +191,7 @@ export default async function CouponPDFPage({ params }: Props) {
                         </div>
                     );
                 })}
-            </body>
-        </html>
+            </div>
+        </>
     );
 }
