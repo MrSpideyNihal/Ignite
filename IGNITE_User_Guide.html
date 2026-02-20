@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGNITE V2 — Complete User Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1a1a2e;
+    line-height: 1.75;
+    background: #fff;
+    font-size: 11pt;
+  }
+
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 40px 50px;
+  }
+
+  /* Cover Page */
+  .cover {
+    text-align: center;
+    padding: 100px 40px 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin: -40px -50px 40px -50px;
+    page-break-after: always;
+  }
+  .cover .fire { font-size: 64pt; margin-bottom: 16px; display: block; }
+  .cover h1 {
+    font-size: 42pt; font-weight: 800; margin: 0 0 8px 0;
+    letter-spacing: -1.5px; border: none; padding: 0; color: white;
+  }
+  .cover .subtitle {
+    font-size: 16pt; font-weight: 300; opacity: 0.9; margin-bottom: 24px;
+  }
+  .cover .desc {
+    font-size: 11pt; opacity: 0.8; line-height: 1.8; max-width: 500px; margin: 0 auto;
+  }
+  .cover .version {
+    font-size: 10pt; opacity: 0.6; margin-top: 50px;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 44px 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #667eea;
+    page-break-after: avoid;
+  }
+
+  h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #2d2d5e;
+    margin: 32px 0 12px 0;
+    padding-bottom: 5px;
+    border-bottom: 1.5px solid #e4e4e4;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #4a4a8a;
+    margin: 22px 0 8px 0;
+    page-break-after: avoid;
+  }
+
+  h4 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #555;
+    margin: 16px 0 6px 0;
+  }
+
+  p {
+    margin: 7px 0;
+    color: #333;
+  }
+
+  strong { color: #1a1a2e; }
+
+  a { color: #667eea; text-decoration: none; }
+
+  /* Blockquotes */
+  blockquote {
+    border-left: 4px solid #667eea;
+    background: #f4f4ff;
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    color: #444;
+  }
+  blockquote p { margin: 4px 0; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 10pt;
+    page-break-inside: auto;
+    border: 1px solid #d0d0e0;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  thead {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+  }
+
+  th {
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border: none;
+  }
+
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #eaeaf0;
+    color: #333;
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) td { background: #f8f8fc; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* Lists */
+  ul, ol {
+    margin: 8px 0 8px 28px;
+    color: #333;
+  }
+
+  li {
+    margin: 5px 0;
+    padding-left: 4px;
+  }
+
+  ul.checklist {
+    list-style: none;
+    margin-left: 8px;
+  }
+
+  li.checkbox {
+    padding: 3px 0 3px 0;
+    color: #555;
+  }
+
+  li.checkbox.checked { color: #2d8a4e; }
+
+  /* Code */
+  code.inline {
+    background: #eeeeff;
+    color: #5b4fcf;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+    font-family: 'Consolas', 'Monaco', monospace;
+  }
+
+  hr {
+    border: none;
+    border-top: 2px solid #e4e4e4;
+    margin: 32px 0;
+  }
+
+  /* Print */
+  @media print {
+    body { font-size: 10pt; }
+    .container { padding: 15px 25px; max-width: 100%; }
+    .cover { margin: -15px -25px 25px -25px; padding: 70px 30px 60px; }
+    .cover h1 { font-size: 34pt; }
+    h1 { font-size: 18pt; margin-top: 32px; }
+    h2 { font-size: 13pt; margin-top: 24px; }
+    h3 { font-size: 11pt; }
+    table { font-size: 9pt; }
+    th { padding: 7px 10px; }
+    td { padding: 6px 10px; }
+    a { color: #333; }
+    h1, h2, h3, h4 { page-break-after: avoid; }
+    table, blockquote { page-break-inside: avoid; }
+    .no-print { display: none !important; }
+  }
+
+  /* Print button */
+  .print-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+    z-index: 100;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .print-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">📄 Save as PDF (Ctrl+P)</button>
+
+<div class="container">
+
+<!-- Cover Page -->
+<div class="cover">
+  <span class="fire">🔥</span>
+  <h1>IGNITE V2</h1>
+  <div class="subtitle">Complete User Guide</div>
+  <p class="desc">Your step-by-step guide to running events with IGNITE.<br>Every button, every click, explained in detail.</p>
+  <div class="version">Version 2.0 &bull; February 2026 &bull; For Users & Testers</div>
+</div>
+
+<h1>IGNITE V2 — Complete User Guide</h1>
+<blockquote><strong>This guide tells you exactly what to click, where to find it, and what happens next.</strong><br>Written for users and testers who have never used the system before.</blockquote>
+<hr>
+<h2>📋 Table of Contents</h2>
+<ol>
+<li><a href="#1-understanding-the-navigation-bar">Understanding the Navigation Bar</a></li>
+<li><a href="#2-logging-in">Logging In</a></li>
+<li><a href="#3-super-admin-creating--managing-events">Super Admin: Creating & Managing Events</a></li>
+<li><a href="#4-super-admin-assigning-committee-members">Super Admin: Assigning Committee Members</a></li>
+<li><a href="#5-team-registration-for-participants">Team Registration (For Participants)</a></li>
+<li><a href="#6-bulk-import-teams-via-excel">Bulk Import Teams via Excel</a></li>
+<li><a href="#7-approving-teams-registration-committee">Approving Teams (Registration Committee)</a></li>
+<li><a href="#8-team-portal-for-participants">Team Portal (For Participants)</a></li>
+<li><a href="#9-setting-up-jury--evaluation-jury-admin">Setting Up Jury & Evaluation (Jury Admin)</a></li>
+<li><a href="#10-qr-scanning--logistics">QR Scanning & Logistics</a></li>
+<li><a href="#11-food-management">Food Management</a></li>
+<li><a href="#12-jury-evaluation-for-jury-members">Jury Evaluation (For Jury Members)</a></li>
+<li><a href="#13-announcements">Announcements</a></li>
+<li><a href="#14-accommodation--commute">Accommodation & Commute</a></li>
+<li><a href="#15-exporting-data">Exporting Data</a></li>
+<li><a href="#16-post-event--archiving">Post-Event & Archiving</a></li>
+<li><a href="#17-troubleshooting--common-scenarios">Troubleshooting & Common Scenarios</a></li>
+<li><a href="#18-complete-route-reference">Complete Route Reference</a></li>
+<li><a href="#19-event-day-checklist">Event Day Checklist</a></li>
+</ol>
+<hr>
+<h2>1. Understanding the Navigation Bar</h2>
+<p>The navigation bar is the <strong>horizontal bar at the very top</strong> of every page.</p>
+<h3>If You Are NOT Logged In</h3>
+<p>You see these items from <strong>left to right</strong>:</p>
+<table>
+<thead><tr>
+<th>Position</th>
+<th>What You See</th>
+<th>What It Does</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Far left</td>
+<td>🔥 <strong>IGNITE 2026</strong> (fire icon + text)</td>
+<td>Click to go to the home page</td>
+</tr>
+<tr>
+<td>Middle</td>
+<td><strong>Home</strong></td>
+<td>Goes to the landing page</td>
+</tr>
+<tr>
+<td>Middle</td>
+<td><strong>Register Team</strong></td>
+<td>Goes to the events list where you pick an event to register for</td>
+</tr>
+<tr>
+<td>Middle</td>
+<td><strong>Team Portal</strong></td>
+<td>Enter your phone number or team code to check your team status</td>
+</tr>
+<tr>
+<td>Far right</td>
+<td><strong>Volunteer</strong> (small gray button)</td>
+<td>View event announcements and bus schedules</td>
+</tr>
+<tr>
+<td>Far right</td>
+<td><strong>Staff Login</strong> (blue button)</td>
+<td>Click to sign in with Google — only for admins and committee members</td>
+</tr>
+</tbody></table>
+<h3>If You ARE Logged In</h3>
+<p>Everything above stays the same, plus:</p>
+<table>
+<thead><tr>
+<th>Position</th>
+<th>What You See</th>
+<th>What It Does</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>After "Team Portal"</td>
+<td><strong>Dashboard</strong> (separated by a vertical line)</td>
+<td>Takes you to your role-specific dashboard automatically</td>
+</tr>
+<tr>
+<td>Far right</td>
+<td>Your <strong>name</strong> + <strong>Google profile photo</strong> (small circle)</td>
+<td>Shows who is logged in</td>
+</tr>
+<tr>
+<td>Far right</td>
+<td><strong>Logout</strong> (gray button)</td>
+<td>Signs you out</td>
+</tr>
+</tbody></table>
+<h3>On Mobile Phone</h3>
+<ul>
+<li>You see the 🔥 fire logo on the left and a <strong>☰ menu icon</strong> (three horizontal lines) on the right</li>
+<li><strong>Tap the ☰ icon</strong> to open a dropdown menu with all the same links</li>
+<li>Tap any link to navigate; the menu closes automatically</li>
+</ul>
+<hr>
+<h2>2. Logging In</h2>
+<h3>Who Needs to Log In?</h3>
+<ul>
+<li><strong>Super Admins</strong> (event organizers)</li>
+<li><strong>Committee Members</strong> (registration, jury, food, logistics)</li>
+<li><strong>Teams registering</strong> for an event (Google sign-in required before filling the form)</li>
+</ul>
+<p><strong>Note:</strong> Team Portal access (<code class="inline">/team</code>) does NOT require login — anyone can check their team using phone number or team code.</p>
+<h3>How to Log In</h3>
+<ol>
+<li>Look at the <strong>top-right corner</strong> of the page</li>
+<li>Click the <strong>blue "Staff Login" button</strong></li>
+<li>A Google sign-in window opens</li>
+<li>Select your Google account (must be the same email the Super Admin added for your role)</li>
+<li>After sign-in, you return to the website</li>
+<li>Your <strong>name and profile photo</strong> now appear in the top-right corner</li>
+<li>A <strong>"Dashboard"</strong> link appears in the navbar — click it to go to your dashboard</li>
+</ol>
+<h3>How to Log Out</h3>
+<ol>
+<li>Click the <strong>gray "Logout" button</strong> in the top-right corner (next to your profile photo)</li>
+<li>You're signed out and returned to the home page</li>
+</ol>
+<hr>
+<h2>3. Super Admin: Creating & Managing Events</h2>
+<h3>Go to Admin Dashboard</h3>
+<ol>
+<li>Log in with Google (your email must match the Super Admin email)</li>
+<li>Click <strong>"Dashboard"</strong> in the navbar</li>
+<li>You land on the <strong>Super Admin Dashboard</strong> page</li>
+</ol>
+<p><strong>What you see:</strong></p>
+<ul>
+<li>At the top, two buttons side by side:</li>
+<li><strong>"+ Create New Event"</strong> (blue filled button on the left)</li>
+<li><strong>"Manage Global Users"</strong> (outlined button on the right)</li>
+<li>Below that, three sections:</li>
+<li><strong>Active Events</strong> — Events currently running (visible to public)</li>
+<li><strong>Draft Events</strong> — Events being prepared (not visible to public)</li>
+<li><strong>Archived Events</strong> — Past completed events</li>
+</ul>
+<h3>Create a New Event</h3>
+<ol>
+<li>Click the <strong>blue "+ Create New Event" button</strong> at the top</li>
+<li>You're taken to a form page. Fill in every field:</li>
+</ol>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Type</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Event Name</strong></td>
+<td>Full event name</td>
+<td><code class="inline">IGNITE 2026</code></td>
+</tr>
+<tr>
+<td><strong>Year</strong></td>
+<td>Event year</td>
+<td><code class="inline">2026</code></td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>Click the calendar icon, pick a date</td>
+<td><code class="inline">15 March 2026</code></td>
+</tr>
+<tr>
+<td><strong>Venue</strong></td>
+<td>Event location</td>
+<td><code class="inline">IIT Delhi Campus</code></td>
+</tr>
+<tr>
+<td><strong>Description</strong></td>
+<td>Short description</td>
+<td><code class="inline">Annual innovation hackathon</code></td>
+</tr>
+<tr>
+<td><strong>Max Team Size</strong></td>
+<td>Maximum members per team</td>
+<td><code class="inline">5</code></td>
+</tr>
+</tbody></table>
+<ol>
+<li>Click the <strong>"Create Event"</strong> button at the bottom of the form</li>
+<li>✅ Green notification: <em>"Event created successfully"</em></li>
+<li>You're redirected back to the admin dashboard</li>
+<li>Your event appears under <strong>"Draft Events"</strong> as a card</li>
+</ol>
+<h3>Activate the Event (Make It Visible)</h3>
+<ol>
+<li>On the admin dashboard, find your event card under <strong>"Draft Events"</strong></li>
+<li>Click the <strong>"Manage Event →"</strong> button at the bottom of the card</li>
+<li>You're taken to the <strong>Event Management</strong> page</li>
+<li>On the <strong>left side</strong>, look for the card titled <strong>"Event Settings"</strong></li>
+<li>Under <strong>"Event Status"</strong>, you see three buttons in a row:</li>
+</ol>
+<ul>
+<li><strong>Draft</strong> (currently blue/highlighted)</li>
+<li><strong>Active</strong></li>
+<li><strong>Archived</strong></li>
+</ul>
+<ol>
+<li>Click the <strong>"Active"</strong> button</li>
+<li>✅ It turns blue. Green notification: <em>"Event status updated"</em></li>
+<li>Your event is now visible on the public events page</li>
+</ol>
+<h3>Open/Close Registration</h3>
+<p>On the same Event Management page, below the status buttons:</p>
+<ol>
+<li>You see two <strong>toggle switches</strong> (small sliding pills):</li>
+</ol>
+<ul>
+<li><strong>Registration Open</strong> — Slide right to turn ON (turns blue), slide left to turn OFF (turns gray)</li>
+<li><strong>Evaluation Open</strong> — Same toggle, controls whether jury can evaluate</li>
+</ul>
+<ol>
+<li>To <strong>open registration</strong>: Click the "Registration Open" toggle so it turns <strong>blue</strong></li>
+<li>✅ Green notification: <em>"Settings updated"</em></li>
+<li>Teams can now register for your event</li>
+</ol>
+<h3>Open/Close Evaluation</h3>
+<ul>
+<li>Toggle <strong>"Evaluation Open"</strong> to <strong>ON</strong> when you want jury members to start evaluating</li>
+<li>Toggle it <strong>OFF</strong> when evaluation period is over</li>
+</ul>
+<hr>
+<h2>4. Super Admin: Assigning Committee Members</h2>
+<h3>Where to Do This</h3>
+<ol>
+<li>Go to Admin Dashboard (click <strong>"Dashboard"</strong> in navbar)</li>
+<li>Find your event card → Click <strong>"Manage Event →"</strong></li>
+<li>Look at the <strong>right side card</strong> titled <strong>"Committee Members"</strong> with subtitle "Manage roles for this event"</li>
+</ol>
+<h3>Add a Committee Member</h3>
+<p>Inside the "Committee Members" card, you see three things in a row:</p>
+<ol>
+<li><strong>Text input box</strong> (placeholder: "email@gmail.com") — Type the person's <strong>exact Google email</strong> here</li>
+<li><strong>Dropdown menu</strong> — Click it to see role options:</li>
+</ol>
+<table>
+<thead><tr>
+<th>Role Option</th>
+<th>What This Person Can Do</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Jury Admin</strong></td>
+<td>Create evaluation questions, assign teams to jury members, lock evaluations</td>
+</tr>
+<tr>
+<td><strong>Jury Member</strong></td>
+<td>Evaluate teams assigned to them, submit scores</td>
+</tr>
+<tr>
+<td><strong>Registration Committee</strong></td>
+<td>View all teams, approve or reject registrations</td>
+</tr>
+<tr>
+<td><strong>Food Committee</strong></td>
+<td>View food preferences dashboard, manage coupons</td>
+</tr>
+<tr>
+<td><strong>Logistics Committee</strong></td>
+<td>Use QR scanner for attendance, scan food coupons</td>
+</tr>
+</tbody></table>
+<ol>
+<li><strong>"Add" button</strong> (small blue button) — Click to assign the role</li>
+</ol>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Type the person's Google email (e.g., <code class="inline">bablu@gmail.com</code>)</li>
+<li>Click the dropdown → Select a role (e.g., "Registration Committee")</li>
+<li>Click the <strong>"Add"</strong> button</li>
+<li>✅ Green notification: <em>"Role assigned"</em></li>
+<li>The person's name, email, and role badge appear in the list below</li>
+</ol>
+<h3>Remove a Committee Member</h3>
+<ol>
+<li>In the list below, each member shows: <strong>Name</strong> (bold), <strong>email</strong> (gray), <strong>role badge</strong> (blue), and a <strong>red ✕ button</strong></li>
+<li>Click the <strong>red ✕ button</strong> next to the person</li>
+<li>A popup asks: "Remove this role?"</li>
+<li>Click <strong>OK</strong></li>
+<li>The person is removed from the list</li>
+</ol>
+<h3>Quick Access Cards (Below)</h3>
+<p>Below the two main cards, you see <strong>4 shortcut cards</strong> in a row:</p>
+<table>
+<thead><tr>
+<th>Icon</th>
+<th>Label</th>
+<th>Goes To</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>👥</td>
+<td><strong>Teams</strong></td>
+<td>Team registrations list</td>
+</tr>
+<tr>
+<td>⚖️</td>
+<td><strong>Jury</strong></td>
+<td>Jury management</td>
+</tr>
+<tr>
+<td>🍽️</td>
+<td><strong>Food</strong></td>
+<td>Food preferences dashboard</td>
+</tr>
+<tr>
+<td>📱</td>
+<td><strong>QR Scanner</strong></td>
+<td>QR scanning & attendance page</td>
+</tr>
+</tbody></table>
+<p>Click any card to jump to that section directly.</p>
+<hr>
+<h2>5. Team Registration (For Participants)</h2>
+<h3>Step 1: Find the Event</h3>
+<ol>
+<li>Open the website</li>
+<li>In the navbar, click <strong>"Register Team"</strong></li>
+<li>You see a list of active events as cards (each shows event name, date, venue)</li>
+<li>Click the <strong>"Register →"</strong> button on your event's card</li>
+</ol>
+<h3>Step 2: Sign In (Required)</h3>
+<ol>
+<li>If you're not signed in, you see: <em>"You need to sign in with Google before registering"</em></li>
+<li>Click the <strong>"Sign in with Google"</strong> button (large blue button)</li>
+<li>Google sign-in window → Select your account</li>
+<li>After sign-in, the registration form appears</li>
+</ol>
+<h3>Step 3: Fill the Registration Form</h3>
+<p><strong>Project Details (Required)</strong></p>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Type</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Project Name</strong></td>
+<td>Full name of your project</td>
+<td><code class="inline">Smart Waste Bin</code></td>
+</tr>
+<tr>
+<td><strong>Project Code</strong></td>
+<td>Short code given by organizers</td>
+<td><code class="inline">IOT-01</code></td>
+</tr>
+</tbody></table>
+<p><strong>Team Lead Details (Required)</strong></p>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Type</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Team Lead Name</strong></td>
+<td>Full name of team leader</td>
+<td><code class="inline">Rahul Kumar</code></td>
+</tr>
+<tr>
+<td><strong>Team Lead Email</strong></td>
+<td>Leader's email</td>
+<td><code class="inline">rahul@gmail.com</code></td>
+</tr>
+<tr>
+<td><strong>Team Lead Phone</strong></td>
+<td>10-digit phone number ⚠️ <strong>REMEMBER THIS — needed to access Team Portal later</strong></td>
+<td><code class="inline">9876543210</code></td>
+</tr>
+</tbody></table>
+<p><strong>Guide Details (Optional — skip if no guide/mentor)</strong></p>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Guide Name</strong></td>
+<td>Name of teacher/mentor</td>
+</tr>
+<tr>
+<td><strong>Guide Email</strong></td>
+<td>Guide's email</td>
+</tr>
+<tr>
+<td><strong>Guide Phone</strong></td>
+<td>Guide's phone</td>
+</tr>
+</tbody></table>
+<p><strong>Team Members</strong></p>
+<p>For each member, you see a card with these fields:</p>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Fill</th>
+<th>Required?</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Prefix</strong></td>
+<td>Click dropdown → Mr / Ms / Dr / N/A</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>Full name</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>College</strong></td>
+<td>College/university name</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Branch</strong></td>
+<td>Department (CSE, ECE, etc.)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Year of Passing</strong></td>
+<td>Graduation year (e.g., 2026)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Phone</strong></td>
+<td>10-digit phone number</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><strong>Email</strong></td>
+<td>Email address</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><strong>Food Preference</strong></td>
+<td>Click dropdown → Vegetarian / Non-Vegetarian</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>To add more members:</strong> Click <strong>"+ Add Member"</strong> button below the member cards</li>
+<li><strong>To remove a member:</strong> Click the <strong>red "Remove"</strong> button on that member's card</li>
+<li>Maximum members is shown (set by the event organizer)</li>
+</ul>
+<h3>Step 4: Submit</h3>
+<ol>
+<li>Click the <strong>blue "Register Team" button</strong> at the bottom</li>
+<li><strong>If successful:</strong> A green box appears with your <strong>Team Code</strong> (e.g., <code class="inline">IGN26-A1B2</code>)</li>
+<li>⚠️ <strong>WRITE DOWN YOUR TEAM CODE</strong> — you need it to access Team Portal</li>
+<li><strong>If error:</strong> A red box explains what's wrong (e.g., "Project name required"). Fix it and try again.</li>
+</ol>
+<hr>
+<h2>6. Bulk Import Teams via Excel</h2>
+<h3>Who Does This: Super Admin or Registration Committee</h3>
+<h3>Step 1: Go to Import Page</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> in navbar</li>
+<li>On the Event Dashboard, under <strong>"Quick Access"</strong>, find the card with <strong>📥 icon</strong> labeled <strong>"Import Teams"</strong></li>
+<li>Click it</li>
+</ol>
+<h3>Step 2: Prepare Your Excel File</h3>
+<p>Create an Excel file (<code class="inline">.xlsx</code>) with these columns:</p>
+<table>
+<thead><tr>
+<th>Column</th>
+<th>Required?</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="inline">project_name</code></td>
+<td>✅</td>
+<td><code class="inline">Smart Bin</code></td>
+</tr>
+<tr>
+<td><code class="inline">project_code</code></td>
+<td>✅</td>
+<td><code class="inline">IOT-01</code></td>
+</tr>
+<tr>
+<td><code class="inline">team_lead_name</code></td>
+<td>✅ (first row of each team)</td>
+<td><code class="inline">Rahul Kumar</code></td>
+</tr>
+<tr>
+<td><code class="inline">team_lead_phone</code></td>
+<td>✅ (first row of each team)</td>
+<td><code class="inline">9876543210</code></td>
+</tr>
+<tr>
+<td><code class="inline">name</code></td>
+<td>✅</td>
+<td><code class="inline">Rahul Kumar</code></td>
+</tr>
+<tr>
+<td><code class="inline">college</code></td>
+<td>✅</td>
+<td><code class="inline">IIT Delhi</code></td>
+</tr>
+<tr>
+<td><code class="inline">branch</code></td>
+<td>✅</td>
+<td><code class="inline">CSE</code></td>
+</tr>
+<tr>
+<td><code class="inline">year_of_passing</code></td>
+<td>✅</td>
+<td><code class="inline">2026</code></td>
+</tr>
+<tr>
+<td><code class="inline">phone</code></td>
+<td>Optional</td>
+<td><code class="inline">9876543210</code></td>
+</tr>
+<tr>
+<td><code class="inline">food_preference</code></td>
+<td>Optional (default: veg)</td>
+<td><code class="inline">veg</code> or <code class="inline">non-veg</code></td>
+</tr>
+</tbody></table>
+<p><strong>Rule:</strong> Rows with the <strong>same <code class="inline">project_code</code></strong> become <strong>one team</strong>. First row must have team lead info; other rows can leave team lead columns empty.</p>
+<p><strong>Example:</strong></p>
+<table>
+<thead><tr>
+<th>project_name</th>
+<th>project_code</th>
+<th>team_lead_name</th>
+<th>team_lead_phone</th>
+<th>name</th>
+<th>college</th>
+<th>branch</th>
+<th>year_of_passing</th>
+<th>food_preference</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Smart Bin</td>
+<td>IOT-01</td>
+<td>Rahul</td>
+<td>9876543210</td>
+<td>Rahul Kumar</td>
+<td>IIT Delhi</td>
+<td>CSE</td>
+<td>2026</td>
+<td>veg</td>
+</tr>
+<tr>
+<td>Smart Bin</td>
+<td>IOT-01</td>
+<td></td>
+<td></td>
+<td>Priya Patel</td>
+<td>IIT Delhi</td>
+<td>ECE</td>
+<td>2027</td>
+<td>non-veg</td>
+</tr>
+<tr>
+<td>EcoTrack</td>
+<td>ENV-02</td>
+<td>Neha</td>
+<td>9123456789</td>
+<td>Neha Sharma</td>
+<td>NIT Trichy</td>
+<td>IT</td>
+<td>2026</td>
+<td>veg</td>
+</tr>
+</tbody></table>
+<p>This creates 2 teams: "Smart Bin" (2 members) and "EcoTrack" (1 member).</p>
+<h3>Step 3: Upload</h3>
+<ol>
+<li>Click <strong>"Choose File"</strong> or drag-and-drop your Excel file</li>
+<li>A preview table shows all parsed teams</li>
+<li>Review for errors (shown in red)</li>
+<li>Click the <strong>"Import All"</strong> button</li>
+<li>✅ Green notification: <em>"X teams imported successfully"</em></li>
+<li>Teams appear as "pending" in the teams list (need approval)</li>
+</ol>
+<hr>
+<h2>7. Approving Teams (Registration Committee)</h2>
+<h3>Step 1: Go to Teams List</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> in navbar</li>
+<li>You land on the Teams page (<code class="inline">/{eventId}/teams</code>)</li>
+</ol>
+<p><strong>What you see:</strong></p>
+<ul>
+<li><strong>Page title:</strong> "Team Registration" with event name below</li>
+<li><strong>4 stat boxes</strong> in a row:</li>
+<li><strong>Total Teams</strong> — All registered teams</li>
+<li><strong>Pending</strong> — Waiting for your action (yellow border if > 0)</li>
+<li><strong>Approved</strong> — Already approved</li>
+<li><strong>Total Members</strong> — Total attending</li>
+<li><strong>Food stats card</strong> in the middle: Green number for <strong>Vegetarian</strong>, Red number for <strong>Non-Vegetarian</strong></li>
+<li><strong>Team list</strong> below</li>
+</ul>
+<h3>Step 2: Review Each Team</h3>
+<p>Each team in the list shows:</p>
+<ul>
+<li><strong>Team Code</strong> (e.g., IGN26-A1B2)</li>
+<li><strong>Project Name</strong></li>
+<li><strong>Status badge:</strong> 🟡 Pending / 🟢 Approved / 🔴 Rejected</li>
+<li><strong>Team Lead</strong> name and phone</li>
+<li><strong>Member count</strong></li>
+</ul>
+<h3>Step 3: Approve or Reject</h3>
+<ol>
+<li>Click on a pending team to expand its full details</li>
+<li>Review member information (names, colleges, branches, food preferences)</li>
+<li>Click one of the two buttons:</li>
+</ol>
+<table>
+<thead><tr>
+<th>Button</th>
+<th>Color</th>
+<th>What Happens</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Approve</strong></td>
+<td>Green</td>
+<td>Status → Approved. Food coupons auto-generated for ALL members . Team can now access Team Portal.</td>
+</tr>
+<tr>
+<td><strong>Reject</strong></td>
+<td>Red</td>
+<td>Status → Rejected.</td>
+</tr>
+</tbody></table>
+<p>✅ Green notification confirms the action.</p>
+<hr>
+<h2>8. Team Portal (For Participants)</h2>
+<h3>No Login Required — Anyone can use this</h3>
+<h3>Step 1: Go to Team Portal</h3>
+<ol>
+<li>In the navbar, click <strong>"Team Portal"</strong> (or go to <code class="inline">/team</code>)</li>
+<li>You see a centered card with a 🎫 ticket icon</li>
+</ol>
+<h3>Step 2: Choose How to Find Your Team</h3>
+<p>At the top of the card, you see a <strong>toggle bar</strong> with two tabs:</p>
+<table>
+<thead><tr>
+<th>Tab (click to select)</th>
+<th>What to Enter</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>📱 Phone Number</strong> (selected by default, highlighted)</td>
+<td>Team lead's phone number</td>
+</tr>
+<tr>
+<td><strong>🔑 Team Code</strong> (click to switch)</td>
+<td>Your team code (e.g., IGN26-A1B2)</td>
+</tr>
+</tbody></table>
+<p><strong>Using Phone Number (easiest):</strong></p>
+<ol>
+<li>The "📱 Phone Number" tab should already be highlighted</li>
+<li>Type the <strong>team lead's phone number</strong> (10 digits) in the input field</li>
+<li>Click the blue <strong>"Access Team"</strong> button</li>
+<li>✅ If found → You go to your team dashboard</li>
+<li>❌ If not found → Red error: <em>"No team found with this phone number. Make sure to use the team lead's phone number."</em></li>
+</ol>
+<p><strong>Using Team Code:</strong></p>
+<ol>
+<li>Click the <strong>"🔑 Team Code"</strong> tab (it becomes highlighted)</li>
+<li>The input field changes to show placeholder "IGN26-XXXX"</li>
+<li>Type your team code — it auto-converts to uppercase</li>
+<li>Click the blue <strong>"Access Team"</strong> button</li>
+<li>✅ If found → You go to your team dashboard</li>
+<li>❌ If not found → Red error: <em>"Team not found. Please check your team code."</em></li>
+</ol>
+<h3>Step 3: Your Team Dashboard</h3>
+<p>Once you access your team, you see:</p>
+<ol>
+<li><strong>Team Info:</strong> Project Name, Team Code, Status badge (Pending/Approved/Rejected)</li>
+<li><strong>Members List:</strong> Each member shown as a card with:</li>
+</ol>
+<ul>
+<li>Number badge (#1, #2, etc.)</li>
+<li>Name with prefix (Mr/Ms)</li>
+<li>College & Branch</li>
+<li>Green "Attending" badge or gray "Not Attending"</li>
+</ul>
+<ol>
+<li><strong>What You Can Update:</strong></li>
+</ol>
+<ul>
+<li><strong>Food Preference:</strong> Click the dropdown on any member → Select Vegetarian or Non-Vegetarian → ✅ <em>"Food preference updated"</em></li>
+<li><strong>Accommodation:</strong> Toggle "Need Accommodation" → Select Dorm or Suite → Select dates → Saves automatically</li>
+</ul>
+<ol>
+<li><strong>At the bottom:</strong> "Don't have a team yet?" → Click <strong>"Register Now →"</strong> to go to events page</li>
+</ol>
+<hr>
+<h2>9. Setting Up Jury & Evaluation (Jury Admin)</h2>
+<h3>Step 1: Go to Jury Dashboard</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> in navbar</li>
+<li>You land on the Jury Admin Dashboard</li>
+</ol>
+<p><strong>What you see:</strong></p>
+<ul>
+<li><strong>4 stat boxes:</strong> Questions, Jury Members, Submitted, Pending</li>
+<li><strong>Left card:</strong> "Evaluation Questions" — Create scoring criteria</li>
+<li><strong>Right card:</strong> "Jury Members" — Assign teams to jury members</li>
+<li><strong>Below:</strong> "Evaluation Progress" — Monitor all submissions</li>
+<li><strong>Bottom:</strong> "Team Rankings" — Leaderboard (appears after scores submitted)</li>
+</ul>
+<h3>Step 2: Create Evaluation Questions</h3>
+<p>In the <strong>left card</strong> ("Evaluation Questions"):</p>
+<ol>
+<li>Fill in these three fields:</li>
+</ol>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Enter</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Question Text</strong></td>
+<td>What criterion to evaluate</td>
+<td><code class="inline">Innovation and Creativity</code></td>
+</tr>
+<tr>
+<td><strong>Max Score</strong></td>
+<td>Maximum possible score</td>
+<td><code class="inline">10</code></td>
+</tr>
+<tr>
+<td><strong>Weight</strong></td>
+<td>Importance percentage</td>
+<td><code class="inline">25</code></td>
+</tr>
+</tbody></table>
+<ol>
+<li>Click <strong>"Add Question"</strong></li>
+<li>The question appears in the list below</li>
+<li>Repeat for all your criteria</li>
+</ol>
+<p><strong>Recommended setup:</strong></p>
+<table>
+<thead><tr>
+<th>Question</th>
+<th>Max Score</th>
+<th>Weight</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Innovation & Creativity</td>
+<td>10</td>
+<td>25</td>
+</tr>
+<tr>
+<td>Technical Implementation</td>
+<td>10</td>
+<td>30</td>
+</tr>
+<tr>
+<td>Presentation & Communication</td>
+<td>10</td>
+<td>15</td>
+</tr>
+<tr>
+<td>Impact & Usefulness</td>
+<td>10</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Team Coordination</td>
+<td>10</td>
+<td>10</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>100</strong></td>
+</tr>
+</tbody></table>
+<h3>Step 3: Assign Teams to Jury Members</h3>
+<blockquote>⚠️ Teams must be <strong>approved first</strong> by the Registration Committee before you can assign them.</blockquote>
+<p>In the <strong>right card</strong> ("Jury Members"):</p>
+<ol>
+<li>You see the list of jury members (added by Super Admin)</li>
+<li>Click <strong>"Assign Teams"</strong> next to a jury member</li>
+<li>A list of approved teams appears with checkboxes</li>
+<li><strong>Check the teams</strong> you want this person to evaluate</li>
+<li>Click <strong>"Save Assignments"</strong></li>
+</ol>
+<p><strong>Tip:</strong> Distribute teams evenly — 20 teams ÷ 4 jury members = 5 teams each.</p>
+<hr>
+<h2>10. QR Scanning & Logistics</h2>
+<h3>Who Does This: Logistics Committee</h3>
+<h3>Step 1: Open the Scanner</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> in navbar</li>
+<li>You land on the Logistics page</li>
+</ol>
+<p><strong>What you see:</strong></p>
+<ul>
+<li><strong>4 stat boxes:</strong> Total Coupons, Used (green border), Remaining, Usage %</li>
+<li><strong>4 meal cards</strong> showing usage per type:</li>
+<li>🍽️ <strong>Lunch</strong> — e.g., "15 / 100" with progress bar</li>
+<li>☕ <strong>Tea</strong> — e.g., "8 / 100"</li>
+<li>🌙 <strong>Dinner</strong> — e.g., "0 / 100"</li>
+<li>🎁 <strong>Kit</strong> — e.g., "25 / 100"</li>
+<li><strong>QR Scanner card</strong> titled "📱 QR Scanner" with subtitle "Scan or enter coupon code"</li>
+<li><strong>Recent Scans card</strong> showing the last 20 scanned coupons</li>
+</ul>
+<h3>Step 2: Scan a Coupon</h3>
+<p><strong>Method 1: Camera Scan</strong></p>
+<ol>
+<li>In the "📱 QR Scanner" card, the camera opens automatically (if device has one)</li>
+<li>Point camera at the team member's QR code</li>
+<li>✅ If valid → Green notification: <em>"Coupon marked as used"</em></li>
+<li>❌ If already used → Red notification: <em>"Coupon already used"</em></li>
+</ol>
+<p><strong>Method 2: Manual Entry (if camera doesn't work)</strong></p>
+<ol>
+<li>Below the camera area, there's a <strong>text input field</strong></li>
+<li>Type the coupon code manually</li>
+<li>Click the <strong>"Verify"</strong> button (or press Enter)</li>
+<li>System checks and shows result</li>
+</ol>
+<h3>Step 3: Check Recent Scans</h3>
+<p>Below the scanner, the <strong>"Recent Scans"</strong> card shows the last 20 scans:</p>
+<ul>
+<li><strong>Member Name</strong> (bold)</li>
+<li><strong>Coupon Code</strong> (gray)</li>
+<li><strong>Type badge</strong> (green badge: "lunch", "tea", "dinner", or "kit")</li>
+<li><strong>Time</strong> when it was scanned</li>
+</ul>
+<hr>
+<h2>11. Food Management</h2>
+<h3>Who Does This: Food Committee / Logistics Committee</h3>
+<h3>Go to Food Dashboard</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> → Navigate to <code class="inline">/{eventId}/food</code></li>
+</ol>
+<p><strong>What you see:</strong></p>
+<ul>
+<li><strong>Vegetarian count</strong> (green number) and <strong>Non-Vegetarian count</strong> (red number)</li>
+<li><strong>Coupon statistics</strong> with meal-type breakdown and progress bars</li>
+</ul>
+<h3>Scanning Food Coupons</h3>
+<p>Same QR scanner as the Logistics page:</p>
+<ol>
+<li>Team member shows their QR coupon (on phone or printed)</li>
+<li>Scan with camera or type code manually</li>
+<li>System checks three things:</li>
+</ol>
+<ul>
+<li>✅ Is this a valid coupon?</li>
+<li>✅ Is it the right meal time?</li>
+<li>✅ Has it already been used?</li>
+</ul>
+<ol>
+<li><strong>Valid</strong> → Green success → Let the person get food</li>
+<li><strong>Invalid</strong> → Red error explaining why (already used, wrong meal, expired, etc.)</li>
+</ol>
+<hr>
+<h2>12. Jury Evaluation (For Jury Members)</h2>
+<h3>Step 1: Go to Evaluation Page</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> in navbar</li>
+<li>You land on the evaluation page</li>
+</ol>
+<p><strong>What you see:</strong></p>
+<ul>
+<li>List of <strong>teams assigned to you</strong> by the Jury Admin</li>
+<li>Each team shows: Team Code, Project Name, Status (Not Started / Draft / Submitted)</li>
+</ul>
+<h3>Step 2: Evaluate a Team</h3>
+<ol>
+<li>Click on a team from your list</li>
+<li>The evaluation form opens showing all questions</li>
+</ol>
+<p><strong>For each question:</strong></p>
+<ul>
+<li>The question text is displayed (e.g., "Innovation and Creativity")</li>
+<li>A <strong>score slider</strong> or <strong>number input</strong> (0 to max score)</li>
+<li>Move the slider or type a score</li>
+<li>Optionally, add a comment about that specific criterion</li>
+</ul>
+<p><strong>At the bottom of the form:</strong></p>
+<ul>
+<li><strong>Overall Comment</strong> — Text area for general feedback about the team</li>
+<li><strong>"Save Draft"</strong> button (gray) — Save progress, come back later, continue editing</li>
+<li><strong>"Submit Evaluation"</strong> button (blue) — Final submission</li>
+</ul>
+<h3>Step 3: Save or Submit</h3>
+<table>
+<thead><tr>
+<th>Action</th>
+<th>Button</th>
+<th>What Happens</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Save Draft</strong></td>
+<td>Gray button</td>
+<td>Progress saved, status = "Draft", you can edit later</td>
+</tr>
+<tr>
+<td><strong>Submit</strong></td>
+<td>Blue button</td>
+<td>Confirmation popup → Click OK → Status = "Submitted", cannot edit after</td>
+</tr>
+</tbody></table>
+<p>⚠️ <strong>Save drafts frequently</strong> to avoid losing work!</p>
+<p>After submitting, you return to your team list. The submitted team shows ✅ "Submitted". Click the next team to continue.</p>
+<hr>
+<h2>13. Announcements</h2>
+<h3>Who Does This: Any Committee Member</h3>
+<h3>Posting an Announcement</h3>
+<ol>
+<li>Go to <code class="inline">/{eventId}/announcements</code> (from Dashboard → Quick Access → 📢 Announcements card)</li>
+<li>At the top, fill the form:</li>
+</ol>
+<ul>
+<li><strong>Title</strong> — Short headline (e.g., "Lunch is Ready!")</li>
+<li><strong>Content</strong> — Full message (e.g., "All teams proceed to Hall 2")</li>
+<li><strong>Category</strong> — Select from dropdown (General, Food, Logistics, etc.)</li>
+<li><strong>Priority</strong> — Normal or High</li>
+</ul>
+<ol>
+<li>Click <strong>"Post Announcement"</strong></li>
+<li>It appears at the top of the announcement list</li>
+</ol>
+<h3>Where People See Announcements</h3>
+<ul>
+<li><strong>Volunteer page</strong> (<code class="inline">/volunteer</code>) — Anyone can see without logging in</li>
+<li><strong>Announcements page</strong> (<code class="inline">/{eventId}/announcements</code>) — Full list with filtering</li>
+</ul>
+<hr>
+<h2>14. Accommodation & Commute</h2>
+<h3>Accommodation (For Team Members)</h3>
+<p>In the <strong>Team Portal</strong> (<code class="inline">/team/[teamCode]</code>), each member can:</p>
+<ol>
+<li>Toggle <strong>"Need Accommodation"</strong> to ON</li>
+<li>Select <strong>Room Type</strong>: Dorm or Suite</li>
+<li>Select <strong>Dates</strong>: Check boxes for needed nights (day before / event day / day after)</li>
+<li>Changes save automatically → ✅ Green notification</li>
+</ol>
+<h3>Accommodation Admin</h3>
+<p>Go to <code class="inline">/{eventId}/accommodation</code>:</p>
+<ul>
+<li>See all requests organized by date and room type</li>
+<li>Export the list for coordination with hostel/hotel</li>
+</ul>
+<h3>Commute / Bus Schedules</h3>
+<p><strong>For Admins:</strong></p>
+<ul>
+<li>Go to <code class="inline">/{eventId}/commute</code></li>
+<li>Add bus routes: route name, departure time, seats</li>
+</ul>
+<p><strong>For Participants:</strong></p>
+<ul>
+<li>Go to <code class="inline">/volunteer</code> → See bus schedules with routes, times, and available seats</li>
+</ul>
+<hr>
+<h2>15. Exporting Data</h2>
+<h3>Who Does This: Committee Members / Super Admin</h3>
+<h3>Step 1: Go to Event Dashboard</h3>
+<ol>
+<li>Log in → Click <strong>"Dashboard"</strong> → Go to <code class="inline">/{eventId}/dashboard</code></li>
+<li>Scroll down past the stat boxes and Quick Access cards</li>
+<li>Find the section titled <strong>"Export Data"</strong></li>
+</ol>
+<h3>Option 1: Export Everything (Recommended)</h3>
+<ol>
+<li>You see a <strong>large blue button</strong> at the top of the Export section:</li>
+</ol>
+<blockquote><strong>📦 Export All Data (ZIP)</strong></blockquote>
+<ol>
+<li>Below it: gray text saying "Download all event data in one ZIP file"</li>
+<li><strong>Click the button</strong></li>
+<li>A ZIP file downloads (named like <code class="inline">IGNITE2026_AllData_2026-03-15.zip</code>)</li>
+<li><strong>Unzip the file</strong> — Inside you find 6 Excel files:</li>
+</ol>
+<table>
+<thead><tr>
+<th>File</th>
+<th>Contents</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="inline">teams.xlsx</code></td>
+<td>All team details with every member</td>
+</tr>
+<tr>
+<td><code class="inline">food.xlsx</code></td>
+<td>Food preferences for all attending members</td>
+</tr>
+<tr>
+<td><code class="inline">coupons.xlsx</code></td>
+<td>All coupons with used/unused status</td>
+</tr>
+<tr>
+<td><code class="inline">accommodation.xlsx</code></td>
+<td>Accommodation requests</td>
+</tr>
+<tr>
+<td><code class="inline">evaluations.xlsx</code></td>
+<td>All jury scores and rankings</td>
+</tr>
+<tr>
+<td><code class="inline">attendance.xlsx</code></td>
+<td>Meal attendance records</td>
+</tr>
+</tbody></table>
+<h3>Option 2: Export One at a Time</h3>
+<p>Below the ZIP button, you see gray text: <strong>"Or export individually:"</strong> followed by 6 smaller outlined buttons:</p>
+<table>
+<thead><tr>
+<th>Button Label</th>
+<th>What Downloads</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Teams</strong></td>
+<td>Team details + members</td>
+</tr>
+<tr>
+<td><strong>Food Report</strong></td>
+<td>Veg/non-veg counts</td>
+</tr>
+<tr>
+<td><strong>Coupons</strong></td>
+<td>All coupons + usage</td>
+</tr>
+<tr>
+<td><strong>Accommodation</strong></td>
+<td>Room assignments</td>
+</tr>
+<tr>
+<td><strong>Evaluations</strong></td>
+<td>Jury scores + rankings</td>
+</tr>
+<tr>
+<td><strong>Attendance</strong></td>
+<td>Meal scan logs</td>
+</tr>
+</tbody></table>
+<p>Click any button → An Excel file (.xlsx) downloads.</p>
+<hr>
+<h2>16. Post-Event & Archiving</h2>
+<h3>Step 1: Lock All Evaluations (Jury Admin)</h3>
+<ol>
+<li>Go to <code class="inline">/{eventId}/jury</code> → Look at the <strong>"Evaluation Progress"</strong> card</li>
+<li>For each submitted evaluation, you see action buttons:</li>
+</ol>
+<ul>
+<li><strong>"Lock"</strong> → Finalizes the score (cannot be changed after). Status turns green "Locked"</li>
+<li><strong>"Send Back"</strong> → Returns to jury member for revision. Status turns red "Sent Back"</li>
+</ul>
+<ol>
+<li>Lock all evaluations before generating final results</li>
+</ol>
+<h3>Step 2: View Final Rankings</h3>
+<ol>
+<li>On the same page, scroll to <strong>"Team Rankings"</strong> at the bottom</li>
+<li>Teams shown ranked by score:</li>
+</ol>
+<ul>
+<li><strong>#1</strong> — Gold circle</li>
+<li><strong>#2</strong> — Silver circle</li>
+<li><strong>#3</strong> — Bronze circle</li>
+<li>Each shows: team code, project name, average score, number of evaluations</li>
+</ul>
+<h3>Step 3: Export All Data</h3>
+<p>Follow <a href="#15-exporting-data">Section 15: Exporting Data</a></p>
+<h3>Step 4: Archive the Event (Super Admin)</h3>
+<ol>
+<li>Go to <code class="inline">/admin</code> → Click <strong>"Manage Event →"</strong> on your event</li>
+<li>In "Event Settings" → Under "Event Status" → Click <strong>"Archived"</strong></li>
+<li>The event:</li>
+</ol>
+<ul>
+<li>Moves to "Archived Events" on admin dashboard</li>
+<li>Disappears from public events page</li>
+<li>All data is preserved</li>
+<li>Registration and evaluation automatically close</li>
+</ul>
+<hr>
+<h2>17. Troubleshooting & Common Scenarios</h2>
+<h3>❌ "I can't see the Dashboard link in the navbar"</h3>
+<p><strong>Why:</strong> You're not logged in, or you haven't been assigned a role.</p>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Click <strong>"Staff Login"</strong> (blue button, top-right) → Sign in with Google</li>
+<li>If still no Dashboard → Ask the Super Admin to add your email at <code class="inline">/admin/events/[eventId]</code> → Committee Members section</li>
+</ol>
+<h3>❌ "Access Denied" or "Unauthorized" page</h3>
+<p><strong>Why:</strong> You don't have the right role for that page.</p>
+<p><strong>Fix:</strong> Ask Super Admin to assign the correct role. For example:</p>
+<ul>
+<li>Teams page needs → "Registration Committee" role</li>
+<li>Jury page needs → "Jury Admin" or "Jury Member" role</li>
+<li>Logistics page needs → "Logistics Committee" role</li>
+</ul>
+<h3>❌ "Team not found" on Team Portal</h3>
+<p><strong>Why:</strong> Wrong phone number or team code.</p>
+<p><strong>Fix:</strong></p>
+<ul>
+<li>If using Phone: Enter the <strong>team lead's</strong> phone (not a member's)</li>
+<li>If using Code: Check for typos — codes look like <code class="inline">IGN26-XXXX</code> (uppercase)</li>
+</ul>
+<h3>❌ "I don't remember my team code"</h3>
+<p><strong>Fix:</strong> Use the <strong>📱 Phone Number</strong> tab on Team Portal instead. Or ask the Registration Committee to look it up.</p>
+<h3>❌ QR Scanner camera not opening</h3>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Browser may ask for camera permission → Click <strong>"Allow"</strong></li>
+<li>If no camera available → Use <strong>Manual Entry</strong>: type the coupon code in the text field and click "Verify"</li>
+</ol>
+<h3>❌ "Coupon already used"</h3>
+<p><strong>Why:</strong> This coupon was scanned before (one coupon = one meal).</p>
+<p><strong>Fix:</strong> Check "Recent Scans" section to see when/who used it. Contact Super Admin if scanned by mistake.</p>
+<h3>❌ Jury member can't see assigned teams</h3>
+<p><strong>Fix (check both):</strong></p>
+<ol>
+<li><strong>Jury Admin</strong> must assign teams first: <code class="inline">/{eventId}/jury</code> → Jury Members card → Assign Teams</li>
+<li><strong>Super Admin</strong> must turn on evaluation: <code class="inline">/admin/events/{id}</code> → Toggle "Evaluation Open" to ON</li>
+</ol>
+<h3>❌ Evaluation won't save</h3>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Make sure <strong>every question has a score</strong> (none can be blank)</li>
+<li>Try <strong>"Save Draft"</strong> first</li>
+<li>Check your internet connection</li>
+</ol>
+<h3>🔄 Late Team Registration</h3>
+<ol>
+<li>Super Admin: Toggle "Registration Open" back ON in event settings</li>
+<li>Team registers at <code class="inline">/events</code> → picks the event → fills the form</li>
+<li>OR Super Admin imports them via Excel at <code class="inline">/{eventId}/import</code></li>
+<li>Registration Committee approves immediately</li>
+</ol>
+<h3>🔄 Need to Change Team Member Details</h3>
+<ol>
+<li>Team members can update food preference and accommodation in Team Portal</li>
+<li>For major changes: Registration Committee rejects the team, team re-registers with correct info, Committee re-approves</li>
+</ol>
+<hr>
+<h2>18. Complete Route Reference</h2>
+<h3>Public Pages (No Login Needed)</h3>
+<table>
+<thead><tr>
+<th>Page</th>
+<th>URL</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Home</td>
+<td><code class="inline">/</code></td>
+<td>Landing page</td>
+</tr>
+<tr>
+<td>Events List</td>
+<td><code class="inline">/events</code></td>
+<td>Browse active events, click to register</td>
+</tr>
+<tr>
+<td>Registration Form</td>
+<td><code class="inline">/events/{eventId}/register</code></td>
+<td>Fill team registration (Google login required)</td>
+</tr>
+<tr>
+<td>Team Portal Entry</td>
+<td><code class="inline">/team</code></td>
+<td>Enter phone/code to access team</td>
+</tr>
+<tr>
+<td>Team Dashboard</td>
+<td><code class="inline">/team/{teamCode}</code></td>
+<td>View/edit team details</td>
+</tr>
+<tr>
+<td>Volunteer Page</td>
+<td><code class="inline">/volunteer</code></td>
+<td>Announcements & bus schedules</td>
+</tr>
+</tbody></table>
+<h3>Staff Pages (Login Required)</h3>
+<table>
+<thead><tr>
+<th>Page</th>
+<th>URL</th>
+<th>Who Can Access</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Smart Dashboard</td>
+<td><code class="inline">/my-dashboard</code></td>
+<td>Anyone with a role</td>
+<td>Auto-redirects to your role's page</td>
+</tr>
+<tr>
+<td>Admin Dashboard</td>
+<td><code class="inline">/admin</code></td>
+<td>Super Admin</td>
+<td>Create/manage events</td>
+</tr>
+<tr>
+<td>User Management</td>
+<td><code class="inline">/admin/users</code></td>
+<td>Super Admin</td>
+<td>View all users</td>
+</tr>
+<tr>
+<td>Create Event</td>
+<td><code class="inline">/admin/events/new</code></td>
+<td>Super Admin</td>
+<td>New event form</td>
+</tr>
+<tr>
+<td>Manage Event</td>
+<td><code class="inline">/admin/events/{id}</code></td>
+<td>Super Admin</td>
+<td>Settings + committee</td>
+</tr>
+<tr>
+<td>Event Dashboard</td>
+<td><code class="inline">/{eventId}/dashboard</code></td>
+<td>Any committee member</td>
+<td>Stats + quick access + export</td>
+</tr>
+<tr>
+<td>Teams</td>
+<td><code class="inline">/{eventId}/teams</code></td>
+<td>Registration Committee</td>
+<td>Approve/reject teams</td>
+</tr>
+<tr>
+<td>Import Teams</td>
+<td><code class="inline">/{eventId}/import</code></td>
+<td>Registration / Admin</td>
+<td>Excel bulk import</td>
+</tr>
+<tr>
+<td>Jury Admin</td>
+<td><code class="inline">/{eventId}/jury</code></td>
+<td>Jury Admin</td>
+<td>Questions + assignments + rankings</td>
+</tr>
+<tr>
+<td>Jury Evaluate</td>
+<td><code class="inline">/{eventId}/jury/evaluate</code></td>
+<td>Jury Member</td>
+<td>Score assigned teams</td>
+</tr>
+<tr>
+<td>Food</td>
+<td><code class="inline">/{eventId}/food</code></td>
+<td>Food Committee</td>
+<td>Food stats + preferences</td>
+</tr>
+<tr>
+<td>Logistics</td>
+<td><code class="inline">/{eventId}/logistics</code></td>
+<td>Logistics Committee</td>
+<td>QR scanner + attendance</td>
+</tr>
+<tr>
+<td>Announcements</td>
+<td><code class="inline">/{eventId}/announcements</code></td>
+<td>Any committee member</td>
+<td>Post event updates</td>
+</tr>
+<tr>
+<td>Accommodation</td>
+<td><code class="inline">/{eventId}/accommodation</code></td>
+<td>Accommodation Admin</td>
+<td>Room assignments</td>
+</tr>
+<tr>
+<td>Commute</td>
+<td><code class="inline">/{eventId}/commute</code></td>
+<td>Commute Admin</td>
+<td>Bus schedules</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>19. Event Day Checklist</h2>
+<h3>📅 2–3 Weeks Before</h3>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Create event → Set to Active → Open Registration</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Add all committee members with their roles</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Share registration link with teams: <code class="inline">yoursite.com/events</code></li>
+</ul>
+<h3>📅 1 Week Before</h3>
+<ul class="checklist">
+<li class="checkbox ">☐ Jury Admin: Create evaluation questions</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Registration Committee: Start reviewing and approving teams</li>
+</ul>
+<h3>📅 1 Day Before</h3>
+<ul class="checklist">
+<li class="checkbox ">☐ Registration Committee: Approve/reject all remaining teams</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Jury Admin: Assign teams to jury members</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Logistics: Test QR scanners on phones/tablets</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Turn ON "Evaluation Open" in event settings</li>
+</ul>
+<h3>📅 Event Day Morning</h3>
+<ul class="checklist">
+<li class="checkbox ">☐ Logistics: Open QR scanner at registration desk (<code class="inline">/{eventId}/logistics</code>)</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Food Committee: Ready at food counters with scanner open</li>
+</ul>
+<h3>📅 During Event</h3>
+<ul class="checklist">
+<li class="checkbox ">☐ Logistics: Scan attendance as teams arrive</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Food: Scan coupons at each meal</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Committee: Post announcements as needed</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Jury: Evaluate assigned teams</li>
+</ul>
+<h3>📅 After Event</h3>
+<ul class="checklist">
+<li class="checkbox ">☐ Jury Admin: Lock all evaluations</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Jury Admin: Review final rankings</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Click <strong>📦 Export All Data</strong> to download everything</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Archive the event</li>
+</ul>
+<hr>
+<blockquote><strong>IGNITE V2</strong> — Built for Darsana IGNITE event management 🔥</blockquote>
+
+</div>
+</body>
+</html>

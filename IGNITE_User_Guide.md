@@ -1,550 +1,460 @@
-# IGNITE V2 — Ultra-Detailed Event Management Guide
+# IGNITE V2 — Complete User Guide
 
 > **This guide tells you exactly what to click, where to find it, and what happens next.**
-> Written for people who have never used the system before.
+> Written for users and testers who have never used the system before.
 
 ---
 
 ## 📋 Table of Contents
 
 1. [Understanding the Navigation Bar](#1-understanding-the-navigation-bar)
-2. [Phase 1: First-Time Setup (Super Admin)](#2-phase-1-first-time-setup-super-admin)
-3. [Phase 2: Creating & Configuring an Event](#3-phase-2-creating--configuring-an-event)
-4. [Phase 3: Assigning Committee Members](#4-phase-3-assigning-committee-members)
-5. [Phase 4: Team Registration](#5-phase-4-team-registration)
-6. [Phase 5: Approving Teams](#6-phase-5-approving-teams)
-7. [Phase 6: Team Portal (For Participants)](#7-phase-6-team-portal-for-participants)
-8. [Phase 7: Setting Up Jury & Evaluation](#8-phase-7-setting-up-jury--evaluation)
-9. [Phase 8: Event Day — QR Scanning & Logistics](#9-phase-8-event-day--qr-scanning--logistics)
-10. [Phase 9: Event Day — Food Management](#10-phase-9-event-day--food-management)
-11. [Phase 10: Jury Evaluation (For Jury Members)](#11-phase-10-jury-evaluation-for-jury-members)
-12. [Phase 11: Announcements](#12-phase-11-announcements)
-13. [Phase 12: Accommodation & Commute](#13-phase-12-accommodation--commute)
-14. [Phase 13: Exporting Data](#14-phase-13-exporting-data)
-15. [Phase 14: Post-Event & Archiving](#15-phase-14-post-event--archiving)
-16. [Troubleshooting & Common Scenarios](#16-troubleshooting--common-scenarios)
-17. [Complete Route Reference](#17-complete-route-reference)
+2. [Logging In](#2-logging-in)
+3. [Super Admin: Creating & Managing Events](#3-super-admin-creating--managing-events)
+4. [Super Admin: Assigning Committee Members](#4-super-admin-assigning-committee-members)
+5. [Team Registration (For Participants)](#5-team-registration-for-participants)
+6. [Bulk Import Teams via Excel](#6-bulk-import-teams-via-excel)
+7. [Approving Teams (Registration Committee)](#7-approving-teams-registration-committee)
+8. [Team Portal (For Participants)](#8-team-portal-for-participants)
+9. [Setting Up Jury & Evaluation (Jury Admin)](#9-setting-up-jury--evaluation-jury-admin)
+10. [QR Scanning & Logistics](#10-qr-scanning--logistics)
+11. [Food Management](#11-food-management)
+12. [Jury Evaluation (For Jury Members)](#12-jury-evaluation-for-jury-members)
+13. [Announcements](#13-announcements)
+14. [Accommodation & Commute](#14-accommodation--commute)
+15. [Exporting Data](#15-exporting-data)
+16. [Post-Event & Archiving](#16-post-event--archiving)
+17. [Troubleshooting & Common Scenarios](#17-troubleshooting--common-scenarios)
+18. [Complete Route Reference](#18-complete-route-reference)
+19. [Event Day Checklist](#19-event-day-checklist)
 
 ---
 
 ## 1. Understanding the Navigation Bar
 
-The navigation bar is at the **very top of every page**. It looks different depending on whether you're logged in or not.
+The navigation bar is the **horizontal bar at the very top** of every page.
 
-### If You Are NOT Logged In (Public User)
+### If You Are NOT Logged In
 
 You see these items from **left to right**:
 
 | Position | What You See | What It Does |
 |----------|-------------|-------------|
-| Far left | 🔥 **IGNITE 2026** (logo + text) | Click to go to the home page |
-| Center | **Home** | Goes to the landing page `/` |
-| Center | **Register Team** | Goes to the events list page `/events` where you pick an event to register for |
-| Center | **Team Portal** | Goes to `/team` where you enter your phone number or team code to access your team dashboard |
-| Far right | **Volunteer** button (small, gray) | Goes to `/volunteer` page for volunteer announcements & bus schedules |
-| Far right | **Staff Login** button (blue, filled) | Click this to sign in with your Google account. Only for admins and committee members |
+| Far left | 🔥 **IGNITE 2026** (fire icon + text) | Click to go to the home page |
+| Middle | **Home** | Goes to the landing page |
+| Middle | **Register Team** | Goes to the events list where you pick an event to register for |
+| Middle | **Team Portal** | Enter your phone number or team code to check your team status |
+| Far right | **Volunteer** (small gray button) | View event announcements and bus schedules |
+| Far right | **Staff Login** (blue button) | Click to sign in with Google — only for admins and committee members |
 
-### If You ARE Logged In (Staff/Admin)
+### If You ARE Logged In
 
 Everything above stays the same, plus:
 
 | Position | What You See | What It Does |
 |----------|-------------|-------------|
-| After "Team Portal" | **Dashboard** (separated by a vertical line) | Goes to `/my-dashboard` — automatically sends you to the right page based on your role |
-| Far right | Your **name** + **profile photo** | Shows who is logged in |
-| Far right | **Logout** button (gray) | Signs you out |
+| After "Team Portal" | **Dashboard** (separated by a vertical line) | Takes you to your role-specific dashboard automatically |
+| Far right | Your **name** + **Google profile photo** (small circle) | Shows who is logged in |
+| Far right | **Logout** (gray button) | Signs you out |
 
-### On Mobile (Phone/Tablet)
+### On Mobile Phone
 
-- You see the 🔥 logo on the left and a **☰ hamburger menu** (3 horizontal lines) on the right
-- **Tap the ☰ icon** to open the menu dropdown
-- All the same links appear vertically
-- Tap any link, and the menu closes automatically
-
----
-
-## 2. Phase 1: First-Time Setup (Super Admin)
-
-### Who does this: The main organizer (Super Admin)
-
-### Step 1: Deploy the App
-
-1. Push the code to GitHub
-2. Connect the GitHub repo to **Netlify**
-3. In Netlify → **Site Settings** → **Environment Variables**, add these:
-   - `MONGODB_URI` — Your MongoDB connection string
-   - `GOOGLE_CLIENT_ID` — From Google Cloud Console
-   - `GOOGLE_CLIENT_SECRET` — From Google Cloud Console
-   - `NEXTAUTH_SECRET` — Any random string (e.g., run `openssl rand -base64 32`)
-   - `NEXTAUTH_URL` — Your deployed site URL (e.g., `https://ignite.netlify.app`)
-   - `SUPER_ADMIN_EMAIL` — Your Google email (e.g., `nihal@gmail.com`)
-4. Click **Deploy** in Netlify
-
-### Step 2: First Login
-
-1. Open your deployed site in a browser
-2. Look at the **top-right corner** of the navbar
-3. Click the **blue "Staff Login" button**
-4. A Google sign-in popup appears → Select your Google account (must match `SUPER_ADMIN_EMAIL`)
-5. After sign-in, you're redirected back to the home page
-6. You should now see your **name and profile photo** in the top-right corner
-7. You should also see the **"Dashboard"** link in the navbar (after "Team Portal")
-
-### Step 3: Go to Admin Dashboard
-
-1. In the navbar, click **"Dashboard"**
-2. Since you're the super admin, you're automatically redirected to `/admin`
-3. You now see the **Super Admin Dashboard** page with the heading "Super Admin Dashboard" and subtitle "Manage all IGNITE events"
-
-**What you see on this page:**
-- At the top: Two buttons side by side:
-  - **"+ Create New Event"** (blue, filled button) — Creates a new event
-  - **"Manage Global Users"** (outlined button) — Goes to user management
-- Below: Three sections:
-  - **Active Events** — Events that are live
-  - **Draft Events** — Events being prepared
-  - **Archived Events** — Past events (only shows if any exist)
+- You see the 🔥 fire logo on the left and a **☰ menu icon** (three horizontal lines) on the right
+- **Tap the ☰ icon** to open a dropdown menu with all the same links
+- Tap any link to navigate; the menu closes automatically
 
 ---
 
-## 3. Phase 2: Creating & Configuring an Event
+## 2. Logging In
 
-### Who does this: Super Admin
+### Who Needs to Log In?
+- **Super Admins** (event organizers)
+- **Committee Members** (registration, jury, food, logistics)
+- **Teams registering** for an event (Google sign-in required before filling the form)
 
-### Step 1: Click "Create New Event"
+**Note:** Team Portal access (`/team`) does NOT require login — anyone can check their team using phone number or team code.
 
-1. Go to `/admin` (click **"Dashboard"** in navbar)
-2. Click the **blue "+ Create New Event" button** at the top-left of the page
-3. You're taken to the **Create New Event** form page
+### How to Log In
 
-### Step 2: Fill in Event Details
+1. Look at the **top-right corner** of the page
+2. Click the **blue "Staff Login" button**
+3. A Google sign-in window opens
+4. Select your Google account (must be the same email the Super Admin added for your role)
+5. After sign-in, you return to the website
+6. Your **name and profile photo** now appear in the top-right corner
+7. A **"Dashboard"** link appears in the navbar — click it to go to your dashboard
 
-You see a form with these fields. Fill each one:
+### How to Log Out
 
-| Field | What to Enter | Example |
-|-------|--------------|---------|
-| **Event Name** | Full name of your event | `IGNITE 2026` |
-| **Year** | The year number | `2026` |
-| **Date** | Click the date picker and select the event date | `2026-03-15` |
-| **Venue** | Where the event takes place | `IIT Delhi Campus, New Delhi` |
-| **Description** | Short description of the event | `Annual innovation hackathon by Darsana` |
-| **Max Team Size** | Maximum number of members per team | `5` |
+1. Click the **gray "Logout" button** in the top-right corner (next to your profile photo)
+2. You're signed out and returned to the home page
 
-### Step 3: Submit the Form
+---
 
-1. After filling all fields, click the **"Create Event"** button at the bottom of the form
-2. A green success notification appears: *"Event created successfully"*
-3. You're redirected back to `/admin`
-4. Your new event appears under **"Draft Events"** section as a card
+## 3. Super Admin: Creating & Managing Events
 
-### Step 4: Activate the Event
+### Go to Admin Dashboard
 
-The event starts in "draft" mode (not visible to the public). To make it active:
+1. Log in with Google (your email must match the Super Admin email)
+2. Click **"Dashboard"** in the navbar
+3. You land on the **Super Admin Dashboard** page
 
-1. On `/admin`, find your event card under "Draft Events"
-2. Click the **"Manage Event →"** button at the bottom of the event card
-3. You're taken to the **Event Management** page (`/admin/events/[eventId]`)
-4. On the **left side**, you see a card titled **"Event Settings"**
-5. Inside it, under **"Event Status"**, you see three buttons side by side:
-   - **Draft** (currently highlighted/selected in blue)
+**What you see:**
+- At the top, two buttons side by side:
+  - **"+ Create New Event"** (blue filled button on the left)
+  - **"Manage Global Users"** (outlined button on the right)
+- Below that, three sections:
+  - **Active Events** — Events currently running (visible to public)
+  - **Draft Events** — Events being prepared (not visible to public)
+  - **Archived Events** — Past completed events
+
+### Create a New Event
+
+1. Click the **blue "+ Create New Event" button** at the top
+2. You're taken to a form page. Fill in every field:
+
+| Field | What to Type | Example |
+|-------|-------------|---------|
+| **Event Name** | Full event name | `IGNITE 2026` |
+| **Year** | Event year | `2026` |
+| **Date** | Click the calendar icon, pick a date | `15 March 2026` |
+| **Venue** | Event location | `IIT Delhi Campus` |
+| **Description** | Short description | `Annual innovation hackathon` |
+| **Max Team Size** | Maximum members per team | `5` |
+
+3. Click the **"Create Event"** button at the bottom of the form
+4. ✅ Green notification: *"Event created successfully"*
+5. You're redirected back to the admin dashboard
+6. Your event appears under **"Draft Events"** as a card
+
+### Activate the Event (Make It Visible)
+
+1. On the admin dashboard, find your event card under **"Draft Events"**
+2. Click the **"Manage Event →"** button at the bottom of the card
+3. You're taken to the **Event Management** page
+4. On the **left side**, look for the card titled **"Event Settings"**
+5. Under **"Event Status"**, you see three buttons in a row:
+   - **Draft** (currently blue/highlighted)
    - **Active**
    - **Archived**
 6. Click the **"Active"** button
-7. The button turns blue, and a green notification appears: *"Event status updated"*
-8. Your event is now **visible on the public events page** (`/events`)
+7. ✅ It turns blue. Green notification: *"Event status updated"*
+8. Your event is now visible on the public events page
 
-### Step 5: Open Registration
+### Open/Close Registration
 
-Still on the same Event Management page:
+On the same Event Management page, below the status buttons:
 
-1. Below the status buttons, you see two **toggle switches** (they look like sliding pills):
-   - **Registration Open** — Toggle this **ON** (slide to the right, it turns blue)
-   - **Evaluation Open** — Leave this **OFF** for now (keep it gray)
-2. When you toggle Registration Open to ON, a green notification appears: *"Settings updated"*
-3. Teams can now register for your event
+1. You see two **toggle switches** (small sliding pills):
+   - **Registration Open** — Slide right to turn ON (turns blue), slide left to turn OFF (turns gray)
+   - **Evaluation Open** — Same toggle, controls whether jury can evaluate
+2. To **open registration**: Click the "Registration Open" toggle so it turns **blue**
+3. ✅ Green notification: *"Settings updated"*
+4. Teams can now register for your event
+
+### Open/Close Evaluation
+
+- Toggle **"Evaluation Open"** to **ON** when you want jury members to start evaluating
+- Toggle it **OFF** when evaluation period is over
 
 ---
 
-## 4. Phase 3: Assigning Committee Members
+## 4. Super Admin: Assigning Committee Members
 
-### Who does this: Super Admin
+### Where to Do This
 
-### Where: Event Management Page
+1. Go to Admin Dashboard (click **"Dashboard"** in navbar)
+2. Find your event card → Click **"Manage Event →"**
+3. Look at the **right side card** titled **"Committee Members"** with subtitle "Manage roles for this event"
 
-1. Go to `/admin` → Click **"Manage Event →"** on your event card
-2. You see two cards side by side:
-   - **Left card: "Event Settings"** (status + toggles)
-   - **Right card: "Committee Members"** with subtitle "Manage roles for this event"
+### Add a Committee Member
 
-### How to Add a Committee Member
+Inside the "Committee Members" card, you see three things in a row:
 
-1. Look at the **right card** titled **"Committee Members"**
-2. You see three elements in a row:
-   - A **text input** with placeholder "email@gmail.com" — Type the person's Google email here
-   - A **dropdown** showing available roles — Click to select the role
-   - A small **"Add"** button (blue) — Click to assign the role
-3. Type the person's **exact Google email** in the text input (e.g., `bablu@gmail.com`)
-4. Click the **dropdown** next to it. You see these role options:
+1. **Text input box** (placeholder: "email@gmail.com") — Type the person's **exact Google email** here
+2. **Dropdown menu** — Click it to see role options:
 
-| Role | What This Person Can Do |
-|------|------------------------|
-| **Jury Admin** | Create evaluation questions, assign teams to jury members, lock/unlock evaluations |
+| Role Option | What This Person Can Do |
+|-------------|------------------------|
+| **Jury Admin** | Create evaluation questions, assign teams to jury members, lock evaluations |
 | **Jury Member** | Evaluate teams assigned to them, submit scores |
-| **Registration Committee** | View all team registrations, approve/reject teams |
-| **Food Committee** | View food dashboard, manage food coupons and stats |
-| **Logistics Committee** | Use QR scanner, mark attendance, scan food coupons |
+| **Registration Committee** | View all teams, approve or reject registrations |
+| **Food Committee** | View food preferences dashboard, manage coupons |
+| **Logistics Committee** | Use QR scanner for attendance, scan food coupons |
 
-5. Select the desired role (e.g., "Registration Committee")
-6. Click the **"Add"** button
-7. A green notification appears: *"Role assigned"*
-8. The person's name, email, and role badge now appear in the list below
+3. **"Add" button** (small blue button) — Click to assign the role
 
-### How to Remove a Committee Member
+**Steps:**
+1. Type the person's Google email (e.g., `bablu@gmail.com`)
+2. Click the dropdown → Select a role (e.g., "Registration Committee")
+3. Click the **"Add"** button
+4. ✅ Green notification: *"Role assigned"*
+5. The person's name, email, and role badge appear in the list below
 
-1. In the committee list, find the person you want to remove
-2. Each person shows: **Name**, **email** (gray text), a **blue role badge**, and a **red ✕ button**
-3. Click the **red ✕ button** next to their role badge
-4. A confirmation popup appears: "Remove this role?"
-5. Click **OK** to confirm
-6. The person is removed from the list
+### Remove a Committee Member
 
-### What Happens After Assignment
+1. In the list below, each member shows: **Name** (bold), **email** (gray), **role badge** (blue), and a **red ✕ button**
+2. Click the **red ✕ button** next to the person
+3. A popup asks: "Remove this role?"
+4. Click **OK**
+5. The person is removed from the list
 
-- The assigned person logs in with Google (using the same email you entered)
-- They see the **"Dashboard"** link in their navbar
-- Clicking "Dashboard" takes them directly to their event dashboard
-- If they have **one role**, they go straight to their specific page (e.g., logistics page)
-- If they have **multiple roles**, they see a selection page to choose which dashboard
+### Quick Access Cards (Below)
 
-### Quick Links at Bottom
+Below the two main cards, you see **4 shortcut cards** in a row:
 
-Below the two cards, you see **4 quick-access cards** in a row:
+| Icon | Label | Goes To |
+|------|-------|---------|
+| 👥 | **Teams** | Team registrations list |
+| ⚖️ | **Jury** | Jury management |
+| 🍽️ | **Food** | Food preferences dashboard |
+| 📱 | **QR Scanner** | QR scanning & attendance page |
 
-| Icon | Label | Where It Goes |
-|------|-------|--------------|
-| 👥 | **Teams** | `/{eventId}/teams` — View all team registrations |
-| ⚖️ | **Jury** | `/{eventId}/jury` — Jury management dashboard |
-| 🍽️ | **Food** | `/{eventId}/food` — Food preferences & stats |
-| 📱 | **QR Scanner** | `/{eventId}/logistics` — QR scanning & attendance |
-
-Click any card to jump to that section.
+Click any card to jump to that section directly.
 
 ---
 
-## 5. Phase 4: Team Registration
+## 5. Team Registration (For Participants)
 
-### Option A: Teams Register Themselves Online
+### Step 1: Find the Event
 
-#### Who does this: Team leads (participants)
+1. Open the website
+2. In the navbar, click **"Register Team"**
+3. You see a list of active events as cards (each shows event name, date, venue)
+4. Click the **"Register →"** button on your event's card
 
-#### Step 1: Find the Event
+### Step 2: Sign In (Required)
 
-1. Open the website in a browser
-2. In the navbar, click **"Register Team"** (or go to `/events`)
-3. You see a list of all active events as cards
-4. Each card shows: Event name, date, venue
-5. Find your event and click the **"Register →"** button on its card
+1. If you're not signed in, you see: *"You need to sign in with Google before registering"*
+2. Click the **"Sign in with Google"** button (large blue button)
+3. Google sign-in window → Select your account
+4. After sign-in, the registration form appears
 
-#### Step 2: Sign in with Google (Required)
+### Step 3: Fill the Registration Form
 
-1. You're taken to the registration page
-2. If you're **NOT signed in**, you see a message:
-   > "You need to sign in with Google before registering your team"
-3. Below the message is a **large blue button** that says **"Sign in with Google"**
-4. Click it → Google sign-in popup appears → Select your Google account
-5. After signing in, you're redirected back to the same registration page
-6. Now you see the registration form
+**Project Details (Required)**
 
-#### Step 3: Fill the Registration Form
+| Field | What to Type | Example |
+|-------|-------------|---------|
+| **Project Name** | Full name of your project | `Smart Waste Bin` |
+| **Project Code** | Short code given by organizers | `IOT-01` |
 
-The form has several sections. Fill each one carefully:
+**Team Lead Details (Required)**
 
-**Section 1: Project Details**
+| Field | What to Type | Example |
+|-------|-------------|---------|
+| **Team Lead Name** | Full name of team leader | `Rahul Kumar` |
+| **Team Lead Email** | Leader's email | `rahul@gmail.com` |
+| **Team Lead Phone** | 10-digit phone number ⚠️ **REMEMBER THIS — needed to access Team Portal later** | `9876543210` |
 
-| Field | What to Enter | Required? |
-|-------|--------------|-----------|
-| **Project Name** | Full name of your project | ✅ Yes |
-| **Project Code** | Short code (given by organizers) | ✅ Yes |
+**Guide Details (Optional — skip if no guide/mentor)**
 
-**Section 2: Team Lead Details**
+| Field | What to Type |
+|-------|-------------|
+| **Guide Name** | Name of teacher/mentor |
+| **Guide Email** | Guide's email |
+| **Guide Phone** | Guide's phone |
 
-| Field | What to Enter | Required? |
-|-------|--------------|-----------|
-| **Team Lead Name** | Full name of the team leader | ✅ Yes |
-| **Team Lead Email** | Email of team leader | ❌ Optional |
-| **Team Lead Phone** | 10-digit phone number (used to access Team Portal later) | ✅ Yes |
+**Team Members**
 
-**Section 3: Guide Details** (Optional)
+For each member, you see a card with these fields:
 
-| Field | What to Enter | Required? |
-|-------|--------------|-----------|
-| **Guide Name** | Name of the teacher/mentor | ❌ Optional |
-| **Guide Email** | Email of the guide | ❌ Optional |
-| **Guide Phone** | Phone number of the guide | ❌ Optional |
+| Field | What to Fill | Required? |
+|-------|-------------|-----------|
+| **Prefix** | Click dropdown → Mr / Ms / Dr / N/A | ✅ |
+| **Name** | Full name | ✅ |
+| **College** | College/university name | ✅ |
+| **Branch** | Department (CSE, ECE, etc.) | ✅ |
+| **Year of Passing** | Graduation year (e.g., 2026) | ✅ |
+| **Phone** | 10-digit phone number | Optional |
+| **Email** | Email address | Optional |
+| **Food Preference** | Click dropdown → Vegetarian / Non-Vegetarian | ✅ |
 
-**Section 4: Team Members**
+- **To add more members:** Click **"+ Add Member"** button below the member cards
+- **To remove a member:** Click the **red "Remove"** button on that member's card
+- Maximum members is shown (set by the event organizer)
 
-For each team member, you see a card with these fields:
+### Step 4: Submit
 
-| Field | What to Enter | Required? |
-|-------|--------------|-----------|
-| **Prefix** | Dropdown — Mr / Ms / Dr / N/A | ✅ Yes |
-| **Name** | Full name | ✅ Yes |
-| **College** | College/university name | ✅ Yes |
-| **Branch** | Department (CSE, ECE, etc.) | ✅ Yes |
-| **Year of Passing** | Graduation year | ✅ Yes |
-| **Phone** | 10-digit phone number | ❌ Optional |
-| **Email** | Email address | ❌ Optional |
-| **Food Preference** | Dropdown — Vegetarian / Non-Vegetarian | ✅ Yes |
-
-- To add more members: Click the **"+ Add Member"** button below the member cards
-- To remove a member: Click the **red "Remove" button** on that member's card
-- Maximum members allowed is shown (set by event's max team size)
-
-#### Step 4: Submit Registration
-
-1. After filling everything, click the **large blue "Register Team" button** at the bottom
-2. **If successful:**
-   - A **green success box** appears with your **Team Code** (e.g., `IGN26-A1B2`)
-   - **SAVE THIS CODE** — you need it to access your Team Portal
-   - You also see a link to view your team dashboard
-3. **If there's an error:**
-   - A **red error box** appears explaining what's wrong
-   - Common errors: "Project name required", "Team lead phone required", "All member fields required"
-   - Fix the issue and click "Register Team" again
+1. Click the **blue "Register Team" button** at the bottom
+2. **If successful:** A green box appears with your **Team Code** (e.g., `IGN26-A1B2`)
+3. ⚠️ **WRITE DOWN YOUR TEAM CODE** — you need it to access Team Portal
+4. **If error:** A red box explains what's wrong (e.g., "Project name required"). Fix it and try again.
 
 ---
 
-### Option B: Bulk Import Teams via Excel (Super Admin / Registration Committee)
+## 6. Bulk Import Teams via Excel
 
-#### Step 1: Go to Import Page
+### Who Does This: Super Admin or Registration Committee
 
-1. Log in as Super Admin or Registration Committee member
-2. Go to the Event Dashboard: Click **"Dashboard"** in navbar
-3. Under **"Quick Access"** section, find the card with **📥 icon** labeled **"Import Teams"**
-4. Click it → You're taken to `/{eventId}/import`
+### Step 1: Go to Import Page
 
-**Alternative:** Type `/{eventId}/import` directly in the browser address bar
+1. Log in → Click **"Dashboard"** in navbar
+2. On the Event Dashboard, under **"Quick Access"**, find the card with **📥 icon** labeled **"Import Teams"**
+3. Click it
 
-#### Step 2: Prepare Your Excel File
+### Step 2: Prepare Your Excel File
 
-Your Excel file (`.xlsx` or `.csv`) must have these columns:
+Create an Excel file (`.xlsx`) with these columns:
 
-| Column Name | Required? | Description | Example |
-|-------------|-----------|-------------|---------|
-| `project_name` | ✅ | Project name | `Smart Bin` |
-| `project_code` | ✅ | Project code | `IOT-01` |
-| `team_lead_name` | ✅ (first row only) | Team lead name | `Rahul Kumar` |
-| `team_lead_phone` | ✅ (first row only) | Team lead phone | `9876543210` |
-| `name` | ✅ | Member name | `Rahul Kumar` |
-| `college` | ✅ | College name | `IIT Delhi` |
-| `branch` | ✅ | Branch/department | `CSE` |
-| `year_of_passing` | ✅ | Graduation year | `2026` |
-| `phone` | ❌ | Member phone | `9876543210` |
-| `food_preference` | ❌ | veg or non-veg (default: veg) | `veg` |
+| Column | Required? | Example |
+|--------|-----------|---------|
+| `project_name` | ✅ | `Smart Bin` |
+| `project_code` | ✅ | `IOT-01` |
+| `team_lead_name` | ✅ (first row of each team) | `Rahul Kumar` |
+| `team_lead_phone` | ✅ (first row of each team) | `9876543210` |
+| `name` | ✅ | `Rahul Kumar` |
+| `college` | ✅ | `IIT Delhi` |
+| `branch` | ✅ | `CSE` |
+| `year_of_passing` | ✅ | `2026` |
+| `phone` | Optional | `9876543210` |
+| `food_preference` | Optional (default: veg) | `veg` or `non-veg` |
 
-**Important Rules:**
-- Rows with the **same `project_code`** are grouped into **one team**
-- The **first row** of each team must have `team_lead_name` and `team_lead_phone`
-- Subsequent rows of the same team can leave those columns empty
+**Rule:** Rows with the **same `project_code`** become **one team**. First row must have team lead info; other rows can leave team lead columns empty.
 
-**Example Excel:**
+**Example:**
 
 | project_name | project_code | team_lead_name | team_lead_phone | name | college | branch | year_of_passing | food_preference |
-|-------------|-------------|----------------|-----------------|------|---------|--------|----------------|-----------------|
-| Smart Bin | IOT-01 | Rahul Kumar | 9876543210 | Rahul Kumar | IIT Delhi | CSE | 2026 | veg |
+|---|---|---|---|---|---|---|---|---|
+| Smart Bin | IOT-01 | Rahul | 9876543210 | Rahul Kumar | IIT Delhi | CSE | 2026 | veg |
 | Smart Bin | IOT-01 | | | Priya Patel | IIT Delhi | ECE | 2027 | non-veg |
-| Smart Bin | IOT-01 | | | Amit Singh | IIT Delhi | ME | 2026 | veg |
-| EcoTrack | ENV-02 | Neha Sharma | 9123456789 | Neha Sharma | NIT Trichy | IT | 2026 | veg |
-| EcoTrack | ENV-02 | | | Ravi Gupta | NIT Trichy | CSE | 2027 | non-veg |
+| EcoTrack | ENV-02 | Neha | 9123456789 | Neha Sharma | NIT Trichy | IT | 2026 | veg |
 
-This creates 2 teams: "Smart Bin" (3 members) and "EcoTrack" (2 members)
+This creates 2 teams: "Smart Bin" (2 members) and "EcoTrack" (1 member).
 
-#### Step 3: Upload & Import
+### Step 3: Upload
 
-1. On the Import page, click **"Choose File"** or **drag-and-drop** your Excel file
-2. The system parses the file and shows a **preview table** of all teams found
-3. Review the preview:
-   - Each team shows: project name, member count, and member details
-   - Check for any parsing errors (shown in red)
-4. If everything looks correct, click the **"Import All" button**
-5. A progress indicator shows import status
-6. When complete, a green notification appears: *"X teams imported successfully"*
-7. Imported teams appear with "pending" status in the teams list
+1. Click **"Choose File"** or drag-and-drop your Excel file
+2. A preview table shows all parsed teams
+3. Review for errors (shown in red)
+4. Click the **"Import All"** button
+5. ✅ Green notification: *"X teams imported successfully"*
+6. Teams appear as "pending" in the teams list (need approval)
 
 ---
 
-## 6. Phase 5: Approving Teams
-
-### Who does this: Registration Committee
+## 7. Approving Teams (Registration Committee)
 
 ### Step 1: Go to Teams List
 
-1. Log in with your Google account (the email the Super Admin added)
-2. Click **"Dashboard"** in the navbar
-3. You're taken to `/{eventId}/teams` (the Team Registration page)
+1. Log in → Click **"Dashboard"** in navbar
+2. You land on the Teams page (`/{eventId}/teams`)
 
-**What you see on this page:**
-
-- **Top:** Page title "Team Registration" and event name
-- **Stats row (4 boxes):**
+**What you see:**
+- **Page title:** "Team Registration" with event name below
+- **4 stat boxes** in a row:
   - **Total Teams** — All registered teams
-  - **Pending** — Waiting for approval (highlighted with yellow border if > 0)
+  - **Pending** — Waiting for your action (yellow border if > 0)
   - **Approved** — Already approved
-  - **Total Members** — Total attending members
-- **Food stats card:** Shows **Vegetarian** count (green) on the left and **Non-Vegetarian** count (red) on the right with a divider between them
-- **Below:** The actual **list of teams**
+  - **Total Members** — Total attending
+- **Food stats card** in the middle: Green number for **Vegetarian**, Red number for **Non-Vegetarian**
+- **Team list** below
 
-### Step 2: Review Teams
+### Step 2: Review Each Team
 
 Each team in the list shows:
-- **Team Code** (e.g., "IGN26-A1B2")
+- **Team Code** (e.g., IGN26-A1B2)
 - **Project Name**
-- **Status badge:**
-  - 🟡 **Pending** (yellow) — Needs your action
-  - 🟢 **Approved** (green) — Already approved
-  - 🔴 **Rejected** (red) — Already rejected
-- **Team Lead Name** and phone number
-- Member count
+- **Status badge:** 🟡 Pending / 🟢 Approved / 🔴 Rejected
+- **Team Lead** name and phone
+- **Member count**
 
 ### Step 3: Approve or Reject
 
-For each **pending** team:
+1. Click on a pending team to expand its full details
+2. Review member information (names, colleges, branches, food preferences)
+3. Click one of the two buttons:
 
-1. Click on the team to expand its details
-2. You see all member information: names, colleges, branches, food preferences
-3. You see two buttons:
-   - **"Approve" button** (green) — Click to approve the team
-   - **"Reject" button** (red) — Click to reject the team
+| Button | Color | What Happens |
+|--------|-------|-------------|
+| **Approve** | Green | Status → Approved. Food coupons auto-generated for ALL members . Team can now access Team Portal. |
+| **Reject** | Red | Status → Rejected. |
 
-**When you click "Approve":**
-- A green notification appears: *"Team approved"*
-- The status badge changes from 🟡 Pending to 🟢 Approved
-- **Automatically:** Food coupons are generated for ALL team members (lunch, tea, dinner, kit coupons)
-- The team can now access their Team Portal
-
-**When you click "Reject":**
-- A confirmation dialog may appear
-- The status badge changes to 🔴 Rejected
-- The team is informed
+✅ Green notification confirms the action.
 
 ---
 
-## 7. Phase 6: Team Portal (For Participants)
+## 8. Team Portal (For Participants)
 
-### Who uses this: Team members / Team leads
+### No Login Required — Anyone can use this
 
 ### Step 1: Go to Team Portal
 
-1. Open the website in your browser
-2. In the navbar, click **"Team Portal"** (or go to `/team`)
-3. You see a centered card with:
-   - 🎫 icon at the top
-   - **"Team Portal"** heading
-   - "Access your team dashboard" subtitle
-   - A **toggle switch** with two options
+1. In the navbar, click **"Team Portal"** (or go to `/team`)
+2. You see a centered card with a 🎫 ticket icon
 
-### Step 2: Choose Access Method
+### Step 2: Choose How to Find Your Team
 
-At the top of the form, you see a **toggle bar with two tabs**:
+At the top of the card, you see a **toggle bar** with two tabs:
 
-| Tab | Label | When to Use |
-|-----|-------|-------------|
-| Left tab (selected by default) | **📱 Phone Number** | Use the team lead's phone number |
-| Right tab | **🔑 Team Code** | Use the team code (e.g., IGN26-A1B2) |
+| Tab (click to select) | What to Enter |
+|----------------------|---------------|
+| **📱 Phone Number** (selected by default, highlighted) | Team lead's phone number |
+| **🔑 Team Code** (click to switch) | Your team code (e.g., IGN26-A1B2) |
 
-**To switch:** Click the tab you want. The selected tab appears with a white/highlighted background.
-
-### Option 1: Access with Phone Number (Default, Easier)
-
-1. The toggle should already show **📱 Phone Number** (highlighted)
-2. In the text field, type the **team lead's phone number** (the one entered during registration)
+**Using Phone Number (easiest):**
+1. The "📱 Phone Number" tab should already be highlighted
+2. Type the **team lead's phone number** (10 digits) in the input field
 3. Click the blue **"Access Team"** button
-4. **If found:** You're redirected to your team dashboard
-5. **If not found:** A red error message appears: *"No team found with this phone number. Make sure to use the team lead's phone number."*
+4. ✅ If found → You go to your team dashboard
+5. ❌ If not found → Red error: *"No team found with this phone number. Make sure to use the team lead's phone number."*
 
-### Option 2: Access with Team Code
-
-1. Click the **🔑 Team Code** tab on the toggle bar
-2. The input field changes — now shows placeholder "IGN26-XXXX"
-3. Type your team code (e.g., `IGN26-A1B2`) — it auto-converts to uppercase
+**Using Team Code:**
+1. Click the **"🔑 Team Code"** tab (it becomes highlighted)
+2. The input field changes to show placeholder "IGN26-XXXX"
+3. Type your team code — it auto-converts to uppercase
 4. Click the blue **"Access Team"** button
-5. **If found:** You're redirected to your team dashboard
-6. **If not found:** Red error: *"Team not found. Please check your team code."*
+5. ✅ If found → You go to your team dashboard
+6. ❌ If not found → Red error: *"Team not found. Please check your team code."*
 
-### Step 3: Using the Team Dashboard
+### Step 3: Your Team Dashboard
 
-Once you access your team, you see your **Team Dashboard** at `/team/[teamCode]`:
+Once you access your team, you see:
 
-**What you see:**
-
-1. **Team Info Section:**
-   - Project Name
-   - Team Code
-   - Status badge (Pending / Approved / Rejected)
-
-2. **Members List:**
-   Each member shows as a card with:
-   - Member number badge (e.g., #1, #2)
+1. **Team Info:** Project Name, Team Code, Status badge (Pending/Approved/Rejected)
+2. **Members List:** Each member shown as a card with:
+   - Number badge (#1, #2, etc.)
    - Name with prefix (Mr/Ms)
    - College & Branch
-   - Attendance status badge (green "Attending" or gray "Not Attending")
-   - Food preference
+   - Green "Attending" badge or gray "Not Attending"
+3. **What You Can Update:**
+   - **Food Preference:** Click the dropdown on any member → Select Vegetarian or Non-Vegetarian → ✅ *"Food preference updated"*
+   - **Accommodation:** Toggle "Need Accommodation" → Select Dorm or Suite → Select dates → Saves automatically
 
-3. **What Members Can Update:**
-
-   **Food Preference:** Each member has a dropdown showing "Vegetarian" or "Non-Vegetarian". Click it and select a different option → Green notification: *"Food preference updated"*
-
-   **Accommodation:** If the event has accommodation:
-   - Click **"Need Accommodation"** toggle
-   - Select room type: **Dorm** or **Suite**
-   - Select dates (day before, event day, day after)
-   - Changes save automatically
-
-4. **At the bottom:** "Don't have a team yet?" → Link to **"Register Now →"** takes you to the events page
+4. **At the bottom:** "Don't have a team yet?" → Click **"Register Now →"** to go to events page
 
 ---
 
-## 8. Phase 7: Setting Up Jury & Evaluation
+## 9. Setting Up Jury & Evaluation (Jury Admin)
 
-### Who does this: Jury Admin
+### Step 1: Go to Jury Dashboard
 
-### Step 1: Go to Jury Admin Dashboard
-
-1. Log in with your Google account
-2. Click **"Dashboard"** in the navbar → You're taken to `/{eventId}/jury`
+1. Log in → Click **"Dashboard"** in navbar
+2. You land on the Jury Admin Dashboard
 
 **What you see:**
-
-- **Top:** "Jury Admin Dashboard" heading with event name
-- **Stats row (4 boxes):**
-  - **Questions** — Number of evaluation questions created
-  - **Jury Members** — Number of jury members assigned
-  - **Submitted** — Evaluations submitted by jury
-  - **Pending** — Evaluations still in progress
-- **Two cards side by side:**
-  - **Left: "Evaluation Questions"** — Create and manage questions
-  - **Right: "Jury Members"** — Assign teams to jury members
-- **Below: "Evaluation Progress"** — Monitor all evaluation submissions
-- **Bottom: "Team Rankings"** — Leaderboard (appears after evaluations are submitted)
+- **4 stat boxes:** Questions, Jury Members, Submitted, Pending
+- **Left card:** "Evaluation Questions" — Create scoring criteria
+- **Right card:** "Jury Members" — Assign teams to jury members
+- **Below:** "Evaluation Progress" — Monitor all submissions
+- **Bottom:** "Team Rankings" — Leaderboard (appears after scores submitted)
 
 ### Step 2: Create Evaluation Questions
 
-1. Look at the **left card** titled **"Evaluation Questions"** with subtitle "Define criteria for team evaluation"
-2. You see a form to add a new question with these fields:
+In the **left card** ("Evaluation Questions"):
+
+1. Fill in these three fields:
 
 | Field | What to Enter | Example |
 |-------|--------------|---------|
-| **Question Text** | What to evaluate | `Innovation and Creativity` |
-| **Max Score** | Maximum score for this question | `10` |
-| **Weight** | How much this counts in the final score | `25` |
+| **Question Text** | What criterion to evaluate | `Innovation and Creativity` |
+| **Max Score** | Maximum possible score | `10` |
+| **Weight** | Importance percentage | `25` |
 
-3. Fill in all three fields
-4. Click the **"Add Question"** button
-5. The question appears in the list below with its text, max score, and weight
-6. Repeat for all your questions
+2. Click **"Add Question"**
+3. The question appears in the list below
+4. Repeat for all your criteria
 
-**Recommended Questions:**
+**Recommended setup:**
 
 | Question | Max Score | Weight |
 |----------|----------|--------|
@@ -553,501 +463,404 @@ Once you access your team, you see your **Team Dashboard** at `/team/[teamCode]`
 | Presentation & Communication | 10 | 15 |
 | Impact & Usefulness | 10 | 20 |
 | Team Coordination | 10 | 10 |
-| **Total Weight** | | **100** |
-
-**To edit a question:** Click the "Edit" button next to it, modify the fields, click "Save"
-**To delete a question:** Click the "Delete" button (red) next to it, confirm the deletion
+| **Total** | | **100** |
 
 ### Step 3: Assign Teams to Jury Members
 
-> ⚠️ **Important:** Teams must be **approved** first before you can assign them to jury members. Ask the Registration Committee to approve teams first.
+> ⚠️ Teams must be **approved first** by the Registration Committee before you can assign them.
 
-1. Look at the **right card** titled **"Jury Members"** with subtitle "Assign teams to jury members"
-2. You see the list of jury members (added by Super Admin in Committee Members section)
-3. For each jury member, you can assign which teams they evaluate
-4. Click **"Assign Teams"** next to a jury member
-5. A list of approved teams appears with checkboxes
-6. **Check the teams** you want this jury member to evaluate
-7. Click **"Save Assignments"**
-8. The jury member now sees those teams in their evaluation dashboard
+In the **right card** ("Jury Members"):
 
-**Best practice:** Distribute teams **evenly** across jury members. If you have 20 teams and 4 jury members, assign 5 teams to each.
+1. You see the list of jury members (added by Super Admin)
+2. Click **"Assign Teams"** next to a jury member
+3. A list of approved teams appears with checkboxes
+4. **Check the teams** you want this person to evaluate
+5. Click **"Save Assignments"**
+
+**Tip:** Distribute teams evenly — 20 teams ÷ 4 jury members = 5 teams each.
 
 ---
 
-## 9. Phase 8: Event Day — QR Scanning & Logistics
+## 10. QR Scanning & Logistics
 
-### Who does this: Logistics Committee
+### Who Does This: Logistics Committee
 
-### Step 1: Go to Logistics Dashboard
+### Step 1: Open the Scanner
 
-1. Log in with your Google account
-2. Click **"Dashboard"** in the navbar → You're taken to `/{eventId}/logistics`
+1. Log in → Click **"Dashboard"** in navbar
+2. You land on the Logistics page
 
-**What you see on this page:**
+**What you see:**
+- **4 stat boxes:** Total Coupons, Used (green border), Remaining, Usage %
+- **4 meal cards** showing usage per type:
+  - 🍽️ **Lunch** — e.g., "15 / 100" with progress bar
+  - ☕ **Tea** — e.g., "8 / 100"
+  - 🌙 **Dinner** — e.g., "0 / 100"
+  - 🎁 **Kit** — e.g., "25 / 100"
+- **QR Scanner card** titled "📱 QR Scanner" with subtitle "Scan or enter coupon code"
+- **Recent Scans card** showing the last 20 scanned coupons
 
-- **Top:** "Logistics & QR Scanner" heading with event name
-- **"← Back to Event" button** in the top-right corner
-- **Stats row (4 boxes):**
-  - **Total Coupons** — All generated coupons
-  - **Used** (green border) — Coupons already scanned
-  - **Remaining** — Coupons not yet used
-  - **Usage %** — Percentage used
-- **Type-wise stats (4 cards):**
-  - 🍽️ **Lunch** — X / Y used
-  - ☕ **Tea** — X / Y used
-  - 🌙 **Dinner** — X / Y used
-  - 🎁 **Kit** — X / Y used
-  - Each card has a **progress bar** showing usage visually
+### Step 2: Scan a Coupon
 
-### Step 2: Use the QR Scanner
+**Method 1: Camera Scan**
+1. In the "📱 QR Scanner" card, the camera opens automatically (if device has one)
+2. Point camera at the team member's QR code
+3. ✅ If valid → Green notification: *"Coupon marked as used"*
+4. ❌ If already used → Red notification: *"Coupon already used"*
 
-Below the stats, you see a card titled **"📱 QR Scanner"** with subtitle "Scan or enter coupon code":
-
-**Method 1: Scan QR Code**
-1. If your device has a camera, the scanner opens automatically
-2. Point your camera at the team member's QR code
-3. The system automatically reads the code
-4. If valid: Green notification *"Coupon marked as used"*
-5. If already used: Red notification *"Coupon already used"*
-
-**Method 2: Manual Entry (Backup)**
-1. Below the scanner, there's a **text input field** with placeholder text
-2. Type the coupon code manually (e.g., `IGN26-A1B2-LUNCH-001`)
+**Method 2: Manual Entry (if camera doesn't work)**
+1. Below the camera area, there's a **text input field**
+2. Type the coupon code manually
 3. Click the **"Verify"** button (or press Enter)
-4. The system checks the coupon and shows the result
+4. System checks and shows result
 
-### Step 3: View Recent Scans
+### Step 3: Check Recent Scans
 
-Below the scanner, you see a card titled **"Recent Scans"** showing the last 20 scanned coupons:
-
-Each scan shows:
+Below the scanner, the **"Recent Scans"** card shows the last 20 scans:
 - **Member Name** (bold)
-- **Coupon Code** (gray text)
-- **Type badge** (green badge showing "lunch", "tea", "dinner", or "kit")
-- **Time** (when it was scanned)
+- **Coupon Code** (gray)
+- **Type badge** (green badge: "lunch", "tea", "dinner", or "kit")
+- **Time** when it was scanned
 
 ---
 
-## 10. Phase 9: Event Day — Food Management
+## 11. Food Management
 
-### Who does this: Food Committee / Logistics Committee
+### Who Does This: Food Committee / Logistics Committee
 
-### Step 1: Go to Food Dashboard
+### Go to Food Dashboard
 
-1. Log in with your Google account
-2. Click **"Dashboard"** in the navbar → Go to `/{eventId}/food`
+1. Log in → Click **"Dashboard"** → Navigate to `/{eventId}/food`
 
 **What you see:**
+- **Vegetarian count** (green number) and **Non-Vegetarian count** (red number)
+- **Coupon statistics** with meal-type breakdown and progress bars
 
-- **Food preference overview:**
-  - **Vegetarian count** (green number)
-  - **Non-Vegetarian count** (red number)
-- **Coupon statistics:** Meal-type breakdown with progress bars
-- **Live stats** of what's been served vs. remaining
+### Scanning Food Coupons
 
-### Step 2: Scan Food Coupons
+Same QR scanner as the Logistics page:
 
-Same QR scanner as the Logistics page. The process:
-
-1. Team member shows their food coupon (QR code on their phone or printed)
-2. Scan it or enter the code manually
-3. System checks:
-   - ✅ Is this coupon valid? (exists in the system)
-   - ✅ Is it the right meal time? (lunch coupon can't be used at dinner)
-   - ✅ Has it already been used? (prevents double use)
-4. **If valid:** Green success → Allow the person to get food
-5. **If invalid:** Red error → Explain why (already used, wrong meal, etc.)
+1. Team member shows their QR coupon (on phone or printed)
+2. Scan with camera or type code manually
+3. System checks three things:
+   - ✅ Is this a valid coupon?
+   - ✅ Is it the right meal time?
+   - ✅ Has it already been used?
+4. **Valid** → Green success → Let the person get food
+5. **Invalid** → Red error explaining why (already used, wrong meal, expired, etc.)
 
 ---
 
-## 11. Phase 10: Jury Evaluation (For Jury Members)
+## 12. Jury Evaluation (For Jury Members)
 
-### Who does this: Jury Members
+### Step 1: Go to Evaluation Page
 
-### Step 1: Go to Your Evaluation Page
-
-1. Log in with your Google account
-2. Click **"Dashboard"** in the navbar
-3. You're taken to `/{eventId}/jury/evaluate`
+1. Log in → Click **"Dashboard"** in navbar
+2. You land on the evaluation page
 
 **What you see:**
-- **"Your Assigned Teams"** heading
-- A list of teams assigned to you by the Jury Admin
-- Each team shows:
-  - Team Code
-  - Project Name
-  - Status: "Not Started", "Draft", "Submitted"
+- List of **teams assigned to you** by the Jury Admin
+- Each team shows: Team Code, Project Name, Status (Not Started / Draft / Submitted)
 
 ### Step 2: Evaluate a Team
 
-1. Click on a team from your assigned list
-2. You're taken to the evaluation form for that team at `/{eventId}/jury/evaluate/[submissionId]`
-3. You see all the evaluation questions created by the Jury Admin
+1. Click on a team from your list
+2. The evaluation form opens showing all questions
 
 **For each question:**
-- Question text is displayed (e.g., "Innovation and Creativity")
+- The question text is displayed (e.g., "Innovation and Creativity")
 - A **score slider** or **number input** (0 to max score)
-- Move the slider or type a number to set your score
-- **Optional:** Add a comment for that specific question
+- Move the slider or type a score
+- Optionally, add a comment about that specific criterion
 
-**At the bottom:**
-- **Overall Comment** text area — Add your general feedback about the team
-- **"Save Draft"** button (gray) — Save progress, come back later
+**At the bottom of the form:**
+- **Overall Comment** — Text area for general feedback about the team
+- **"Save Draft"** button (gray) — Save progress, come back later, continue editing
 - **"Submit Evaluation"** button (blue) — Final submission
 
 ### Step 3: Save or Submit
 
-**Save Draft:**
-- Click **"Save Draft"** → Green notification: *"Draft saved"*
-- Your evaluation shows as "Draft" status
-- You can come back and edit it later
-- ⚠️ Save frequently to avoid losing work
+| Action | Button | What Happens |
+|--------|--------|-------------|
+| **Save Draft** | Gray button | Progress saved, status = "Draft", you can edit later |
+| **Submit** | Blue button | Confirmation popup → Click OK → Status = "Submitted", cannot edit after |
 
-**Submit (Final):**
-- Click **"Submit Evaluation"** → Confirmation dialog appears
-- Click **OK** to confirm
-- Green notification: *"Evaluation submitted"*
-- Status changes to "Submitted"
-- ⚠️ After submission, you typically **cannot edit** the evaluation
-- The Jury Admin can "send back" if changes are needed
+⚠️ **Save drafts frequently** to avoid losing work!
 
-### Step 4: Move to Next Team
-
-1. After submitting, you're redirected back to your team list
-2. The submitted team now shows ✅ "Submitted" status
-3. Click the next team and repeat the process
+After submitting, you return to your team list. The submitted team shows ✅ "Submitted". Click the next team to continue.
 
 ---
 
-## 12. Phase 11: Announcements
+## 13. Announcements
 
-### Who does this: Any committee member
+### Who Does This: Any Committee Member
 
-### Step 1: Go to Announcements
+### Posting an Announcement
 
-1. Go to `/{eventId}/announcements` (from the Dashboard → Quick Access → 📢 Announcements card)
-
-**What you see:**
-- **"Announcements"** heading with event name
-- **Create announcement form** at the top
-- **List of existing announcements** below
-
-### Step 2: Create an Announcement
-
-1. Fill in the form:
+1. Go to `/{eventId}/announcements` (from Dashboard → Quick Access → 📢 Announcements card)
+2. At the top, fill the form:
    - **Title** — Short headline (e.g., "Lunch is Ready!")
-   - **Content** — Full message (e.g., "All teams please proceed to Hall 2 for lunch. Veg on left side, Non-veg on right side.")
-   - **Category** — Select from dropdown: General, Food, Logistics, Jury, etc.
+   - **Content** — Full message (e.g., "All teams proceed to Hall 2")
+   - **Category** — Select from dropdown (General, Food, Logistics, etc.)
    - **Priority** — Normal or High
-2. Click the **"Post Announcement"** button
-3. The announcement appears at the top of the list
+3. Click **"Post Announcement"**
+4. It appears at the top of the announcement list
 
-### Step 3: Delete an Announcement
+### Where People See Announcements
 
-- Find the announcement in the list
-- Click the **"Delete"** button (red, usually a trash icon or ✕)
-- Confirm deletion
-
-### Where Announcements Appear
-
-- **Volunteer Page** (`/volunteer`) — Visible to everyone without logging in
-- **Announcements Page** (`/{eventId}/announcements`) — Full list with filtering
-- Announcements can be **filtered by category** using the filter buttons at the top
+- **Volunteer page** (`/volunteer`) — Anyone can see without logging in
+- **Announcements page** (`/{eventId}/announcements`) — Full list with filtering
 
 ---
 
-## 13. Phase 12: Accommodation & Commute
+## 14. Accommodation & Commute
 
-### Accommodation Management
+### Accommodation (For Team Members)
 
-**Path:** `/{eventId}/accommodation`
+In the **Team Portal** (`/team/[teamCode]`), each member can:
 
-**For Team Members:**
-- In their Team Portal (`/team/[teamCode]`), each member can:
-  1. Toggle **"Need Accommodation"** to ON
-  2. Select **Room Type**: Dorm or Suite
-  3. Select **Dates**: Check the checkboxes for needed nights (day before / event day / day after)
-  4. Changes save automatically — green notification appears
+1. Toggle **"Need Accommodation"** to ON
+2. Select **Room Type**: Dorm or Suite
+3. Select **Dates**: Check boxes for needed nights (day before / event day / day after)
+4. Changes save automatically → ✅ Green notification
 
-**For Accommodation Admin:**
-- Go to `/{eventId}/accommodation`
-- See all accommodation requests organized by:
-  - **Date-wise breakdown** — How many people need rooms on each night
-  - **Room type stats** — Dorm vs. Suite counts
-- Export the list for hostel/hotel coordination
+### Accommodation Admin
 
-### Commute/Bus Schedules
+Go to `/{eventId}/accommodation`:
+- See all requests organized by date and room type
+- Export the list for coordination with hostel/hotel
 
-**Path:** `/{eventId}/commute`
+### Commute / Bus Schedules
 
-**For Commute Admin:**
-- Add bus schedules: Route name, departure time, available seats
-- Edit or delete existing schedules
+**For Admins:**
+- Go to `/{eventId}/commute`
+- Add bus routes: route name, departure time, seats
 
 **For Participants:**
-- Go to `/volunteer` → See bus schedules
-- Each schedule shows: route, time, and available seats
+- Go to `/volunteer` → See bus schedules with routes, times, and available seats
 
 ---
 
-## 14. Phase 13: Exporting Data
+## 15. Exporting Data
 
-### Who does this: Committee Members / Super Admin
+### Who Does This: Committee Members / Super Admin
 
 ### Step 1: Go to Event Dashboard
 
-1. Log in and click **"Dashboard"** in navbar
-2. Go to `/{eventId}/dashboard`
-3. Scroll down past the stats and Quick Access cards
-4. You see a section titled **"Export Data"**
+1. Log in → Click **"Dashboard"** → Go to `/{eventId}/dashboard`
+2. Scroll down past the stat boxes and Quick Access cards
+3. Find the section titled **"Export Data"**
 
-### Step 2: Export Everything at Once (Recommended)
+### Option 1: Export Everything (Recommended)
 
-1. At the top of the Export Data section, you see a **large blue button:**
+1. You see a **large blue button** at the top of the Export section:
    > **📦 Export All Data (ZIP)**
-2. Below it is gray text: "Download all event data (teams, food, coupons, accommodation, evaluations, attendance) in one ZIP file"
+2. Below it: gray text saying "Download all event data in one ZIP file"
 3. **Click the button**
-4. Your browser downloads a ZIP file named `{EventName}_AllData_{date}.zip`
-5. **Unzip the file** — Inside you'll find 6 Excel files:
-   - `teams.xlsx` — All team details with every member
-   - `food.xlsx` — Food preferences for all attending members
-   - `coupons.xlsx` — All coupons with usage status
-   - `accommodation.xlsx` — Accommodation requests
-   - `evaluations.xlsx` — All jury scores and rankings
-   - `attendance.xlsx` — Meal attendance records (used coupons)
+4. A ZIP file downloads (named like `IGNITE2026_AllData_2026-03-15.zip`)
+5. **Unzip the file** — Inside you find 6 Excel files:
 
-### Step 3: Export Individual Files (Alternative)
+| File | Contents |
+|------|----------|
+| `teams.xlsx` | All team details with every member |
+| `food.xlsx` | Food preferences for all attending members |
+| `coupons.xlsx` | All coupons with used/unused status |
+| `accommodation.xlsx` | Accommodation requests |
+| `evaluations.xlsx` | All jury scores and rankings |
+| `attendance.xlsx` | Meal attendance records |
 
-Below the Export All button, you see gray text: **"Or export individually:"** followed by 6 smaller buttons:
+### Option 2: Export One at a Time
 
-| Button | What It Downloads |
-|--------|------------------|
-| **Teams** | All team details with members |
-| **Food Report** | Food preferences (veg/non-veg counts) |
-| **Coupons** | All coupons with usage status |
-| **Accommodation** | Accommodation requests |
-| **Evaluations** | Jury scores and rankings |
-| **Attendance** | Meal attendance log |
+Below the ZIP button, you see gray text: **"Or export individually:"** followed by 6 smaller outlined buttons:
 
-Click any button → An Excel file (.xlsx) downloads to your device.
+| Button Label | What Downloads |
+|-------------|---------------|
+| **Teams** | Team details + members |
+| **Food Report** | Veg/non-veg counts |
+| **Coupons** | All coupons + usage |
+| **Accommodation** | Room assignments |
+| **Evaluations** | Jury scores + rankings |
+| **Attendance** | Meal scan logs |
+
+Click any button → An Excel file (.xlsx) downloads.
 
 ---
 
-## 15. Phase 14: Post-Event & Archiving
+## 16. Post-Event & Archiving
 
 ### Step 1: Lock All Evaluations (Jury Admin)
 
-1. Go to `/{eventId}/jury` → Look at the **"Evaluation Progress"** card at the bottom
-2. For each **submitted** evaluation:
-   - Click **"Lock"** → The evaluation is finalized (green "Locked" status)
-   - If there's an issue, click **"Send Back"** → Jury member can revise and resubmit
-3. Make sure all evaluations are locked before generating final results
+1. Go to `/{eventId}/jury` → Look at the **"Evaluation Progress"** card
+2. For each submitted evaluation, you see action buttons:
+   - **"Lock"** → Finalizes the score (cannot be changed after). Status turns green "Locked"
+   - **"Send Back"** → Returns to jury member for revision. Status turns red "Sent Back"
+3. Lock all evaluations before generating final results
 
 ### Step 2: View Final Rankings
 
-1. On the same Jury Admin page, scroll to the **"Team Rankings"** section at the very bottom
-2. You see teams ranked by average score:
-   - **#1** — Gold circle with score on the right
+1. On the same page, scroll to **"Team Rankings"** at the bottom
+2. Teams shown ranked by score:
+   - **#1** — Gold circle
    - **#2** — Silver circle
    - **#3** — Bronze circle
-   - #4 onwards — Gray circle
-3. Each entry shows: rank, team code, project name, average score, and number of evaluations
+   - Each shows: team code, project name, average score, number of evaluations
 
 ### Step 3: Export All Data
 
-Follow the steps in [Phase 13: Exporting Data](#14-phase-13-exporting-data) to download everything.
+Follow [Section 15: Exporting Data](#15-exporting-data)
 
 ### Step 4: Archive the Event (Super Admin)
 
-1. Go to `/admin` → Click **"Manage Event →"** on your event card
-2. In the **"Event Settings"** card on the left
-3. Under **"Event Status"**, click the **"Archived"** button
-4. The event:
-   - Moves to the "Archived Events" section on the admin dashboard
-   - Is no longer visible on the public events page
-   - All data is preserved and can still be accessed
-   - Registration and evaluation are automatically closed
+1. Go to `/admin` → Click **"Manage Event →"** on your event
+2. In "Event Settings" → Under "Event Status" → Click **"Archived"**
+3. The event:
+   - Moves to "Archived Events" on admin dashboard
+   - Disappears from public events page
+   - All data is preserved
+   - Registration and evaluation automatically close
 
 ---
 
-## 16. Troubleshooting & Common Scenarios
+## 17. Troubleshooting & Common Scenarios
 
 ### ❌ "I can't see the Dashboard link in the navbar"
 
-**Cause:** You're not logged in, or you haven't been assigned a role.
+**Why:** You're not logged in, or you haven't been assigned a role.
 **Fix:**
 1. Click **"Staff Login"** (blue button, top-right) → Sign in with Google
-2. If still no Dashboard link → Your email hasn't been added as a committee member
-3. Ask the Super Admin to go to `/admin/events/[eventId]` → Committee Members → Add your exact Google email
+2. If still no Dashboard → Ask the Super Admin to add your email at `/admin/events/[eventId]` → Committee Members section
 
 ### ❌ "Access Denied" or "Unauthorized" page
 
-**Cause:** You don't have permission for that specific page.
-**Fix:**
-1. Check with the Super Admin that you have the **correct role** for that page
-2. Example: If you see "Access Denied" on `/teams`, you need the "Registration Committee" role
-3. Super Admin can add your role at `/admin/events/[eventId]` → Committee Members
+**Why:** You don't have the right role for that page.
+**Fix:** Ask Super Admin to assign the correct role. For example:
+- Teams page needs → "Registration Committee" role
+- Jury page needs → "Jury Admin" or "Jury Member" role
+- Logistics page needs → "Logistics Committee" role
 
 ### ❌ "Team not found" on Team Portal
 
-**Cause:** Wrong phone number or team code entered.
+**Why:** Wrong phone number or team code.
 **Fix:**
-1. If using **Phone Number**: Make sure you're entering the **team lead's** phone number (not a member's phone)
-2. If using **Team Code**: Check for typos — codes look like `IGN26-XXXX` (always uppercase)
-3. If the team hasn't been approved yet, the portal still works — the status will show "Pending"
+- If using Phone: Enter the **team lead's** phone (not a member's)
+- If using Code: Check for typos — codes look like `IGN26-XXXX` (uppercase)
 
-### ❌ "My team was registered but I don't have a team code"
+### ❌ "I don't remember my team code"
 
-**Cause:** You may not have noted it during registration.
+**Fix:** Use the **📱 Phone Number** tab on Team Portal instead. Or ask the Registration Committee to look it up.
+
+### ❌ QR Scanner camera not opening
+
 **Fix:**
-1. Use the **📱 Phone Number** tab on the Team Portal instead
-2. Enter the team lead's phone number
-3. Or ask the Registration Committee to look it up in `/{eventId}/teams`
+1. Browser may ask for camera permission → Click **"Allow"**
+2. If no camera available → Use **Manual Entry**: type the coupon code in the text field and click "Verify"
 
-### ❌ "QR Scanner camera not working"
+### ❌ "Coupon already used"
 
-**Cause:** Browser doesn't have camera permission, or device has no camera.
+**Why:** This coupon was scanned before (one coupon = one meal).
+**Fix:** Check "Recent Scans" section to see when/who used it. Contact Super Admin if scanned by mistake.
+
+### ❌ Jury member can't see assigned teams
+
+**Fix (check both):**
+1. **Jury Admin** must assign teams first: `/{eventId}/jury` → Jury Members card → Assign Teams
+2. **Super Admin** must turn on evaluation: `/admin/events/{id}` → Toggle "Evaluation Open" to ON
+
+### ❌ Evaluation won't save
+
 **Fix:**
-1. When prompted, click **"Allow"** for camera access
-2. If no camera is available, use **Manual Entry** instead:
-   - Type the coupon code in the text field
-   - Click "Verify" button
+1. Make sure **every question has a score** (none can be blank)
+2. Try **"Save Draft"** first
+3. Check your internet connection
 
-### ❌ "Coupon shows 'Already Used'"
+### 🔄 Late Team Registration
 
-**Cause:** This coupon was already scanned earlier.
-**Fix:**
-1. Check the **"Recent Scans"** section on the Logistics page to see when/who scanned it
-2. This prevents double-usage (one coupon = one meal)
-3. If it was scanned by mistake, contact the Super Admin
+1. Super Admin: Toggle "Registration Open" back ON in event settings
+2. Team registers at `/events` → picks the event → fills the form
+3. OR Super Admin imports them via Excel at `/{eventId}/import`
+4. Registration Committee approves immediately
 
-### ❌ "Jury member can't see their assigned teams"
+### 🔄 Need to Change Team Member Details
 
-**Cause:** Teams haven't been assigned yet, or evaluation isn't open.
-**Fix:**
-1. **Jury Admin** must assign teams: Go to `/{eventId}/jury` → Jury Members card → Assign Teams
-2. **Super Admin** must turn on evaluation: Go to `/admin/events/[eventId]` → Toggle **"Evaluation Open"** to ON
-
-### ❌ "Jury evaluation won't save"
-
-**Cause:** Missing required scores or network issue.
-**Fix:**
-1. Make sure **every question has a score** (can't be blank)
-2. Add an overall comment (may be required)
-3. Check internet connection
-4. Try clicking **"Save Draft"** first, then submit later
-
-### ❌ "I'm Super Admin but I see a blank admin page"
-
-**Cause:** Your Google email doesn't match `SUPER_ADMIN_EMAIL` in environment variables.
-**Fix:**
-1. Check your Netlify environment variables
-2. The email must exactly match your Google sign-in email (case-sensitive: `nihal@gmail.com`)
-3. After fixing, redeploy on Netlify
-
-### 🔄 Scenario: Late Team Registration After Deadline
-
-1. **Super Admin** goes to `/admin/events/[eventId]` → Toggle **"Registration Open"** back ON
-2. The team registers normally at `/events/[eventId]/register`
-3. OR Super Admin uses the **Import page** (`/{eventId}/import`) to add just one team via Excel
-4. Registration Committee approves immediately at `/{eventId}/teams`
-5. Toggle Registration back OFF if needed
-
-### 🔄 Scenario: Need to Change a Team Member After Approval
-
-1. Currently, team members can update their own info in the Team Portal
-2. For major changes, Registration Committee can reject the team
-3. The team re-registers with corrected information
-4. Registration Committee re-approves
+1. Team members can update food preference and accommodation in Team Portal
+2. For major changes: Registration Committee rejects the team, team re-registers with correct info, Committee re-approves
 
 ---
 
-## 17. Complete Route Reference
+## 18. Complete Route Reference
 
-### Public Pages (No Login Required)
+### Public Pages (No Login Needed)
 
-| URL | Page Name | What You See |
-|-----|-----------|-------------|
-| `/` | Home Page | Landing page with IGNITE branding |
-| `/events` | Events List | All active events, click to register |
-| `/events/{eventId}/register` | Registration Form | Fill in team details (Google login required) |
-| `/team` | Team Portal Entry | Enter phone/code to access team dashboard |
-| `/team/{teamCode}` | Team Dashboard | View/edit team details, food, accommodation |
-| `/volunteer` | Volunteer Page | Announcements and bus schedules |
-| `/accommodation` | Accommodation Info | View accommodation options |
+| Page | URL | Purpose |
+|------|-----|---------|
+| Home | `/` | Landing page |
+| Events List | `/events` | Browse active events, click to register |
+| Registration Form | `/events/{eventId}/register` | Fill team registration (Google login required) |
+| Team Portal Entry | `/team` | Enter phone/code to access team |
+| Team Dashboard | `/team/{teamCode}` | View/edit team details |
+| Volunteer Page | `/volunteer` | Announcements & bus schedules |
 
 ### Staff Pages (Login Required)
 
-| URL | Required Role | Page Name | What You See |
-|-----|--------------|-----------|-------------|
-| `/my-dashboard` | Any role | Smart Dashboard | Auto-redirects to your role's page |
-| `/admin` | Super Admin | Admin Dashboard | All events, create/manage events |
-| `/admin/users` | Super Admin | User Management | View all users, promote to admin |
-| `/admin/events/new` | Super Admin | Create Event | Form to create a new event |
-| `/admin/events/{id}` | Super Admin | Manage Event | Settings, committee members, quick links |
-| `/{eventId}/dashboard` | Any committee | Event Dashboard | Stats, quick access, export data |
-| `/{eventId}/teams` | Registration Committee | Teams List | View, approve, reject team registrations |
-| `/{eventId}/import` | Reg. Committee / Admin | Import Teams | Upload Excel to bulk-import teams |
-| `/{eventId}/jury` | Jury Admin | Jury Dashboard | Questions, assignments, submissions, rankings |
-| `/{eventId}/jury/evaluate` | Jury Member | Evaluate Teams | See assigned teams, submit scores |
-| `/{eventId}/jury/evaluate/{id}` | Jury Member | Evaluation Form | Score a specific team |
-| `/{eventId}/food` | Food Committee | Food Dashboard | Veg/non-veg stats, coupon usage |
-| `/{eventId}/logistics` | Logistics Committee | QR Scanner | Scan coupons, mark attendance |
-| `/{eventId}/announcements` | Any committee | Announcements | Post and manage announcements |
-| `/{eventId}/accommodation` | Accommodation Admin | Accommodation | Room assignments, date breakdown |
-| `/{eventId}/commute` | Commute Admin | Bus Schedules | Create/edit bus routes and times |
-
-### API Routes (Used Internally)
-
-| URL | Purpose |
-|-----|---------|
-| `/api/auth/[...nextauth]` | Google OAuth authentication |
-| `/api/export/{eventId}/{type}` | Download individual Excel export |
-| `/api/export-all/{eventId}` | Download all data as ZIP |
+| Page | URL | Who Can Access | Purpose |
+|------|-----|---------------|---------|
+| Smart Dashboard | `/my-dashboard` | Anyone with a role | Auto-redirects to your role's page |
+| Admin Dashboard | `/admin` | Super Admin | Create/manage events |
+| User Management | `/admin/users` | Super Admin | View all users |
+| Create Event | `/admin/events/new` | Super Admin | New event form |
+| Manage Event | `/admin/events/{id}` | Super Admin | Settings + committee |
+| Event Dashboard | `/{eventId}/dashboard` | Any committee member | Stats + quick access + export |
+| Teams | `/{eventId}/teams` | Registration Committee | Approve/reject teams |
+| Import Teams | `/{eventId}/import` | Registration / Admin | Excel bulk import |
+| Jury Admin | `/{eventId}/jury` | Jury Admin | Questions + assignments + rankings |
+| Jury Evaluate | `/{eventId}/jury/evaluate` | Jury Member | Score assigned teams |
+| Food | `/{eventId}/food` | Food Committee | Food stats + preferences |
+| Logistics | `/{eventId}/logistics` | Logistics Committee | QR scanner + attendance |
+| Announcements | `/{eventId}/announcements` | Any committee member | Post event updates |
+| Accommodation | `/{eventId}/accommodation` | Accommodation Admin | Room assignments |
+| Commute | `/{eventId}/commute` | Commute Admin | Bus schedules |
 
 ---
 
-## Quick Checklist: Running an Event from Start to Finish
+## 19. Event Day Checklist
 
-### 📅 2-3 Weeks Before
+### 📅 2–3 Weeks Before
 
-- [ ] Super Admin: Deploy the app
-- [ ] Super Admin: Create the event (`/admin` → "+ Create New Event")
-- [ ] Super Admin: Set event to "Active" (`/admin/events/{id}` → Status → Active)
-- [ ] Super Admin: Turn ON registration (`/admin/events/{id}` → Registration Open toggle)
-- [ ] Super Admin: Add committee members (`/admin/events/{id}` → Committee Members)
+- [ ] Super Admin: Create event → Set to Active → Open Registration
+- [ ] Super Admin: Add all committee members with their roles
 - [ ] Share registration link with teams: `yoursite.com/events`
 
 ### 📅 1 Week Before
 
-- [ ] Jury Admin: Create evaluation questions (`/{eventId}/jury` → Questions card)
-- [ ] Registration Committee: Review and approve teams (`/{eventId}/teams`)
-- [ ] Test the system: Create a dummy team and go through the full flow
+- [ ] Jury Admin: Create evaluation questions
+- [ ] Registration Committee: Start reviewing and approving teams
 
 ### 📅 1 Day Before
 
-- [ ] Super Admin: Verify all teams are approved/rejected
-- [ ] Jury Admin: Assign teams to jury members (`/{eventId}/jury` → Jury Members card)
-- [ ] Logistics: Test QR scanners
-- [ ] Super Admin: Turn ON evaluation (`/admin/events/{id}` → Evaluation Open toggle)
+- [ ] Registration Committee: Approve/reject all remaining teams
+- [ ] Jury Admin: Assign teams to jury members
+- [ ] Logistics: Test QR scanners on phones/tablets
+- [ ] Super Admin: Turn ON "Evaluation Open" in event settings
 
-### 📅 Event Day
+### 📅 Event Day Morning
 
-- [ ] Logistics Committee: Scan attendance at registration desk (`/{eventId}/logistics`)
-- [ ] Food Committee: Scan food coupons at meal times (`/{eventId}/logistics`)
-- [ ] Committee: Post announcements as needed (`/{eventId}/announcements`)
-- [ ] Jury Members: Evaluate assigned teams (`/{eventId}/jury/evaluate`)
+- [ ] Logistics: Open QR scanner at registration desk (`/{eventId}/logistics`)
+- [ ] Food Committee: Ready at food counters with scanner open
+
+### 📅 During Event
+
+- [ ] Logistics: Scan attendance as teams arrive
+- [ ] Food: Scan coupons at each meal
+- [ ] Committee: Post announcements as needed
+- [ ] Jury: Evaluate assigned teams
 
 ### 📅 After Event
 
-- [ ] Jury Admin: Lock all evaluations (`/{eventId}/jury` → Submissions → Lock)
-- [ ] Jury Admin: View rankings (`/{eventId}/jury` → Team Rankings)
-- [ ] Super Admin: Export all data (`/{eventId}/dashboard` → 📦 Export All Data)
-- [ ] Super Admin: Archive event (`/admin/events/{id}` → Status → Archived)
+- [ ] Jury Admin: Lock all evaluations
+- [ ] Jury Admin: Review final rankings
+- [ ] Super Admin: Click **📦 Export All Data** to download everything
+- [ ] Super Admin: Archive the event
 
 ---
 
-> **Need help?** Contact the Super Admin or create a GitHub issue at the project repository.
->
 > **IGNITE V2** — Built for Darsana IGNITE event management 🔥

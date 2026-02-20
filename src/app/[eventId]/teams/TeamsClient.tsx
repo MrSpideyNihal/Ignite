@@ -39,7 +39,151 @@ interface ParsedTeam {
     }>;
 }
 
-function parseExcelRows(rows: Record<string, string>[]): ParsedTeam[] {
+function detectFormat(keys: string[]): "google_forms" | "standard" {
+    const lower = keys.map(k => k.trim().toLowerCase());
+    // Google Forms format has columns like "phone number", "project code & description", "name of the team members"
+    if (
+        lower.some(k => k.includes("phone_number") || k.includes("phone number")) &&
+        lower.some(k => k.includes("project_code_&_description") || k.includes("project code") || k.includes("project_code_&"))
+    ) {
+        return "google_forms";
+    }
+    return "standard";
+}
+
+function parseGoogleFormsRows(rows: Record<string, string>[]): ParsedTeam[] {
+    const teams: ParsedTeam[] = [];
+
+    for (const row of rows) {
+        // Build a normalized key map
+        const r: Record<string, string> = {};
+        const originalKeys: Record<string, string> = {};
+        for (const [key, val] of Object.entries(row)) {
+            const normalized = key.trim().toLowerCase().replace(/\s+/g, "_");
+            r[normalized] = String(val || "").trim();
+            originalKeys[normalized] = key;
+        }
+
+        // Find project code & description — the column name contains "project_code"
+        let projectCodeDesc = "";
+        for (const [nk, val] of Object.entries(r)) {
+            if (nk.includes("project_code") && nk.includes("description")) {
+                projectCodeDesc = val;
+                break;
+            }
+        }
+        // Fallback: look for any column with "project_code" in it
+        if (!projectCodeDesc) {
+            for (const [nk, val] of Object.entries(r)) {
+                if (nk.includes("project_code")) {
+                    projectCodeDesc = val;
+                    break;
+                }
+            }
+        }
+
+        if (!projectCodeDesc) continue;
+
+        // Parse "12942 - Zygreen - Oxygen producing Air purifier" format
+        const codeParts = projectCodeDesc.split(" - ");
+        const projectCode = codeParts[0]?.trim() || "";
+        const projectName = codeParts.length > 1 ? codeParts.slice(1).join(" - ").trim() : projectCodeDesc;
+
+        if (!projectCode && !projectName) continue;
+
+        // Phone number = team lead's phone
+        const phone = r.phone_number || r.phone || "";
+
+        // College
+        let college = "";
+        for (const [nk, val] of Object.entries(r)) {
+            if (nk.includes("college") || nk.includes("name_of_the_college")) {
+                college = val;
+                break;
+            }
+        }
+        // If "General Category" is the college, clear it
+        if (college.toLowerCase().includes("general category")) college = "";
+
+        // Team members — comma separated in one cell
+        let memberNamesRaw = "";
+        for (const [nk, val] of Object.entries(r)) {
+            if (nk.includes("name_of_the_team_members") || nk.includes("team_members")) {
+                memberNamesRaw = val;
+                break;
+            }
+        }
+
+        // Guide info — single text field like "Dr. X, Professor, College Y"
+        let guideRaw = "";
+        for (const [nk, val] of Object.entries(r)) {
+            if (nk.includes("mentor") || nk.includes("guide")) {
+                guideRaw = val;
+                break;
+            }
+        }
+        const guideName = guideRaw && guideRaw.toUpperCase() !== "NA" ? guideRaw : "";
+
+        // Parse member names from comma-separated string
+        const memberNames = memberNamesRaw
+            .replace(/"/g, "")
+            .split(/[,\n]+/)
+            .map(n => n.trim())
+            .filter(n => n && n.toUpperCase() !== "NA");
+
+        // The team lead is the person who filled the form (phone owner)
+        // If memberNames has names, the first one could be the team lead or an additional member
+        // We'll add all names as members
+        const members: ParsedTeam["members"] = [];
+
+        // If no members listed (team of 1), we need at least a placeholder
+        if (memberNames.length === 0) {
+            members.push({
+                prefix: "Mr",
+                name: "Team Lead",
+                college: college,
+                branch: "",
+                yearOfPassing: new Date().getFullYear(),
+                phone: phone,
+                email: "",
+                foodPreference: "veg",
+            });
+        } else {
+            for (const name of memberNames) {
+                members.push({
+                    prefix: "Mr",
+                    name: name,
+                    college: college,
+                    branch: "",
+                    yearOfPassing: new Date().getFullYear(),
+                    phone: "",
+                    email: "",
+                    foodPreference: "veg",
+                });
+            }
+            // Set first member's phone to team lead phone
+            if (members.length > 0) {
+                members[0].phone = phone;
+            }
+        }
+
+        teams.push({
+            projectName,
+            projectCode,
+            teamLeadName: memberNames[0] || "Team Lead",
+            teamLeadPhone: phone,
+            teamLeadEmail: "",
+            guideName,
+            guidePhone: "",
+            guideEmail: "",
+            members,
+        });
+    }
+
+    return teams;
+}
+
+function parseStandardRows(rows: Record<string, string>[]): ParsedTeam[] {
     const teamMap = new Map<string, ParsedTeam>();
 
     for (const row of rows) {
@@ -86,6 +230,19 @@ function parseExcelRows(rows: Record<string, string>[]): ParsedTeam[] {
     }
 
     return Array.from(teamMap.values());
+}
+
+function parseExcelRows(rows: Record<string, string>[]): ParsedTeam[] {
+    if (rows.length === 0) return [];
+
+    // Auto-detect format from column headers
+    const keys = Object.keys(rows[0]);
+    const format = detectFormat(keys);
+
+    if (format === "google_forms") {
+        return parseGoogleFormsRows(rows);
+    }
+    return parseStandardRows(rows);
 }
 
 interface Props {
@@ -247,8 +404,8 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                 <button
                     onClick={() => setShowImport(!showImport)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${showImport
-                            ? "bg-primary-500 text-white shadow-lg"
-                            : "bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/40"
+                        ? "bg-primary-500 text-white shadow-lg"
+                        : "bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/40"
                         }`}
                 >
                     📥 {showImport ? "Hide Import" : "Import from Excel"}
