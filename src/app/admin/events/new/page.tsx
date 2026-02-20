@@ -8,9 +8,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const currentYear = new Date().getFullYear();
-const yearOptions = Array.from({ length: 10 }, (_, i) => ({
-    value: String(currentYear + i),
-    label: String(currentYear + i),
+const startYear = 2020;
+const yearOptions = Array.from({ length: currentYear - startYear + 11 }, (_, i) => ({
+    value: String(startYear + i),
+    label: String(startYear + i),
 }));
 
 export default function CreateEventPage() {
