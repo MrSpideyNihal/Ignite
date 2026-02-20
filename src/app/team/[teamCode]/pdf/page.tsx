@@ -2,7 +2,8 @@ import { getMemberCoupons } from "@/app/actions/coupon";
 import { getEvent } from "@/app/actions/event";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Team, TeamMember } from "@/models";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import QRCode from "qrcode";
 import PrintButton from "./PrintButton";
 
@@ -21,10 +22,44 @@ async function fetchQRDataUrl(text: string): Promise<string> {
 }
 
 export default async function CouponPDFPage({ params }: Props) {
+    // 1. Require Google sign-in
+    const session = await auth();
+    if (!session?.user?.email) redirect("/auth/signin");
+
     await connectToDatabase();
     const team = await Team.findOne({ teamCode: params.teamCode.toUpperCase() }).lean();
     if (!team) notFound();
 
+    // 2. Authorization: team lead email, member email, or committee role
+    const userEmail = session.user.email.toLowerCase();
+    const isTeamLead = team.teamLead?.email?.toLowerCase() === userEmail;
+
+    let isAuthorized = isTeamLead;
+
+    if (!isAuthorized) {
+        // Check if user is a team member (by email)
+        const isMember = await TeamMember.findOne({
+            teamId: team._id,
+            email: userEmail,
+        });
+        isAuthorized = !!isMember;
+    }
+
+    if (!isAuthorized) {
+        // Check if user has an event role (committee)
+        const { EventRole } = await import("@/models");
+        const hasRole = await EventRole.findOne({
+            eventId: team.eventId,
+            userEmail: userEmail,
+        });
+        isAuthorized = !!hasRole;
+    }
+
+    if (!isAuthorized) {
+        redirect("/unauthorized");
+    }
+
+    // 3. Fetch data
     const event = await getEvent(team.eventId.toString());
     const coupons = await getMemberCoupons(team._id.toString());
 
@@ -73,7 +108,7 @@ export default async function CouponPDFPage({ params }: Props) {
                     </p>
                 </div>
 
-                {/* Print Button */}
+                {/* Print Button — client component */}
                 <PrintButton />
 
                 {/* No coupons message */}
