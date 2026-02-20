@@ -268,35 +268,38 @@ export async function approveTeam(
             return { success: false, message: "Team not found" };
         }
 
-        // Generate coupons for approved team members
+        // Generate coupons for approved team members using event's meal slots
         const members = await TeamMember.find({ teamId, isAttending: true });
         const event = await Event.findById(eventId);
+        const mealSlots = event?.settings?.mealSlots?.length
+            ? event.settings.mealSlots
+            : ["lunch", "tea"];
 
+        let generated = 0;
         for (const member of members) {
-            // Generate lunch coupon
-            await Coupon.create({
-                eventId,
-                teamId,
-                memberId: member._id,
-                memberName: member.name,
-                couponCode: generateCouponCode(team.teamCode, "lunch"),
-                type: "lunch",
-                date: event?.date || new Date(),
-                isUsed: false,
-            });
-
-            // Generate tea coupon
-            await Coupon.create({
-                eventId,
-                teamId,
-                memberId: member._id,
-                memberName: member.name,
-                couponCode: generateCouponCode(team.teamCode, "tea"),
-                type: "tea",
-                date: event?.date || new Date(),
-                isUsed: false,
-            });
+            for (const slotType of mealSlots) {
+                // Skip if coupon already exists (prevents duplicates on re-approval)
+                const existing = await Coupon.findOne({
+                    memberId: member._id,
+                    type: slotType,
+                    eventId,
+                });
+                if (!existing) {
+                    await Coupon.create({
+                        eventId,
+                        teamId,
+                        memberId: member._id,
+                        memberName: member.name,
+                        couponCode: generateCouponCode(team.teamCode, slotType),
+                        type: slotType,
+                        date: event?.date || new Date(),
+                        isUsed: false,
+                    });
+                    generated++;
+                }
+            }
         }
+
 
         revalidatePath(`/${eventId}/teams`);
         return { success: true, message: "Team approved and coupons generated" };
