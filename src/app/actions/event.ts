@@ -9,7 +9,7 @@ import { ActionState, EventRoleType } from "@/types";
 
 const CreateEventSchema = z.object({
     name: z.string().min(3),
-    year: z.number().min(2024).max(2100),
+    year: z.number().min(2000).max(2100),
     date: z.string(),
     description: z.string().optional(),
     venue: z.string().optional(),
@@ -38,10 +38,7 @@ export async function createEvent(
             return { success: false, message: validation.error.errors[0].message };
         }
 
-        const existingEvent = await Event.findOne({ year: data.year });
-        if (existingEvent) {
-            return { success: false, message: `An event for ${data.year} already exists` };
-        }
+
 
         await Event.create({
             ...data,
@@ -259,10 +256,8 @@ export async function duplicateEvent(
             return { success: false, message: "Source event not found" };
         }
 
-        const existingEvent = await Event.findOne({ year: newYear });
-        if (existingEvent) {
-            return { success: false, message: `Event for ${newYear} already exists` };
-        }
+
+
 
         // Create new event
         const newEvent = await Event.create({
