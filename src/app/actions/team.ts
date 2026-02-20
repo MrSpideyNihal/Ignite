@@ -36,7 +36,7 @@ const MemberSchema = z.object({
     yearOfPassing: z.number().min(2020).max(2030),
     phone: z.string().optional(),
     email: z.string().email().optional().or(z.literal("")),
-    foodPreference: z.enum(["veg", "non-veg"]),
+    foodPreference: z.enum(["veg", "non-veg"]).optional(),
 });
 
 // Public: Register a new team
@@ -55,7 +55,7 @@ export async function registerTeam(
             yearOfPassing: number;
             phone?: string;
             email?: string;
-            foodPreference: "veg" | "non-veg";
+            foodPreference?: "veg" | "non-veg";
         }>;
     }
 ): Promise<ActionState & { teamCode?: string }> {

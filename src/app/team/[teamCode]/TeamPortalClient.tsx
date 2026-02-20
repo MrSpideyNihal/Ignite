@@ -15,7 +15,7 @@ interface Member {
     yearOfPassing: number;
     isAttending: boolean;
     accommodation?: { required: boolean; type?: string; dates?: string[] };
-    foodPreference: string;
+    foodPreference?: string;
 }
 
 interface Props {

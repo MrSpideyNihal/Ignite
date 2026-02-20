@@ -21,7 +21,7 @@ export interface ITeamMember extends Document {
         dates?: Date[];
         roomAssignment?: string;
     };
-    foodPreference: FoodPreference;
+    foodPreference?: FoodPreference;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -29,7 +29,7 @@ export interface ImportRow {
         yearOfPassing: number;
         phone?: string;
         email?: string;
-        foodPreference: string;
+        foodPreference?: string;
     }>;
 }
 

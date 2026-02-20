@@ -19,10 +19,7 @@ const prefixOptions = [
     { value: "NA", label: "N/A" },
 ];
 
-const foodOptions = [
-    { value: "veg", label: "Vegetarian" },
-    { value: "non-veg", label: "Non-Vegetarian" },
-];
+
 
 interface Member {
     id: string;
@@ -33,7 +30,6 @@ interface Member {
     yearOfPassing: number;
     phone: string;
     email: string;
-    foodPreference: "veg" | "non-veg";
 }
 
 const emptyMember = (): Member => ({
@@ -45,7 +41,6 @@ const emptyMember = (): Member => ({
     yearOfPassing: new Date().getFullYear(),
     phone: "",
     email: "",
-    foodPreference: "veg",
 });
 
 export default function RegistrationForm({ eventId, eventName, maxTeamSize }: Props) {
@@ -302,7 +297,7 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize }: Pr
                                 </FormGroup>
                             </div>
 
-                            <div className="grid md:grid-cols-3 gap-4 mt-4">
+                            <div className="grid md:grid-cols-2 gap-4 mt-4">
                                 <FormGroup label="Phone">
                                     <Input
                                         value={member.phone}
@@ -316,13 +311,6 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize }: Pr
                                         value={member.email}
                                         onChange={(e) => updateMember(member.id, "email", e.target.value)}
                                         placeholder="email@example.com"
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Food Preference" required>
-                                    <Select
-                                        value={member.foodPreference}
-                                        options={foodOptions}
-                                        onChange={(e) => updateMember(member.id, "foodPreference", e.target.value)}
                                     />
                                 </FormGroup>
                             </div>
