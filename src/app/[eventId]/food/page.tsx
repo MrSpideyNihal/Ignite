@@ -1,8 +1,8 @@
 import { requireEventRole } from "@/lib/auth-utils";
 import { getEvent } from "@/app/actions/event";
 import { getTeamStats } from "@/app/actions/team";
-import { getCouponStats, getEventCoupons } from "@/app/actions/coupon";
-import { Card, CardHeader, CardContent, StatCard, Badge } from "@/components/ui";
+import { getCouponStats } from "@/app/actions/coupon";
+import { Card, CardHeader, CardContent } from "@/components/ui";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import FoodClient from "./FoodClient";
@@ -13,6 +13,20 @@ interface Props {
     params: { eventId: string };
 }
 
+const MEAL_EMOJIS: Record<string, string> = {
+    breakfast: "🌅",
+    lunch: "🍽️",
+    tea: "☕",
+    dinner: "🍛",
+};
+
+const MEAL_COLORS: Record<string, { from: string; to: string; bg: string }> = {
+    breakfast: { from: "from-yellow-500", to: "to-orange-400", bg: "bg-yellow-50 dark:bg-yellow-900/20" },
+    lunch: { from: "from-orange-500", to: "to-yellow-500", bg: "bg-orange-50 dark:bg-orange-900/20" },
+    tea: { from: "from-amber-500", to: "to-orange-500", bg: "bg-amber-50 dark:bg-amber-900/20" },
+    dinner: { from: "from-purple-500", to: "to-indigo-500", bg: "bg-purple-50 dark:bg-purple-900/20" },
+};
+
 export default async function FoodPage({ params }: Props) {
     await requireEventRole(params.eventId, ["food_committee"]);
 
@@ -21,6 +35,9 @@ export default async function FoodPage({ params }: Props) {
 
     const teamStats = await getTeamStats(params.eventId);
     const couponStats = await getCouponStats(params.eventId);
+
+    // Get list of meal types from dynamic stats
+    const mealTypes = Object.keys(couponStats);
 
     return (
         <div className="min-h-screen py-8">
@@ -79,78 +96,50 @@ export default async function FoodPage({ params }: Props) {
                     </CardContent>
                 </Card>
 
-                {/* Meal-wise Coupon Stats */}
-                <div className="grid md:grid-cols-2 gap-6 mb-8">
-                    {/* Lunch */}
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-3xl">🍽️</span>
-                                    <div>
-                                        <p className="font-semibold text-lg">Lunch</p>
-                                        <p className="text-sm text-gray-500">
-                                            {couponStats.lunch.used} / {couponStats.lunch.total} served
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-2xl font-bold">
-                                        {couponStats.lunch.total > 0
-                                            ? ((couponStats.lunch.used / couponStats.lunch.total) * 100).toFixed(0)
-                                            : 0}%
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-orange-500 to-yellow-500"
-                                    style={{
-                                        width: `${couponStats.lunch.total > 0
-                                                ? (couponStats.lunch.used / couponStats.lunch.total) * 100
-                                                : 0
-                                            }%`,
-                                    }}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Dynamic Meal-wise Coupon Stats */}
+                {mealTypes.length > 0 ? (
+                    <div className={`grid md:grid-cols-${Math.min(mealTypes.length, 3)} gap-6 mb-8`}>
+                        {mealTypes.map((type) => {
+                            const stat = couponStats[type];
+                            const emoji = MEAL_EMOJIS[type] ?? "🍽️";
+                            const colors = MEAL_COLORS[type] ?? { from: "from-gray-500", to: "to-gray-400", bg: "bg-gray-50 dark:bg-gray-900/20" };
+                            const pct = stat.total > 0 ? (stat.used / stat.total) * 100 : 0;
 
-                    {/* Tea */}
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-3xl">☕</span>
-                                    <div>
-                                        <p className="font-semibold text-lg">Tea / Snacks</p>
-                                        <p className="text-sm text-gray-500">
-                                            {couponStats.tea.used} / {couponStats.tea.total} served
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-2xl font-bold">
-                                        {couponStats.tea.total > 0
-                                            ? ((couponStats.tea.used / couponStats.tea.total) * 100).toFixed(0)
-                                            : 0}%
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
-                                    style={{
-                                        width: `${couponStats.tea.total > 0
-                                                ? (couponStats.tea.used / couponStats.tea.total) * 100
-                                                : 0
-                                            }%`,
-                                    }}
-                                />
-                            </div>
+                            return (
+                                <Card key={type}>
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-3xl">{emoji}</span>
+                                                <div>
+                                                    <p className="font-semibold text-lg capitalize">{type}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {stat.used} / {stat.total} served
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-2xl font-bold">{pct.toFixed(0)}%</p>
+                                            </div>
+                                        </div>
+                                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full bg-gradient-to-r ${colors.from} ${colors.to}`}
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <Card className="mb-8">
+                        <CardContent className="p-6 text-center text-gray-500">
+                            No coupons generated yet. Generate coupons from the Logistics page first.
                         </CardContent>
                     </Card>
-                </div>
+                )}
 
                 {/* Export Options */}
                 <Card>

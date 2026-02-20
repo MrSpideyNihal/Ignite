@@ -1,11 +1,12 @@
 import { getMemberCoupons } from "@/app/actions/coupon";
 import { getEvent } from "@/app/actions/event";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Team } from "@/models";
-import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { Team, TeamMember } from "@/models";
+import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import PrintButton from "./PrintButton";
+
+export const dynamic = "force-dynamic";
 
 interface Props {
     params: { teamCode: string };
@@ -20,23 +21,9 @@ async function fetchQRDataUrl(text: string): Promise<string> {
 }
 
 export default async function CouponPDFPage({ params }: Props) {
-    const session = await auth();
-    if (!session?.user?.email) redirect("/auth/signin");
-
     await connectToDatabase();
     const team = await Team.findOne({ teamCode: params.teamCode.toUpperCase() }).lean();
     if (!team) notFound();
-
-    // Only team lead OR event committee can view
-    const isTeamLead = team.teamLead?.email === session.user.email;
-    if (!isTeamLead) {
-        const { EventRole } = await import("@/models");
-        const role = await EventRole.findOne({
-            eventId: team.eventId,
-            userEmail: session.user.email,
-        });
-        if (!role) redirect("/unauthorized");
-    }
 
     const event = await getEvent(team.eventId.toString());
     const coupons = await getMemberCoupons(team._id.toString());
@@ -49,7 +36,6 @@ export default async function CouponPDFPage({ params }: Props) {
         memberCouponMap[coupon.memberId][coupon.type] = { code: coupon.couponCode, qrUrl };
     }
 
-    const { TeamMember } = await import("@/models");
     const members = await TeamMember.find({ teamId: team._id }).lean();
 
     const mealSlots = event?.settings?.mealSlots ?? ["lunch", "tea"];
@@ -87,8 +73,18 @@ export default async function CouponPDFPage({ params }: Props) {
                     </p>
                 </div>
 
-                {/* Print Button — client component */}
+                {/* Print Button */}
                 <PrintButton />
+
+                {/* No coupons message */}
+                {coupons.length === 0 && (
+                    <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+                        <p style={{ fontSize: "18px" }}>No food coupons have been generated for this team yet.</p>
+                        <p style={{ fontSize: "14px", marginTop: "8px" }}>
+                            Contact the logistics committee to generate coupons.
+                        </p>
+                    </div>
+                )}
 
                 {/* Coupons per member */}
                 {members.map((member) => {
@@ -106,7 +102,7 @@ export default async function CouponPDFPage({ params }: Props) {
                                     marginBottom: "12px",
                                 }}
                             >
-                                👤 {member.prefix}. {member.name}
+                                👤 {member.prefix ? `${member.prefix}. ` : ""}{member.name}
                             </div>
                             <div
                                 style={{
@@ -134,7 +130,7 @@ export default async function CouponPDFPage({ params }: Props) {
                                             >
                                                 {mealEmojis[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}
                                                 <br />
-                                                <span>No coupon generated</span>
+                                                <span>No coupon</span>
                                             </div>
                                         );
                                     }
