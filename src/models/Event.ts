@@ -12,6 +12,8 @@ export interface IEvent extends Document {
         registrationOpen: boolean;
         evaluationOpen: boolean;
         maxTeamSize: number;
+        mealSlots: string[]; // e.g. ["breakfast","lunch","tea","dinner"]
+        allowJuryEdit: boolean; // jury admin can allow re-editing submitted scores
     };
     createdAt: Date;
     updatedAt: Date;
@@ -19,7 +21,7 @@ export interface IEvent extends Document {
 
 const EventSchema = new Schema<IEvent>(
     {
-        name: { type: String, required: true }, // e.g., "IGNITE 2026"
+        name: { type: String, required: true },
         year: { type: Number, required: true, index: true },
         date: { type: Date, required: true },
         description: { type: String },
@@ -33,12 +35,13 @@ const EventSchema = new Schema<IEvent>(
             registrationOpen: { type: Boolean, default: false },
             evaluationOpen: { type: Boolean, default: false },
             maxTeamSize: { type: Number, default: 8 },
+            mealSlots: { type: [String], default: ["lunch", "tea"] },
+            allowJuryEdit: { type: Boolean, default: false },
         },
     },
     { timestamps: true }
 );
 
-// Compound index for quick lookup
 EventSchema.index({ year: 1, status: 1 });
 
 export const Event: Model<IEvent> =

@@ -6,13 +6,25 @@ import { Input, Button } from "@/components/forms";
 import { Alert } from "@/components/ui";
 import toast from "react-hot-toast";
 
+const MEAL_EMOJIS: Record<string, string> = {
+    breakfast: "🌅",
+    lunch: "🍱",
+    tea: "☕",
+    dinner: "🍛",
+    kit: "🎁",
+};
+
 interface Props {
     eventId: string;
+    mealSlots: string[]; // from event.settings.mealSlots
 }
 
-export default function LogisticsClient({ eventId }: Props) {
+export default function LogisticsClient({ eventId, mealSlots }: Props) {
     const [isPending, startTransition] = useTransition();
     const [couponCode, setCouponCode] = useState("");
+    const [selectedType, setSelectedType] = useState<string | null>(
+        mealSlots.length > 0 ? mealSlots[0] : null
+    );
     const [lastResult, setLastResult] = useState<{
         success: boolean;
         message: string;
@@ -21,11 +33,8 @@ export default function LogisticsClient({ eventId }: Props) {
     const [scanMode, setScanMode] = useState<"manual" | "camera">("manual");
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Auto-focus input for quick scanning
     useEffect(() => {
-        if (scanMode === "manual") {
-            inputRef.current?.focus();
-        }
+        if (scanMode === "manual") inputRef.current?.focus();
     }, [lastResult, scanMode]);
 
     const handleScan = useCallback(async (code?: string) => {
@@ -33,7 +42,7 @@ export default function LogisticsClient({ eventId }: Props) {
         if (!codeToScan) return;
 
         startTransition(async () => {
-            const result = await scanCoupon(eventId, codeToScan);
+            const result = await scanCoupon(eventId, codeToScan, selectedType ?? undefined);
             setLastResult({
                 success: result.success,
                 message: result.message,
@@ -47,16 +56,49 @@ export default function LogisticsClient({ eventId }: Props) {
                 toast.error(result.message);
             }
         });
-    }, [couponCode, eventId, startTransition]);
+    }, [couponCode, eventId, selectedType, startTransition]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            handleScan();
-        }
+        if (e.key === "Enter") handleScan();
     };
 
     return (
         <div className="space-y-6">
+            {/* Meal Type Selector — MUST be selected before scanning */}
+            <div>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center">
+                    📌 Select meal type before scanning
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                    {mealSlots.map((slot) => (
+                        <button
+                            key={slot}
+                            onClick={() => setSelectedType(slot)}
+                            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border-2 ${selectedType === slot
+                                ? "bg-primary-500 text-white border-primary-500 scale-105 shadow"
+                                : "border-gray-300 dark:border-gray-600 hover:border-primary-400"
+                                }`}
+                        >
+                            {MEAL_EMOJIS[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => setSelectedType(null)}
+                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border-2 ${selectedType === null
+                            ? "bg-gray-700 text-white border-gray-700 scale-105"
+                            : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
+                            }`}
+                    >
+                        🔓 Any Type
+                    </button>
+                </div>
+                {selectedType && (
+                    <p className="text-center text-xs text-gray-500 mt-2">
+                        Scanner will only accept <strong>{selectedType.toUpperCase()}</strong> coupons
+                    </p>
+                )}
+            </div>
+
             {/* Mode Toggle */}
             <div className="flex gap-2 justify-center">
                 <button
@@ -81,7 +123,6 @@ export default function LogisticsClient({ eventId }: Props) {
 
             {scanMode === "manual" ? (
                 <>
-                    {/* Manual Entry */}
                     <div className="flex gap-3">
                         <Input
                             ref={inputRef}
@@ -97,35 +138,29 @@ export default function LogisticsClient({ eventId }: Props) {
                         </Button>
                     </div>
 
-                    {/* Result Display */}
                     {lastResult && (
                         <Alert type={lastResult.success ? "success" : "error"} className="text-center">
                             <p className="text-lg font-medium">{lastResult.message}</p>
                         </Alert>
                     )}
 
-                    {/* Success Animation */}
                     {lastResult?.success && (
                         <div className="text-center py-8">
                             <div className="text-6xl animate-bounce">✓</div>
-                            <p className="text-2xl font-bold text-green-600 mt-4">
-                                {lastResult.memberName}
-                            </p>
+                            <p className="text-2xl font-bold text-green-600 mt-4">{lastResult.memberName}</p>
                         </div>
                     )}
                 </>
             ) : (
-                /* Camera Mode */
                 <CameraScanner
                     onScan={(code) => handleScan(code)}
                     lastResult={lastResult}
                 />
             )}
 
-            {/* Quick Tips */}
             <div className="text-center text-sm text-gray-500">
                 <p>💡 Tip: Use a USB barcode scanner for faster entry</p>
-                <p>Press Enter after scanning to validate</p>
+                <p>Press Enter after typing to validate</p>
             </div>
         </div>
     );
@@ -154,46 +189,31 @@ function CameraScanner({
                 try { await html5QrCodeRef.current.stop(); } catch { }
             }
 
-            const scannerId = "qr-reader";
-            html5QrCodeRef.current = new Html5Qrcode(scannerId);
+            html5QrCodeRef.current = new Html5Qrcode("qr-reader");
 
             await html5QrCodeRef.current.start(
                 { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText: string) => {
-                    // Debounce: prevent scanning same code within 3 seconds
                     const now = Date.now();
-                    if (
-                        decodedText === lastScannedRef.current &&
-                        now - lastScanTimeRef.current < 3000
-                    ) {
-                        return;
-                    }
+                    if (decodedText === lastScannedRef.current && now - lastScanTimeRef.current < 3000) return;
                     lastScannedRef.current = decodedText;
                     lastScanTimeRef.current = now;
                     onScan(decodedText.trim().toUpperCase());
                 },
-                () => {
-                    // Ignore scan errors (no QR found in frame)
-                }
+                () => { }
             );
 
             setIsScanning(true);
         } catch (err) {
-            const message = err instanceof Error ? err.message : "Failed to start camera";
-            setError(message);
+            setError(err instanceof Error ? err.message : "Failed to start camera");
             setIsScanning(false);
         }
     }, [onScan]);
 
     const stopScanner = useCallback(async () => {
         if (html5QrCodeRef.current) {
-            try {
-                await html5QrCodeRef.current.stop();
-            } catch { }
+            try { await html5QrCodeRef.current.stop(); } catch { }
             html5QrCodeRef.current = null;
         }
         setIsScanning(false);
@@ -201,20 +221,13 @@ function CameraScanner({
 
     useEffect(() => {
         startScanner();
-        return () => {
-            stopScanner();
-        };
+        return () => { stopScanner(); };
     }, []);
 
     return (
         <div className="space-y-4">
-            {/* Scanner viewport */}
             <div className="relative mx-auto max-w-md">
-                <div
-                    id="qr-reader"
-                    ref={scannerRef}
-                    className="rounded-xl overflow-hidden border-2 border-primary-500"
-                />
+                <div id="qr-reader" ref={scannerRef} className="rounded-xl overflow-hidden border-2 border-primary-500" />
                 {!isScanning && !error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded-xl">
                         <p className="text-white text-lg">Starting camera...</p>
@@ -222,20 +235,16 @@ function CameraScanner({
                 )}
             </div>
 
-            {/* Error */}
             {error && (
                 <div className="text-center">
                     <Alert type="error">
                         <p className="font-medium">Camera Error</p>
                         <p className="text-sm mt-1">{error}</p>
                     </Alert>
-                    <Button onClick={startScanner} className="mt-3" size="sm">
-                        🔄 Retry Camera
-                    </Button>
+                    <Button onClick={startScanner} className="mt-3" size="sm">🔄 Retry Camera</Button>
                 </div>
             )}
 
-            {/* Scan Result */}
             {lastResult && (
                 <Alert type={lastResult.success ? "success" : "error"} className="text-center">
                     <p className="text-lg font-medium">{lastResult.message}</p>
@@ -244,22 +253,15 @@ function CameraScanner({
             {lastResult?.success && (
                 <div className="text-center py-4">
                     <div className="text-5xl animate-bounce">✓</div>
-                    <p className="text-xl font-bold text-green-600 mt-2">
-                        {lastResult.memberName}
-                    </p>
+                    <p className="text-xl font-bold text-green-600 mt-2">{lastResult.memberName}</p>
                 </div>
             )}
 
-            {/* Controls */}
             <div className="flex justify-center gap-3">
                 {isScanning ? (
-                    <Button onClick={stopScanner} variant="outline" size="sm">
-                        ⏹ Stop Camera
-                    </Button>
+                    <Button onClick={stopScanner} variant="outline" size="sm">⏹ Stop Camera</Button>
                 ) : (
-                    <Button onClick={startScanner} size="sm">
-                        📷 Start Camera
-                    </Button>
+                    <Button onClick={startScanner} size="sm">📷 Start Camera</Button>
                 )}
             </div>
         </div>

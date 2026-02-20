@@ -8,6 +8,13 @@ import { Badge } from "@/components/ui";
 import toast from "react-hot-toast";
 import { EventRoleType } from "@/types";
 
+const MEAL_SLOT_OPTIONS = [
+    { id: "breakfast", label: "🌅 Breakfast" },
+    { id: "lunch", label: "🍱 Lunch" },
+    { id: "tea", label: "☕ Tea / Snacks" },
+    { id: "dinner", label: "🍛 Dinner" },
+];
+
 interface EventInfo {
     _id: string;
     name: string;
@@ -16,6 +23,8 @@ interface EventInfo {
         registrationOpen: boolean;
         evaluationOpen: boolean;
         maxTeamSize: number;
+        mealSlots?: string[];
+        allowJuryEdit?: boolean;
     };
 }
 
@@ -45,26 +54,41 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
     const router = useRouter();
     const [newEmail, setNewEmail] = useState("");
     const [newRole, setNewRole] = useState<EventRoleType>("jury_member");
+    const [mealSlots, setMealSlots] = useState<string[]>(event.settings.mealSlots ?? ["lunch", "tea"]);
 
     const handleStatusChange = async (status: "draft" | "active" | "archived") => {
         startTransition(async () => {
             const result = await updateEventStatus(event._id, status);
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                toast.error(result.message);
-            }
+            if (result.success) toast.success(result.message);
+            else toast.error(result.message);
         });
     };
 
     const handleSettingToggle = async (key: "registrationOpen" | "evaluationOpen", value: boolean) => {
         startTransition(async () => {
             const result = await updateEventSettings(event._id, { [key]: value });
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                toast.error(result.message);
-            }
+            if (result.success) toast.success(result.message);
+            else toast.error(result.message);
+        });
+    };
+
+    const handleMealSlotToggle = (slotId: string, checked: boolean) => {
+        const updated = checked
+            ? [...mealSlots, slotId]
+            : mealSlots.filter((s) => s !== slotId);
+        setMealSlots(updated);
+        startTransition(async () => {
+            const result = await updateEventSettings(event._id, { mealSlots: updated });
+            if (result.success) toast.success("Meal slots updated");
+            else toast.error(result.message);
+        });
+    };
+
+    const handleJuryEditToggle = async (value: boolean) => {
+        startTransition(async () => {
+            const result = await updateEventSettings(event._id, { allowJuryEdit: value });
+            if (result.success) toast.success(value ? "Jury can now edit submitted scores" : "Jury edit locked");
+            else toast.error(result.message);
         });
     };
 
@@ -85,18 +109,14 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
         if (!confirm("Remove this role?")) return;
         startTransition(async () => {
             const result = await removeEventRole(roleId);
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                toast.error(result.message);
-            }
+            if (result.success) toast.success(result.message);
+            else toast.error(result.message);
         });
     };
 
     if (showRoles) {
         return (
             <div className="space-y-6">
-                {/* Add New Role */}
                 <div className="flex gap-2">
                     <Input
                         value={newEmail}
@@ -118,7 +138,6 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                     </Button>
                 </div>
 
-                {/* Role List */}
                 <div className="space-y-2">
                     {roles.map((role) => (
                         <div
@@ -126,15 +145,11 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                             className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
                         >
                             <div>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">
-                                    {role.userName}
-                                </p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">{role.userName}</p>
                                 <p className="text-sm text-gray-500">{role.userEmail}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant="primary">
-                                    {role.role.replace("_", " ")}
-                                </Badge>
+                                <Badge variant="primary">{role.role.replace(/_/g, " ")}</Badge>
                                 <button
                                     onClick={() => handleRemoveRole(role._id)}
                                     className="text-red-500 hover:text-red-700 p-1"
@@ -146,9 +161,7 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                         </div>
                     ))}
                     {roles.length === 0 && (
-                        <p className="text-center text-gray-500 py-4">
-                            No committee members assigned
-                        </p>
+                        <p className="text-center text-gray-500 py-4">No committee members assigned</p>
                     )}
                 </div>
             </div>
@@ -163,10 +176,10 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                     Event Status
                 </label>
                 <div className="flex gap-2">
-                    {["draft", "active", "archived"].map((status) => (
+                    {(["draft", "active", "archived"] as const).map((status) => (
                         <button
                             key={status}
-                            onClick={() => handleStatusChange(status as "draft" | "active" | "archived")}
+                            onClick={() => handleStatusChange(status)}
                             disabled={isPending || event.status === status}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${event.status === status
                                 ? "bg-primary-500 text-white"
@@ -179,7 +192,7 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                 </div>
             </div>
 
-            {/* Toggles */}
+            {/* Registration / Evaluation Toggles */}
             <div className="space-y-3">
                 <ToggleSwitch
                     label="Registration Open"
@@ -193,9 +206,49 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                     onChange={(v) => handleSettingToggle("evaluationOpen", v)}
                     disabled={isPending}
                 />
+                <ToggleSwitch
+                    label="Allow Jury to Edit Submitted Scores"
+                    checked={event.settings.allowJuryEdit ?? false}
+                    onChange={handleJuryEditToggle}
+                    disabled={isPending}
+                />
             </div>
 
-            {/* Delete Event */}
+            {/* Meal Slots */}
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    🍽️ Food / Meal Slots
+                    <span className="text-xs text-gray-400 ml-2 font-normal">Select meals to generate coupons for</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                    {MEAL_SLOT_OPTIONS.map((slot) => {
+                        const isChecked = mealSlots.includes(slot.id);
+                        return (
+                            <label
+                                key={slot.id}
+                                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${isChecked
+                                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                                    }`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    disabled={isPending}
+                                    onChange={(e) => handleMealSlotToggle(slot.id, e.target.checked)}
+                                    className="w-4 h-4 accent-primary-500"
+                                />
+                                <span className="text-sm font-medium">{slot.label}</span>
+                            </label>
+                        );
+                    })}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                    Coupons will be generated for each selected meal per team member.
+                </p>
+            </div>
+
+            {/* Danger Zone */}
             <div className="pt-6 mt-6 border-t border-red-200 dark:border-red-900">
                 <label className="block text-sm font-medium text-red-600 dark:text-red-400 mb-2">
                     Danger Zone
@@ -204,7 +257,7 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                     onClick={() => {
                         const first = confirm(`Are you sure you want to delete "${event.name}"? This will delete ALL teams, members, coupons, evaluations, and roles.`);
                         if (!first) return;
-                        const second = confirm("This action is IRREVERSIBLE. Type OK to confirm.");
+                        const second = confirm("This action is IRREVERSIBLE. Confirm?");
                         if (!second) return;
                         startTransition(async () => {
                             const result = await deleteEvent(event._id);
@@ -240,17 +293,15 @@ function ToggleSwitch({
 }) {
     return (
         <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer">
-            <span className="text-gray-700 dark:text-gray-300">{label}</span>
+            <span className="text-gray-700 dark:text-gray-300 text-sm">{label}</span>
             <button
                 type="button"
                 onClick={() => onChange(!checked)}
                 disabled={disabled}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? "bg-primary-500" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? "bg-primary-500" : "bg-gray-300 dark:bg-gray-600"}`}
             >
                 <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? "translate-x-6" : "translate-x-1"
-                        }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`}
                 />
             </button>
         </label>

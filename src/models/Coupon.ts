@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export type CouponType = "lunch" | "tea" | "dinner" | "kit";
+// Type is now a free string (any meal slot name: "breakfast","lunch","tea","dinner", or "kit")
+export type CouponType = string;
 
 export interface ICoupon extends Document {
     _id: mongoose.Types.ObjectId;
@@ -9,7 +10,7 @@ export interface ICoupon extends Document {
     memberId: mongoose.Types.ObjectId;
     memberName: string;
     couponCode: string;
-    type: CouponType;
+    type: string;
     date: Date;
     isUsed: boolean;
     usedAt?: Date;
@@ -49,7 +50,6 @@ const CouponSchema = new Schema<ICoupon>(
         },
         type: {
             type: String,
-            enum: ["lunch", "tea", "dinner", "kit"],
             required: true,
         },
         date: { type: Date, required: true },
@@ -61,7 +61,6 @@ const CouponSchema = new Schema<ICoupon>(
     { timestamps: true }
 );
 
-// Compound indexes
 CouponSchema.index({ eventId: 1, type: 1, isUsed: 1 });
 CouponSchema.index({ memberId: 1, type: 1, date: 1 });
 

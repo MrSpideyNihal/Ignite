@@ -75,7 +75,13 @@ export async function getEvents() {
         description: e.description || "",
         venue: e.venue || "",
         status: e.status,
-        settings: e.settings || { registrationOpen: false, evaluationOpen: false, maxTeamSize: 5 },
+        settings: {
+            registrationOpen: e.settings?.registrationOpen ?? false,
+            evaluationOpen: e.settings?.evaluationOpen ?? false,
+            maxTeamSize: e.settings?.maxTeamSize ?? 8,
+            mealSlots: e.settings?.mealSlots ?? ["lunch", "tea"],
+            allowJuryEdit: e.settings?.allowJuryEdit ?? false,
+        },
     }));
 }
 
@@ -95,7 +101,13 @@ export async function getActiveEvents() {
         description: e.description || "",
         venue: e.venue || "",
         status: e.status,
-        settings: e.settings || { registrationOpen: false, evaluationOpen: false, maxTeamSize: 5 },
+        settings: {
+            registrationOpen: e.settings?.registrationOpen ?? false,
+            evaluationOpen: e.settings?.evaluationOpen ?? false,
+            maxTeamSize: e.settings?.maxTeamSize ?? 8,
+            mealSlots: e.settings?.mealSlots ?? ["lunch", "tea"],
+            allowJuryEdit: e.settings?.allowJuryEdit ?? false,
+        },
     }));
 }
 
@@ -139,19 +151,25 @@ export async function updateEventStatus(
 // Update event settings
 export async function updateEventSettings(
     eventId: string,
-    settings: { registrationOpen?: boolean; evaluationOpen?: boolean; maxTeamSize?: number }
+    settings: {
+        registrationOpen?: boolean;
+        evaluationOpen?: boolean;
+        maxTeamSize?: number;
+        mealSlots?: string[];
+        allowJuryEdit?: boolean;
+    }
 ): Promise<ActionState> {
     await requireSuperAdmin();
 
     try {
         await connectToDatabase();
-        await Event.findByIdAndUpdate(eventId, {
-            $set: {
-                "settings.registrationOpen": settings.registrationOpen,
-                "settings.evaluationOpen": settings.evaluationOpen,
-                "settings.maxTeamSize": settings.maxTeamSize,
-            }
-        });
+        const updateFields: Record<string, unknown> = {};
+        if (settings.registrationOpen !== undefined) updateFields["settings.registrationOpen"] = settings.registrationOpen;
+        if (settings.evaluationOpen !== undefined) updateFields["settings.evaluationOpen"] = settings.evaluationOpen;
+        if (settings.maxTeamSize !== undefined) updateFields["settings.maxTeamSize"] = settings.maxTeamSize;
+        if (settings.mealSlots !== undefined) updateFields["settings.mealSlots"] = settings.mealSlots;
+        if (settings.allowJuryEdit !== undefined) updateFields["settings.allowJuryEdit"] = settings.allowJuryEdit;
+        await Event.findByIdAndUpdate(eventId, { $set: updateFields });
         revalidatePath(`/admin/events/${eventId}`);
         return { success: true, message: "Settings updated" };
     } catch (error) {

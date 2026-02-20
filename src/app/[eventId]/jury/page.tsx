@@ -6,8 +6,9 @@ import {
     getAllSubmissions,
     getTeamScoresSummary,
 } from "@/app/actions/jury";
+import { getTeamFoodStatus } from "@/app/actions/coupon";
 import { getEventTeams } from "@/app/actions/team";
-import { Card, CardHeader, CardContent, Badge, StatCard } from "@/components/ui";
+import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import JuryAdminClient from "./JuryAdminClient";
@@ -24,20 +25,17 @@ export default async function JuryAdminPage({ params }: Props) {
     const event = await getEvent(params.eventId);
     if (!event) notFound();
 
-    const [questions, juryMembers, submissions, teams, scores] = await Promise.all([
+    const [questions, juryMembers, submissions, teams, scores, foodStatus] = await Promise.all([
         getEventQuestions(params.eventId),
         getEventJuryMembers(params.eventId),
         getAllSubmissions(params.eventId),
         getEventTeams(params.eventId, "approved"),
         getTeamScoresSummary(params.eventId),
+        getTeamFoodStatus(params.eventId),
     ]);
 
-    const submittedCount = submissions.filter(
-        (s) => s.status === "submitted" || s.status === "locked"
-    ).length;
-    const pendingCount = submissions.filter(
-        (s) => s.status === "draft" || s.status === "sent_back"
-    ).length;
+    const submittedCount = submissions.filter((s) => s.status === "submitted" || s.status === "locked").length;
+    const pendingCount = submissions.filter((s) => s.status === "draft" || s.status === "sent_back").length;
 
     return (
         <div className="min-h-screen py-8">
@@ -50,9 +48,18 @@ export default async function JuryAdminPage({ params }: Props) {
                         </h1>
                         <p className="text-gray-500">{event.name}</p>
                     </div>
-                    <Link href={`/admin/events/${params.eventId}`} className="btn-outline text-sm">
-                        ← Back to Event
-                    </Link>
+                    <div className="flex gap-3">
+                        <a
+                            href={`/api/export-jury/${params.eventId}`}
+                            download
+                            className="px-4 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        >
+                            📊 Export Jury Excel
+                        </a>
+                        <Link href={`/admin/events/${params.eventId}`} className="btn-outline text-sm">
+                            ← Back to Event
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -63,12 +70,29 @@ export default async function JuryAdminPage({ params }: Props) {
                     <StatCard label="Pending" value={pendingCount} />
                 </div>
 
+                {/* Scoreboard */}
+                <Card className="mb-8">
+                    <CardHeader
+                        title="🏆 Team Scoreboard"
+                        subtitle="Search, sort, and see food claimed status"
+                    />
+                    <CardContent>
+                        <JuryAdminClient
+                            eventId={params.eventId}
+                            teams={teams}
+                            teamScores={scores}
+                            foodStatus={foodStatus}
+                            section="scoreboard"
+                        />
+                    </CardContent>
+                </Card>
+
                 <div className="grid lg:grid-cols-2 gap-8">
                     {/* Questions Management */}
                     <Card>
                         <CardHeader
                             title="Evaluation Questions"
-                            subtitle="Define criteria for team evaluation"
+                            subtitle="Define criteria & weightages (must total 100%)"
                         />
                         <CardContent>
                             <JuryAdminClient
@@ -96,11 +120,11 @@ export default async function JuryAdminPage({ params }: Props) {
                     </Card>
                 </div>
 
-                {/* Submissions Overview */}
+                {/* Submissions */}
                 <Card className="mt-8">
                     <CardHeader
-                        title="Evaluation Progress"
-                        subtitle="Track jury submissions"
+                        title="All Evaluations"
+                        subtitle="Track, send back, or allow re-editing of submitted scores"
                     />
                     <CardContent>
                         <JuryAdminClient
@@ -110,48 +134,6 @@ export default async function JuryAdminPage({ params }: Props) {
                         />
                     </CardContent>
                 </Card>
-
-                {/* Leaderboard */}
-                {scores.length > 0 && (
-                    <Card className="mt-8">
-                        <CardHeader title="Team Rankings" subtitle="Based on submitted evaluations" />
-                        <CardContent>
-                            <div className="space-y-3">
-                                {scores.slice(0, 10).map((team, index) => (
-                                    <div
-                                        key={team.teamCode}
-                                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span
-                                                className={`w-8 h-8 flex items-center justify-center rounded-full font-bold ${index === 0
-                                                        ? "bg-yellow-500 text-white"
-                                                        : index === 1
-                                                            ? "bg-gray-400 text-white"
-                                                            : index === 2
-                                                                ? "bg-amber-600 text-white"
-                                                                : "bg-gray-200 dark:bg-gray-700"
-                                                    }`}
-                                            >
-                                                {index + 1}
-                                            </span>
-                                            <div>
-                                                <p className="font-medium">{team.teamCode}</p>
-                                                <p className="text-sm text-gray-500">{team.projectName}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-lg">{team.avg.toFixed(1)}</p>
-                                            <p className="text-xs text-gray-500">
-                                                {team.evaluationCount} evaluations
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
             </div>
         </div>
     );

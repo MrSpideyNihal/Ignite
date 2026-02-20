@@ -88,11 +88,15 @@ export default async function LogisticsPage({ params }: Props) {
 
                 {/* Scanner */}
                 <Card className="mb-8">
-                    <CardHeader title="📱 QR Scanner" subtitle="Scan or enter coupon code" />
+                    <CardHeader title="📱 QR Scanner" subtitle="Select meal type, then scan coupon" />
                     <CardContent>
-                        <LogisticsClient eventId={params.eventId} />
+                        <LogisticsClient
+                            eventId={params.eventId}
+                            mealSlots={event.settings?.mealSlots ?? ["lunch", "tea"]}
+                        />
                     </CardContent>
                 </Card>
+
 
                 {/* Recent Scans */}
                 <Card>

@@ -77,6 +77,17 @@ export default function TeamPortalClient({ teamCode, members, isApproved, eventD
 
     return (
         <div className="space-y-4">
+            {/* PDF Download button */}
+            <div className="flex justify-end">
+                <a
+                    href={`/team/${teamCode}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    🎟️ Download Food Coupons PDF
+                </a>
+            </div>
             {members.map((member, index) => (
                 <div
                     key={member._id}

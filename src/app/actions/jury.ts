@@ -421,3 +421,96 @@ export async function getTeamScoresSummary(eventId: string) {
         }))
         .sort((a, b) => b.avg - a.avg);
 }
+
+// Jury admin: reopen a submitted/locked evaluation for jury member to re-edit
+export async function allowEditSubmission(
+    eventId: string,
+    submissionId: string
+): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
+
+    try {
+        await connectToDatabase();
+
+        const submission = await EvaluationSubmission.findById(submissionId);
+        if (!submission) return { success: false, message: "Submission not found" };
+        if (submission.status === "draft") return { success: false, message: "Already in draft state" };
+
+        await EvaluationSubmission.findByIdAndUpdate(submissionId, { status: "draft" });
+
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: `Reopened for editing: ${submission.juryName} → ${submission.teamCode}` };
+    } catch (error) {
+        console.error("Error allowing edit:", error);
+        return { success: false, message: "Failed to reopen submission" };
+    }
+}
+
+// Get full per-question jury breakdown for Excel export
+export async function getFullJuryBreakdown(eventId: string) {
+    await requireEventRole(eventId, ["jury_admin"]);
+    await connectToDatabase();
+
+    const questions = await EvaluationQuestion.find({ eventId, isActive: true })
+        .sort({ order: 1 })
+        .lean();
+
+    const submissions = await EvaluationSubmission.find({
+        eventId,
+        status: { $in: ["submitted", "locked"] },
+    })
+        .sort({ teamCode: 1, juryName: 1 })
+        .lean();
+
+    // Group by team
+    const teamMap: Record<string, {
+        teamCode: string;
+        projectName: string;
+        juryRows: Array<{
+            juryName: string;
+            scores: Record<string, number>;
+            weightedScores: Record<string, number>;
+            total: number;
+        }>;
+        avgWeightedScore: number;
+    }> = {};
+
+    for (const sub of submissions) {
+        const teamKey = sub.teamId.toString();
+        if (!teamMap[teamKey]) {
+            teamMap[teamKey] = { teamCode: sub.teamCode, projectName: sub.projectName, juryRows: [], avgWeightedScore: 0 };
+        }
+
+        const scores: Record<string, number> = {};
+        const weightedScores: Record<string, number> = {};
+        let total = 0;
+
+        for (const rating of sub.ratings || []) {
+            const q = questions.find((q) => q._id.toString() === rating.questionId?.toString());
+            const raw = rating.score ?? 0;
+            const weightage = q?.weightage ?? 0;
+            const maxScore = q?.maxScore ?? 10;
+            const weighted = maxScore > 0 ? (raw / maxScore) * weightage : 0;
+
+            scores[rating.questionId?.toString() ?? ""] = raw;
+            weightedScores[rating.questionId?.toString() ?? ""] = Math.round(weighted * 100) / 100;
+            total += weighted;
+        }
+
+        teamMap[teamKey].juryRows.push({ juryName: sub.juryName, scores, weightedScores, total: Math.round(total * 100) / 100 });
+    }
+
+    for (const team of Object.values(teamMap)) {
+        if (team.juryRows.length > 0) {
+            team.avgWeightedScore = Math.round(
+                (team.juryRows.reduce((sum, r) => sum + r.total, 0) / team.juryRows.length) * 100
+            ) / 100;
+        }
+    }
+
+    return {
+        questions: questions.map((q) => ({ _id: q._id.toString(), question: q.question, maxScore: q.maxScore, weightage: q.weightage })),
+        teams: Object.values(teamMap).sort((a, b) => b.avgWeightedScore - a.avgWeightedScore),
+    };
+}
+
