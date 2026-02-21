@@ -99,6 +99,7 @@ export async function registerTeam(
             status: "pending",
             teamLead: data.teamLead,
             guide: data.guide,
+            registeredByEmail: session.user.email.toLowerCase(),
             registrationDate: new Date(),
         });
 

@@ -20,11 +20,18 @@ export default async function TeamPortalPage() {
     const emailLower = userEmail.toLowerCase();
     const emailRegex = new RegExp(`^${emailLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 
-    // Find all teams where this user is team lead OR a member
-    const teamsAsLead = await Team.find({ "teamLead.email": { $regex: emailRegex } }).lean();
+    // Find all teams where this user is: team lead (by email), registered by (Google email), or a member
+    const teamsAsLead = await Team.find({
+        $or: [
+            { "teamLead.email": { $regex: emailRegex } },
+            { registeredByEmail: emailLower },
+        ],
+    }).lean();
     const leadTeamIds = new Set(teamsAsLead.map((t) => t._id.toString()));
 
-    const memberRecords = await TeamMember.find({ email: emailLower }).lean();
+    const memberRecords = await TeamMember.find({
+        email: { $regex: emailRegex },
+    }).lean();
     const memberTeamIds = memberRecords
         .map((m) => m.teamId)
         .filter((id) => !leadTeamIds.has(id.toString()));

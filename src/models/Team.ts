@@ -18,6 +18,7 @@ export interface ITeam extends Document {
         phone?: string;
     };
     registrationDate: Date;
+    registeredByEmail?: string;
     approvedBy?: mongoose.Types.ObjectId;
     approvedAt?: Date;
     rejectionReason?: string;
@@ -59,6 +60,7 @@ const TeamSchema = new Schema<ITeam>(
             phone: { type: String },
         },
         registrationDate: { type: Date, default: Date.now },
+        registeredByEmail: { type: String, index: true },
         approvedBy: { type: Schema.Types.ObjectId, ref: "User" },
         approvedAt: { type: Date },
         rejectionReason: { type: String },
