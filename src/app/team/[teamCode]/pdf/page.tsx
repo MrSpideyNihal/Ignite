@@ -22,42 +22,13 @@ async function fetchQRDataUrl(text: string): Promise<string> {
 }
 
 export default async function CouponPDFPage({ params }: Props) {
-    // 1. Require Google sign-in
+    // Require Google sign-in (the team code URL itself is the access key)
     const session = await auth();
     if (!session?.user?.email) redirect("/auth/signin");
 
     await connectToDatabase();
     const team = await Team.findOne({ teamCode: params.teamCode.toUpperCase() }).lean();
     if (!team) notFound();
-
-    // 2. Authorization: team lead email, member email, or committee role
-    const userEmail = session.user.email.toLowerCase();
-    const isTeamLead = team.teamLead?.email?.toLowerCase() === userEmail;
-
-    let isAuthorized = isTeamLead;
-
-    if (!isAuthorized) {
-        // Check if user is a team member (by email)
-        const isMember = await TeamMember.findOne({
-            teamId: team._id,
-            email: userEmail,
-        });
-        isAuthorized = !!isMember;
-    }
-
-    if (!isAuthorized) {
-        // Check if user has an event role (committee)
-        const { EventRole } = await import("@/models");
-        const hasRole = await EventRole.findOne({
-            eventId: team.eventId,
-            userEmail: userEmail,
-        });
-        isAuthorized = !!hasRole;
-    }
-
-    if (!isAuthorized) {
-        redirect("/unauthorized");
-    }
 
     // 3. Fetch data
     const event = await getEvent(team.eventId.toString());
