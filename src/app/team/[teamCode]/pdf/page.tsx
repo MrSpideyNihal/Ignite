@@ -1,4 +1,4 @@
-import { getMemberCoupons } from "@/app/actions/coupon";
+import { getMemberCoupons, ensureTeamCoupons } from "@/app/actions/coupon";
 import { getEvent } from "@/app/actions/event";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Team, TeamMember } from "@/models";
@@ -30,7 +30,10 @@ export default async function CouponPDFPage({ params }: Props) {
     const team = await Team.findOne({ teamCode: params.teamCode.toUpperCase() }).lean();
     if (!team) notFound();
 
-    // 3. Fetch data
+    // Ensure coupons exist for approved teams (lazy generation)
+    await ensureTeamCoupons(team._id.toString(), team.eventId.toString());
+
+    // Fetch data
     const event = await getEvent(team.eventId.toString());
     const coupons = await getMemberCoupons(team._id.toString());
 

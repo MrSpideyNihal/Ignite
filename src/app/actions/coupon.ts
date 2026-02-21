@@ -121,6 +121,57 @@ export async function getMemberCoupons(teamId: string) {
     }));
 }
 
+// Lazy coupon generation — ensures an approved team has coupons (no auth, called internally)
+export async function ensureTeamCoupons(teamId: string, eventId: string): Promise<number> {
+    await connectToDatabase();
+
+    const { Team } = await import("@/models");
+    const team = await Team.findById(teamId).lean();
+    if (!team || team.status !== "approved") return 0;
+
+    const existingCount = await Coupon.countDocuments({ teamId, eventId });
+    if (existingCount > 0) return 0; // Already has coupons
+
+    const event = await Event.findById(eventId).lean();
+    const eventSettings = (event as Record<string, Record<string, unknown>> | null)?.settings;
+    const configuredSlots = eventSettings?.mealSlots as string[] | undefined;
+    const mealSlots: string[] = configuredSlots?.length ? configuredSlots : ["lunch", "tea"];
+
+    const members = await TeamMember.find({ teamId, isAttending: true }).lean();
+
+    const genCode = (teamCode: string, type: string) => {
+        const typePrefix = type.charAt(0).toUpperCase();
+        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return `${teamCode}-${typePrefix}${random}`;
+    };
+
+    let generated = 0;
+    for (const member of members) {
+        for (const slotType of mealSlots) {
+            const existing = await Coupon.findOne({
+                memberId: member._id,
+                type: slotType,
+                eventId,
+            });
+            if (!existing) {
+                await Coupon.create({
+                    eventId,
+                    teamId,
+                    memberId: member._id,
+                    memberName: member.name,
+                    couponCode: genCode(team.teamCode, slotType),
+                    type: slotType,
+                    date: event?.date || new Date(),
+                    isUsed: false,
+                });
+                generated++;
+            }
+        }
+    }
+
+    return generated;
+}
+
 // Manually mark coupon as used
 export async function markCouponUsed(
     eventId: string,

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Team } from "@/models";
+import { Team, TeamMember } from "@/models";
 import { redirect } from "next/navigation";
 import TeamLookupClient from "./TeamLookupClient";
 
@@ -11,12 +11,25 @@ export default async function TeamPortalPage() {
     const session = await auth();
     const userEmail = session?.user?.email;
 
-    // If signed in, look for a team where this email is the team lead
+    // If signed in, look for their team automatically
     if (userEmail) {
         await connectToDatabase();
-        const team = await Team.findOne({
-            "teamLead.email": { $regex: new RegExp(`^${userEmail}$`, "i") },
+        const emailLower = userEmail.toLowerCase();
+
+        // 1. Check if they're a team lead (by email)
+        let team = await Team.findOne({
+            "teamLead.email": { $regex: new RegExp(`^${emailLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i") },
         }).lean();
+
+        // 2. If not team lead, check if they're a team member (by email)
+        if (!team) {
+            const member = await TeamMember.findOne({
+                email: emailLower,
+            }).lean();
+            if (member) {
+                team = await Team.findById(member.teamId).lean();
+            }
+        }
 
         if (team) {
             // Auto-redirect to their team dashboard
