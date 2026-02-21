@@ -7,7 +7,11 @@ import Link from "next/link";
 
 async function getAnnouncements() {
     await connectToDatabase();
-    const announcements = await Announcement.find({})
+    // Get the latest active event to scope announcements
+    const { Event } = await import("@/models");
+    const activeEvent = await Event.findOne({ status: "active" }).sort({ year: -1 }).lean();
+    const query = activeEvent ? { eventId: activeEvent._id } : {};
+    const announcements = await Announcement.find(query)
         .sort({ createdAt: -1 })
         .limit(10)
         .lean();

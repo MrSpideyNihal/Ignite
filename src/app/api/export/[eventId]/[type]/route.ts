@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: Params) {
             case "food": {
                 const members = await TeamMember.find({
                     eventId: params.eventId,
-                    isAttending: true,
+                    isAttending: { $ne: false },
                 }).lean();
 
                 const teams = await Team.find({ eventId: params.eventId }).lean();
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest, { params }: Params) {
             case "accommodation": {
                 const members = await TeamMember.find({
                     eventId: params.eventId,
-                    isAttending: true,
+                    isAttending: { $ne: false },
                     "accommodation.required": true,
                 }).lean();
 

@@ -355,11 +355,31 @@ export async function updateTeamMember(
             return { success: false, message: "Team not found" };
         }
 
+        // Auth: require Google sign-in and verify user belongs to this team
+        const { auth: getAuth } = await import("@/lib/auth");
+        const session = await getAuth();
+        const email = session?.user?.email?.toLowerCase();
+        if (!email) {
+            return { success: false, message: "Sign in required" };
+        }
+
+        // Allow if user is team lead or a member of this team
+        const isLead = team.teamLead?.email?.toLowerCase() === email;
+        const isMember = await TeamMember.exists({
+            teamId: team._id,
+            email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+        });
+        if (!isLead && !isMember) {
+            return { success: false, message: "Not authorized for this team" };
+        }
+
         await TeamMember.findOneAndUpdate(
             { _id: memberId, teamId: team._id },
             { $set: data }
         );
 
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath(`/team/${teamCode}`);
         return { success: true, message: "Member updated" };
     } catch (error) {
         console.error("Error updating member:", error);

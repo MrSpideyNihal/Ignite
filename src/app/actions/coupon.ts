@@ -5,6 +5,7 @@ import { Coupon, TeamMember, Event } from "@/models";
 import { requireEventRole, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { ActionState } from "@/types";
+import mongoose from "mongoose";
 
 // Get coupons for event
 export async function getEventCoupons(eventId: string, filters?: { type?: string; isUsed?: boolean }) {
@@ -83,7 +84,7 @@ export async function scanCoupon(
 
         coupon.isUsed = true;
         coupon.usedAt = new Date();
-        coupon.usedBy = user.id as unknown as typeof coupon.usedBy;
+        coupon.usedBy = new mongoose.Types.ObjectId(user.id);
         coupon.scannedByName = user.name;
         await coupon.save();
 
@@ -183,7 +184,7 @@ export async function markCouponUsed(
         await Coupon.findByIdAndUpdate(couponId, {
             isUsed: true,
             usedAt: new Date(),
-            usedBy: user.id,
+            usedBy: new mongoose.Types.ObjectId(user.id),
             scannedByName: user.name,
         });
 

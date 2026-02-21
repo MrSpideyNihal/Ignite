@@ -1,7 +1,7 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/mongodb";
-import { Event, EventRole, User, Team, TeamMember, Coupon, EvaluationSubmission, EvaluationQuestion, JuryAssignment } from "@/models";
+import { Event, EventRole, User, Team, TeamMember, Coupon, EvaluationSubmission, EvaluationQuestion, JuryAssignment, Announcement } from "@/models";
 import { requireSuperAdmin, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -319,10 +319,6 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
             return { success: false, message: "Event not found" };
         }
 
-        // Get all team IDs for this event
-        const teams = await Team.find({ eventId }).select("_id");
-        const teamIds = teams.map(t => t._id);
-
         // Delete all related data in parallel
         await Promise.all([
             TeamMember.deleteMany({ eventId }),
@@ -332,6 +328,7 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
             EvaluationQuestion.deleteMany({ eventId }),
             EventRole.deleteMany({ eventId }),
             Team.deleteMany({ eventId }),
+            Announcement.deleteMany({ eventId }),
         ]);
 
         // Delete the event itself

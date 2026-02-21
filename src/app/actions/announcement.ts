@@ -90,7 +90,7 @@ export async function deleteAnnouncement(
         }
 
         await connectToDatabase();
-        await Announcement.findByIdAndDelete(announcementId);
+        await Announcement.findOneAndDelete({ _id: announcementId, eventId });
 
         revalidatePath(`/${eventId}/announcements`);
         return { success: true, message: "Announcement deleted" };

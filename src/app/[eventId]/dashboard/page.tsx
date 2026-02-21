@@ -27,9 +27,9 @@ export default async function EventDashboard({ params }: PageProps) {
     const approvedTeams = await Team.countDocuments({ eventId, status: "approved" });
     const pendingTeams = await Team.countDocuments({ eventId, status: "pending" });
 
-    const membersCount = await TeamMember.countDocuments({ eventId, isAttending: true });
-    const vegCount = await TeamMember.countDocuments({ eventId, isAttending: true, foodPreference: "veg" });
-    const nonVegCount = await TeamMember.countDocuments({ eventId, isAttending: true, foodPreference: "non-veg" });
+    const membersCount = await TeamMember.countDocuments({ eventId, isAttending: { $ne: false } });
+    const vegCount = await TeamMember.countDocuments({ eventId, isAttending: { $ne: false }, foodPreference: "veg" });
+    const nonVegCount = await TeamMember.countDocuments({ eventId, isAttending: { $ne: false }, foodPreference: "non-veg" });
 
     const totalCoupons = await Coupon.countDocuments({ eventId });
     const usedCoupons = await Coupon.countDocuments({ eventId, isUsed: true });

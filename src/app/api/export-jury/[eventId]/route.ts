@@ -1,30 +1,13 @@
 import { getFullJuryBreakdown } from "@/app/actions/jury";
 import * as XLSX from "xlsx";
-import { auth } from "@/lib/auth";
-import { connectToDatabase } from "@/lib/mongodb";
-import { EventRole } from "@/models";
+import { requireEventRole } from "@/lib/auth-utils";
 
 export async function GET(
     request: Request,
     { params }: { params: { eventId: string } }
 ) {
     try {
-        const session = await auth();
-        if (!session?.user?.email) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
-        }
-
-        await connectToDatabase();
-
-        // Check jury_admin role
-        const role = await EventRole.findOne({
-            eventId: params.eventId,
-            userEmail: session.user.email,
-            role: "jury_admin",
-        });
-        if (!role) {
-            return new Response(JSON.stringify({ error: "Forbidden: jury_admin required" }), { status: 403, headers: { "Content-Type": "application/json" } });
-        }
+        await requireEventRole(params.eventId, ["jury_admin"]);
 
         const { questions, teams } = await getFullJuryBreakdown(params.eventId);
 

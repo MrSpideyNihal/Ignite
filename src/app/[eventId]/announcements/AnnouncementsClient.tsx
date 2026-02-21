@@ -29,7 +29,7 @@ export default function AnnouncementsClient({
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
-    const categories = ["all", "general", "accommodation", "food", "transport", "venue", "jury"];
+    const categories = ["all", "general", "accommodation", "food", "commute", "venue", "jury"];
 
     const priorityColors: Record<string, "danger" | "warning" | "neutral"> = {
         high: "danger",
@@ -211,7 +211,7 @@ function AddAnnouncementModal({
                                 <option value="general">General</option>
                                 <option value="accommodation">Accommodation</option>
                                 <option value="food">Food</option>
-                                <option value="transport">Transport</option>
+                                <option value="commute">Commute / Transport</option>
                                 <option value="venue">Venue</option>
                                 <option value="jury">Jury</option>
                             </select>

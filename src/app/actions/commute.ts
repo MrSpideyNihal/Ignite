@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from "@/lib/mongodb";
 import { CommuteSchedule } from "@/models";
-import { auth } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -27,14 +27,10 @@ export async function createCommuteSchedule(
     prevState: CommuteActionState,
     formData: FormData
 ): Promise<CommuteActionState> {
-    const session = await auth();
-    if (!session?.user) {
-        return { success: false, message: "Not authenticated" };
-    }
-
-    const userRole = (session.user as { role?: string }).role;
-    if (userRole !== "super_admin" && userRole !== "commute_admin") {
-        return { success: false, message: "Not authorized" };
+    try {
+        await requireSuperAdmin();
+    } catch {
+        return { success: false, message: "Not authorized — super admin only" };
     }
 
     try {
@@ -65,7 +61,6 @@ export async function createCommuteSchedule(
             isActive: true,
         });
 
-        revalidatePath("/admin/commute");
         revalidatePath("/volunteer");
 
         return { success: true, message: "Schedule created successfully" };
@@ -103,15 +98,16 @@ export async function getCommuteSchedules() {
 
 // Delete commute schedule
 export async function deleteCommuteSchedule(id: string): Promise<CommuteActionState> {
-    const session = await auth();
-    if (!session?.user) {
-        return { success: false, message: "Not authenticated" };
+    try {
+        await requireSuperAdmin();
+    } catch {
+        return { success: false, message: "Not authorized — super admin only" };
     }
 
     try {
         await connectToDatabase();
         await CommuteSchedule.findByIdAndUpdate(id, { isActive: false });
-        revalidatePath("/admin/commute");
+        revalidatePath("/volunteer");
         return { success: true, message: "Schedule deleted" };
     } catch (error) {
         console.error("Error deleting schedule:", error);
