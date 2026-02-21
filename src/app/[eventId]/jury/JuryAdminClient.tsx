@@ -6,6 +6,7 @@ import {
     deleteQuestion,
     updateQuestion,
     assignJuryToTeams,
+    assignAllJuryToAllTeams,
     sendBackEvaluation,
     lockAllEvaluations,
     allowEditSubmission,
@@ -122,6 +123,14 @@ export default function JuryAdminClient({
         });
     };
 
+    const handleAssignAll = async () => {
+        if (!confirm("Are you sure you want to assign ALL jury members to ALL approved teams?")) return;
+        startTransition(async () => {
+            const result = await assignAllJuryToAllTeams(eventId);
+            if (result.success) toast.success(result.message); else toast.error(result.message);
+        });
+    };
+
     const handleSendBack = async (submissionId: string) => {
         const reason = prompt("Reason for sending back?");
         if (!reason) return;
@@ -209,6 +218,13 @@ export default function JuryAdminClient({
     if (section === "jury") {
         return (
             <>
+                {juryMembers.length > 0 && teams.length > 0 && (
+                    <div className="flex justify-end mb-4">
+                        <Button onClick={handleAssignAll} loading={isPending} variant="outline" size="sm">
+                            ⚡ Assign All Judges to All Teams
+                        </Button>
+                    </div>
+                )}
                 <div className="space-y-3">
                     {juryMembers.map((m) => (
                         <div key={m._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">

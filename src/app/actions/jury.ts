@@ -201,6 +201,76 @@ export async function assignJuryToTeams(
     }
 }
 
+// Assign all jury members to all approved teams
+export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionState> {
+    await requireEventRole(eventId, ["jury_admin"]);
+
+    try {
+        await connectToDatabase();
+
+        const juryRoles = await EventRole.find({ eventId, role: "jury" }).lean();
+        if (!juryRoles.length) {
+            return { success: false, message: "No jury members found for this event" };
+        }
+
+        const approvedTeams = await Team.find({ eventId, status: "approved" }).lean();
+        if (!approvedTeams.length) {
+            return { success: false, message: "No approved teams found for this event" };
+        }
+
+        let totalAssigned = 0;
+
+        for (const role of juryRoles) {
+            const user = await User.findOne({ email: role.userEmail }).lean();
+            if (!user) continue;
+
+            for (const team of approvedTeams) {
+                // Check if already assigned
+                const existing = await JuryAssignment.findOne({
+                    eventId,
+                    juryUserId: user._id,
+                    teamId: team._id,
+                });
+
+                if (existing) continue;
+
+                await JuryAssignment.create({
+                    eventId,
+                    juryUserId: user._id,
+                    juryEmail: user.email,
+                    juryName: user.name,
+                    teamId: team._id,
+                    teamCode: team.teamCode,
+                });
+
+                // Create empty submission
+                await EvaluationSubmission.create({
+                    eventId,
+                    teamId: team._id,
+                    teamCode: team.teamCode,
+                    projectName: team.projectName,
+                    juryUserId: user._id,
+                    juryName: user.name,
+                    juryEmail: user.email,
+                    status: "draft",
+                    ratings: [],
+                    totalScore: 0,
+                    maxPossibleScore: 0,
+                    weightedScore: 0,
+                });
+
+                totalAssigned++;
+            }
+        }
+
+        revalidatePath(`/${eventId}/jury`);
+        return { success: true, message: `Successfully made ${totalAssigned} new assignments` };
+    } catch (error) {
+        console.error("Error assigning all jury to all teams:", error);
+        return { success: false, message: "Failed to assign all jury to all teams" };
+    }
+}
+
 // Get assignments for a jury member
 export async function getJuryAssignments(eventId: string) {
     const user = await getCurrentUser();
