@@ -66,3 +66,13 @@ CouponSchema.index({ memberId: 1, type: 1, date: 1 });
 
 export const Coupon: Model<ICoupon> =
     mongoose.models.Coupon || mongoose.model<ICoupon>("Coupon", CouponSchema);
+
+// Drop stale `code_1` index left over from when the field was named `code` (now `couponCode`).
+// Without this, inserts fail with E11000 duplicate key { code: null }.
+if (!mongoose.models._couponIndexCleaned) {
+    Coupon.collection
+        .dropIndex("code_1")
+        .then(() => console.log("Dropped stale code_1 index on coupons"))
+        .catch(() => { /* index doesn't exist — nothing to do */ });
+    (mongoose.models as Record<string, unknown>)._couponIndexCleaned = true;
+}
