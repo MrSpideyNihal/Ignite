@@ -69,10 +69,11 @@ export const Coupon: Model<ICoupon> =
 
 // Drop stale `code_1` index left over from when the field was named `code` (now `couponCode`).
 // Without this, inserts fail with E11000 duplicate key { code: null }.
-if (!mongoose.models._couponIndexCleaned) {
+const g = globalThis as Record<string, unknown>;
+if (!g.__couponIndexCleaned) {
+    g.__couponIndexCleaned = true;
     Coupon.collection
         .dropIndex("code_1")
         .then(() => console.log("Dropped stale code_1 index on coupons"))
         .catch(() => { /* index doesn't exist — nothing to do */ });
-    (mongoose.models as Record<string, unknown>)._couponIndexCleaned = true;
 }
