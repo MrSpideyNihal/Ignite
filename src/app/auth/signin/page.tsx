@@ -34,8 +34,11 @@ export default function SignInPage({
                     <form
                         action={async () => {
                             "use server";
+                            // Validate callbackUrl to prevent open redirects
+                            const callback = searchParams.callbackUrl;
+                            const safeRedirect = callback && callback.startsWith("/") ? callback : "/";
                             await signIn("google", {
-                                redirectTo: searchParams.callbackUrl || "/",
+                                redirectTo: safeRedirect,
                             });
                         }}
                     >

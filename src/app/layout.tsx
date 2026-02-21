@@ -32,7 +32,6 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
-    console.log("🚀 IGNITE App Layout Loaded - Build Time:", new Date().toISOString());
 
     return (
         <html lang="en" suppressHydrationWarning>

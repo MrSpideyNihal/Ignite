@@ -1,6 +1,6 @@
-import { requireEventRole } from "@/lib/auth-utils";
+import { checkEventAccess } from "@/lib/auth-utils";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Event } from "@/models";
+import { Event, CommuteSchedule } from "@/models";
 import { Card, CardContent, Badge, EmptyState } from "@/components/ui";
 import Link from "next/link";
 
@@ -10,43 +10,12 @@ interface PageProps {
     params: { eventId: string };
 }
 
-// Sample bus schedule data (would come from DB in production)
-const sampleSchedule = [
-    {
-        id: "1",
-        busNumber: "IGN-01",
-        color: "Red",
-        route: "Central Station → Venue",
-        stops: ["Central Station", "City Center Mall", "Tech Park", "IGNITE Venue"],
-        departureTimes: ["08:00", "09:00", "10:00", "14:00", "18:00"],
-    },
-    {
-        id: "2",
-        busNumber: "IGN-02",
-        color: "Blue",
-        route: "Airport → Venue",
-        stops: ["Airport Terminal 1", "Airport Terminal 2", "Highway Junction", "IGNITE Venue"],
-        departureTimes: ["07:30", "12:00", "17:00"],
-    },
-    {
-        id: "3",
-        busNumber: "IGN-03",
-        color: "Green",
-        route: "College Hub → Venue",
-        stops: ["Engineering College", "Arts College", "Business School", "IGNITE Venue"],
-        departureTimes: ["08:30", "09:30", "13:30", "17:30"],
-    },
-];
-
 export default async function CommutePage({ params }: PageProps) {
     const { eventId } = params;
 
-    // Check if user has any event role or is public
-    try {
-        await requireEventRole(eventId, ["registration_committee", "jury_admin", "jury_member", "logistics_committee", "food_committee"]);
-    } catch {
-        // Allow public access for commute info
-    }
+    // Commute page is publicly accessible — no redirect needed
+    // Just check for display purposes
+    await checkEventAccess(eventId, ["registration_committee", "jury_admin", "jury_member", "logistics_committee", "food_committee"]);
 
     await connectToDatabase();
 
@@ -54,6 +23,30 @@ export default async function CommutePage({ params }: PageProps) {
     if (!event) {
         return <div className="container-custom py-8">Event not found</div>;
     }
+
+    // Load actual bus schedules from DB
+    const dbSchedules = await CommuteSchedule.find({ isActive: true }).sort({ date: 1, departureTime: 1 }).lean();
+
+    // Convert DB records to display format, grouped by busNumber
+    const busMap = new Map<string, { id: string; busNumber: string; color: string; route: string; stops: string[]; departureTimes: string[] }>();
+    for (const s of dbSchedules) {
+        const key = s.busNumber;
+        if (!busMap.has(key)) {
+            busMap.set(key, {
+                id: s._id.toString(),
+                busNumber: s.busNumber,
+                color: s.busColor || "Gray",
+                route: s.route,
+                stops: s.stops || [],
+                departureTimes: [],
+            });
+        }
+        const entry = busMap.get(key)!;
+        if (s.departureTime && !entry.departureTimes.includes(s.departureTime)) {
+            entry.departureTimes.push(s.departureTime);
+        }
+    }
+    const scheduleData = Array.from(busMap.values());
 
     return (
         <div className="min-h-screen py-8">
@@ -95,8 +88,15 @@ export default async function CommutePage({ params }: PageProps) {
 
                 {/* Bus Schedules */}
                 <h2 className="text-xl font-semibold mb-4">Bus Schedule</h2>
+                {scheduleData.length === 0 ? (
+                    <Card className="mb-4">
+                        <CardContent className="p-6 text-center text-gray-500">
+                            No bus schedules have been added yet. Contact the logistics committee.
+                        </CardContent>
+                    </Card>
+                ) : (
                 <div className="space-y-4">
-                    {sampleSchedule.map((bus) => (
+                    {scheduleData.map((bus) => (
                         <Card key={bus.id}>
                             <CardContent className="p-6">
                                 <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
@@ -145,6 +145,7 @@ export default async function CommutePage({ params }: PageProps) {
                         </Card>
                     ))}
                 </div>
+                )}
 
                 {/* Contact Info */}
                 <Card className="mt-8">

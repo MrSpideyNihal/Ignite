@@ -62,10 +62,10 @@ export default async function EventDashboard({ params }: PageProps) {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        {event.settings.registrationOpen && (
+                        {event.settings?.registrationOpen && (
                             <Badge variant="success">Registration Open</Badge>
                         )}
-                        {event.settings.evaluationOpen && (
+                        {event.settings?.evaluationOpen && (
                             <Badge variant="primary">Evaluation Open</Badge>
                         )}
                     </div>

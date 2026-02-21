@@ -166,11 +166,11 @@ export default function JuryAdminClient({
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="text-xs text-gray-500 mb-1 block">Max Score (out of)</label>
-                            <Input type="number" value={newQuestion.maxScore} onChange={(e) => setNewQuestion({ ...newQuestion, maxScore: parseInt(e.target.value) })} placeholder="Max Score" />
+                            <Input type="number" value={newQuestion.maxScore} onChange={(e) => setNewQuestion({ ...newQuestion, maxScore: parseInt(e.target.value) || 0 })} placeholder="Max Score" />
                         </div>
                         <div>
                             <label className="text-xs text-gray-500 mb-1 block">Weightage % (e.g. 25 means 25%)</label>
-                            <Input type="number" value={newQuestion.weightage} onChange={(e) => setNewQuestion({ ...newQuestion, weightage: parseFloat(e.target.value) })} placeholder="Weightage %" />
+                            <Input type="number" value={newQuestion.weightage} onChange={(e) => setNewQuestion({ ...newQuestion, weightage: parseFloat(e.target.value) || 0 })} placeholder="Weightage %" />
                         </div>
                     </div>
                     <Button onClick={handleAddQuestion} loading={isPending} size="sm">Add Question</Button>
@@ -189,8 +189,8 @@ export default function JuryAdminClient({
                                 <div className="flex-1 space-y-2 mr-3">
                                     <Input value={editingQ.question} onChange={(e) => setEditingQ({ ...editingQ, question: e.target.value })} />
                                     <div className="flex gap-2">
-                                        <Input type="number" value={editingQ.maxScore} onChange={(e) => setEditingQ({ ...editingQ, maxScore: parseInt(e.target.value) })} placeholder="Max Score" />
-                                        <Input type="number" value={editingQ.weightage} onChange={(e) => setEditingQ({ ...editingQ, weightage: parseFloat(e.target.value) })} placeholder="Weight %" />
+                                        <Input type="number" value={editingQ.maxScore} onChange={(e) => setEditingQ({ ...editingQ, maxScore: parseInt(e.target.value) || 0 })} placeholder="Max Score" />
+                                        <Input type="number" value={editingQ.weightage} onChange={(e) => setEditingQ({ ...editingQ, weightage: parseFloat(e.target.value) || 0 })} placeholder="Weight %" />
                                         <Button size="sm" onClick={handleUpdateQuestion} loading={isPending}>Save</Button>
                                         <Button size="sm" variant="outline" onClick={() => setEditingQ(null)}>Cancel</Button>
                                     </div>
@@ -235,7 +235,7 @@ export default function JuryAdminClient({
                             <div className="flex items-center gap-3">
                                 <Badge variant="primary">{m.assignmentCount} assigned</Badge>
                                 <Badge variant="success">{m.submittedCount} done</Badge>
-                                <Button size="sm" variant="outline" onClick={() => setAssignModal(m)}>Assign</Button>
+                                <Button size="sm" variant="outline" onClick={() => { setSelectedTeams([]); setAssignModal(m); }}>Assign</Button>
                             </div>
                         </div>
                     ))}

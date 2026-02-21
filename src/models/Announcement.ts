@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IAnnouncementDocument extends Document {
+    eventId: mongoose.Types.ObjectId;
     title: string;
     content: string;
     category: "general" | "accommodation" | "food" | "commute" | "venue" | "jury";
@@ -15,6 +16,12 @@ export interface IAnnouncementDocument extends Document {
 
 const AnnouncementSchema = new Schema<IAnnouncementDocument>(
     {
+        eventId: {
+            type: Schema.Types.ObjectId,
+            ref: "Event",
+            required: true,
+            index: true,
+        },
         title: {
             type: String,
             required: true,

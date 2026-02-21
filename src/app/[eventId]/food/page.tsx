@@ -98,9 +98,9 @@ export default async function FoodPage({ params }: Props) {
 
                 {/* Dynamic Meal-wise Coupon Stats */}
                 {mealTypes.length > 0 ? (
-                    <div className={`grid md:grid-cols-${Math.min(mealTypes.length, 3)} gap-6 mb-8`}>
+                    <div className={`grid gap-6 mb-8 ${({ 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3' } as Record<number, string>)[Math.min(mealTypes.length, 3)] ?? 'md:grid-cols-3'}`}>
                         {mealTypes.map((type) => {
-                            const stat = couponStats[type];
+                            const stat = couponStats[type] ?? { total: 0, used: 0 };
                             const emoji = MEAL_EMOJIS[type] ?? "🍽️";
                             const colors = MEAL_COLORS[type] ?? { from: "from-gray-500", to: "to-gray-400", bg: "bg-gray-50 dark:bg-gray-900/20" };
                             const pct = stat.total > 0 ? (stat.used / stat.total) * 100 : 0;

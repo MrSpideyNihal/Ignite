@@ -179,6 +179,9 @@ function CameraScanner({
     const [error, setError] = useState<string | null>(null);
     const lastScannedRef = useRef<string>("");
     const lastScanTimeRef = useRef<number>(0);
+    // Use a ref to always have the latest onScan callback (avoids stale closure)
+    const onScanRef = useRef(onScan);
+    onScanRef.current = onScan;
 
     const startScanner = useCallback(async () => {
         try {
@@ -199,7 +202,7 @@ function CameraScanner({
                     if (decodedText === lastScannedRef.current && now - lastScanTimeRef.current < 3000) return;
                     lastScannedRef.current = decodedText;
                     lastScanTimeRef.current = now;
-                    onScan(decodedText.trim().toUpperCase());
+                    onScanRef.current(decodedText.trim().toUpperCase());
                 },
                 () => { }
             );
@@ -209,7 +212,7 @@ function CameraScanner({
             setError(err instanceof Error ? err.message : "Failed to start camera");
             setIsScanning(false);
         }
-    }, [onScan]);
+    }, []);
 
     const stopScanner = useCallback(async () => {
         if (html5QrCodeRef.current) {

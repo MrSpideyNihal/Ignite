@@ -269,7 +269,7 @@ export async function approveTeam(
         }
 
         // Generate coupons for approved team members using event's meal slots
-        const members = await TeamMember.find({ teamId, isAttending: true });
+        const members = await TeamMember.find({ teamId, isAttending: { $ne: false } });
         const event = await Event.findById(eventId);
         const mealSlots = event?.settings?.mealSlots?.length
             ? event.settings.mealSlots
@@ -381,17 +381,17 @@ export async function getTeamStats(eventId: string) {
     const totalMembers = await TeamMember.countDocuments({ eventId });
     const attendingMembers = await TeamMember.countDocuments({
         eventId,
-        isAttending: true,
+        isAttending: { $ne: false },
     });
 
     const vegCount = await TeamMember.countDocuments({
         eventId,
-        isAttending: true,
+        isAttending: { $ne: false },
         foodPreference: "veg",
     });
     const nonVegCount = await TeamMember.countDocuments({
         eventId,
-        isAttending: true,
+        isAttending: { $ne: false },
         foodPreference: "non-veg",
     });
 

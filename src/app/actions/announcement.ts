@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from "@/lib/mongodb";
 import { Announcement, EventRole } from "@/models";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 
 export interface ActionState {
@@ -11,23 +11,14 @@ export interface ActionState {
 }
 
 async function checkPermission(eventId: string) {
-    const session = await auth();
-    if (!session?.user?.email) {
-        return { authorized: false, message: "Not authenticated" };
+    const user = await getCurrentUser();
+    if (!user) {
+        return { authorized: false, message: "Not authenticated" } as const;
     }
 
-    // Define user type locally to avoid circular dependencies or type issues
-    interface UserWithRole {
-        id: string;
-        role: string;
-        email: string;
-        name: string;
-    }
-
-    const user = session.user as unknown as UserWithRole;
-
-    if (user.role === "super_admin") {
-        return { authorized: true, user };
+    // Super admin always authorized
+    if (user.globalRole === "super_admin") {
+        return { authorized: true, user } as const;
     }
 
     await connectToDatabase();
@@ -37,7 +28,7 @@ async function checkPermission(eventId: string) {
     });
 
     if (!role) {
-        return { authorized: false, message: "Not authorized for this event" };
+        return { authorized: false, message: "Not authorized for this event" } as const;
     }
 
     // Allow committee members to post announcements
@@ -49,10 +40,10 @@ async function checkPermission(eventId: string) {
     ];
 
     if (!allowedRoles.includes(role.role)) {
-        return { authorized: false, message: "Insufficient permissions" };
+        return { authorized: false, message: "Insufficient permissions" } as const;
     }
 
-    return { authorized: true, user };
+    return { authorized: true, user } as const;
 }
 
 export async function createAnnouncement(

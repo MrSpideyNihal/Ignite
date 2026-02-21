@@ -21,8 +21,8 @@ export default async function LogisticsPage({ params }: Props) {
     const stats = await getCouponStats(params.eventId);
     const recentCoupons = await getEventCoupons(params.eventId, { isUsed: true });
 
-    const totalCoupons = Object.values(stats).reduce((sum, s) => sum + s.total, 0);
-    const usedCoupons = Object.values(stats).reduce((sum, s) => sum + s.used, 0);
+    const totalCoupons = Object.values(stats || {}).reduce((sum, s) => sum + s.total, 0);
+    const usedCoupons = Object.values(stats || {}).reduce((sum, s) => sum + s.used, 0);
 
     return (
         <div className="min-h-screen py-8">

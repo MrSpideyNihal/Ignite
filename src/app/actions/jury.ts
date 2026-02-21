@@ -208,7 +208,7 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
     try {
         await connectToDatabase();
 
-        const juryRoles = await EventRole.find({ eventId, role: "jury" }).lean();
+        const juryRoles = await EventRole.find({ eventId, role: "jury_member" }).lean();
         if (!juryRoles.length) {
             return { success: false, message: "No jury members found for this event" };
         }

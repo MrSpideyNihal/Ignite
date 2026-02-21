@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { approveTeam, rejectTeam } from "@/app/actions/team";
 import { importTeams, ImportRow } from "@/app/actions/import";
 import { Card, CardContent, CardHeader, Badge, Modal, Alert } from "@/components/ui";
@@ -253,6 +254,7 @@ interface Props {
 
 export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
     const [filter, setFilter] = useState<string>("all");
     const [rejectModal, setRejectModal] = useState<{ teamId: string; teamCode: string } | null>(null);
     const [rejectReason, setRejectReason] = useState("");
@@ -278,6 +280,7 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
             const result = await approveTeam(eventId, teamId);
             if (result.success) {
                 toast.success(result.message);
+                router.refresh();
             } else {
                 toast.error(result.message);
             }
@@ -292,6 +295,7 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                 toast.success(result.message);
                 setRejectModal(null);
                 setRejectReason("");
+                router.refresh();
             } else {
                 toast.error(result.message);
             }

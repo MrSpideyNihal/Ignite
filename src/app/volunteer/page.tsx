@@ -7,7 +7,7 @@ import Link from "next/link";
 
 async function getAnnouncements() {
     await connectToDatabase();
-    const announcements = await Announcement.find({ isActive: true })
+    const announcements = await Announcement.find({})
         .sort({ createdAt: -1 })
         .limit(10)
         .lean();

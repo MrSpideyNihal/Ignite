@@ -112,7 +112,7 @@ export async function importTeams(
                     phone: m.phone || "",
                     email: m.email || "",
                     foodPreference: m.foodPreference === "non-veg" ? "non-veg" : "veg",
-                    isPresent: false,
+                    isAttending: true,
                 }));
 
                 await TeamMember.insertMany(memberDocs);
