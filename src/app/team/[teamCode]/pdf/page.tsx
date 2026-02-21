@@ -45,7 +45,8 @@ export default async function CouponPDFPage({ params }: Props) {
         memberCouponMap[coupon.memberId][coupon.type] = { code: coupon.couponCode, qrUrl };
     }
 
-    const members = await TeamMember.find({ teamId: team._id }).lean();
+    // Only show attending members (who actually have coupons)
+    const members = await TeamMember.find({ teamId: team._id, isAttending: { $ne: false } }).lean();
 
     const mealSlots = event?.settings?.mealSlots ?? ["lunch", "tea"];
     const mealEmojis: Record<string, string> = {

@@ -129,15 +129,13 @@ export async function ensureTeamCoupons(teamId: string, eventId: string): Promis
     const team = await Team.findById(teamId).lean();
     if (!team || team.status !== "approved") return 0;
 
-    const existingCount = await Coupon.countDocuments({ teamId, eventId });
-    if (existingCount > 0) return 0; // Already has coupons
-
     const event = await Event.findById(eventId).lean();
     const eventSettings = (event as Record<string, Record<string, unknown>> | null)?.settings;
     const configuredSlots = eventSettings?.mealSlots as string[] | undefined;
     const mealSlots: string[] = configuredSlots?.length ? configuredSlots : ["lunch", "tea"];
 
-    const members = await TeamMember.find({ teamId, isAttending: true }).lean();
+    // Use $ne: false to also catch members where isAttending is undefined (legacy/imported data)
+    const members = await TeamMember.find({ teamId, isAttending: { $ne: false } }).lean();
 
     const genCode = (teamCode: string, type: string) => {
         const typePrefix = type.charAt(0).toUpperCase();
@@ -240,7 +238,8 @@ export async function generateTeamCoupons(
             ? event.settings.mealSlots
             : ["lunch", "tea"];
 
-        const members = await TeamMember.find({ teamId, isAttending: true });
+        // Use $ne: false to also catch members where isAttending is undefined (legacy/imported data)
+        const members = await TeamMember.find({ teamId, isAttending: { $ne: false } });
 
         let generated = 0;
 
@@ -249,6 +248,7 @@ export async function generateTeamCoupons(
                 const existing = await Coupon.findOne({
                     memberId: member._id,
                     type: slotType,
+                    eventId,
                 });
 
                 if (!existing) {
