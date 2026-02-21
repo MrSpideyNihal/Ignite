@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { approveTeam, rejectTeam } from "@/app/actions/team";
+import { approveTeam, rejectTeam, deleteTeam, resetTeamStatus } from "@/app/actions/team";
 import { importTeams, ImportRow } from "@/app/actions/import";
 import { Card, CardContent, CardHeader, Badge, Modal, Alert } from "@/components/ui";
 import { Button, Textarea } from "@/components/forms";
@@ -258,6 +258,7 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
     const [filter, setFilter] = useState<string>("all");
     const [rejectModal, setRejectModal] = useState<{ teamId: string; teamCode: string } | null>(null);
     const [rejectReason, setRejectReason] = useState("");
+    const [deleteModal, setDeleteModal] = useState<{ teamId: string; teamCode: string } | null>(null);
 
     // Import state
     const [showImport, setShowImport] = useState(false);
@@ -295,6 +296,32 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                 toast.success(result.message);
                 setRejectModal(null);
                 setRejectReason("");
+                router.refresh();
+            } else {
+                toast.error(result.message);
+            }
+        });
+    };
+
+    const handleDelete = async () => {
+        if (!deleteModal) return;
+        startTransition(async () => {
+            const result = await deleteTeam(eventId, deleteModal.teamId);
+            if (result.success) {
+                toast.success(result.message);
+                setDeleteModal(null);
+                router.refresh();
+            } else {
+                toast.error(result.message);
+            }
+        });
+    };
+
+    const handleStatusChange = async (teamId: string, newStatus: "pending" | "approved" | "rejected") => {
+        startTransition(async () => {
+            const result = await resetTeamStatus(eventId, teamId, newStatus);
+            if (result.success) {
+                toast.success(result.message);
                 router.refresh();
             } else {
                 toast.error(result.message);
@@ -641,6 +668,52 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                                     </Button>
                                 </div>
                             )}
+
+                            {team.status === "approved" && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleStatusChange(team._id, "pending")}
+                                        loading={isPending}
+                                        className="flex-1"
+                                    >
+                                        ↩ Reset to Pending
+                                    </Button>
+                                </div>
+                            )}
+
+                            {team.status === "rejected" && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleStatusChange(team._id, "approved")}
+                                        loading={isPending}
+                                        className="flex-1"
+                                    >
+                                        ✓ Re-approve
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleStatusChange(team._id, "pending")}
+                                        loading={isPending}
+                                        className="flex-1"
+                                    >
+                                        ↩ Reset to Pending
+                                    </Button>
+                                </div>
+                            )}
+
+                            <div className="mt-2">
+                                <button
+                                    onClick={() => setDeleteModal({ teamId: team._id, teamCode: team.teamCode })}
+                                    className="text-xs text-red-500 hover:text-red-700 hover:underline"
+                                    disabled={isPending}
+                                >
+                                    🗑️ Delete Team
+                                </button>
+                            </div>
                         </CardContent>
                     </Card>
                 ))}
@@ -670,6 +743,27 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                             Confirm Reject
                         </Button>
                         <Button onClick={() => setRejectModal(null)} variant="outline">
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={!!deleteModal}
+                onClose={() => setDeleteModal(null)}
+                title={`Delete Team ${deleteModal?.teamCode}`}
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                        ⚠️ This will permanently delete the team and ALL related data including members, coupons, jury assignments, and evaluation submissions. This action cannot be undone.
+                    </p>
+                    <div className="flex gap-2">
+                        <Button onClick={handleDelete} loading={isPending} variant="primary" className="!bg-red-600 hover:!bg-red-700">
+                            🗑️ Delete Permanently
+                        </Button>
+                        <Button onClick={() => setDeleteModal(null)} variant="outline">
                             Cancel
                         </Button>
                     </div>

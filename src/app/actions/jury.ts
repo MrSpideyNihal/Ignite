@@ -159,42 +159,58 @@ export async function assignJuryToTeams(
             return { success: false, message: "Jury member not found" };
         }
 
+        let assignedCount = 0;
         for (const teamId of teamIds) {
-            const team = await Team.findById(teamId);
-            if (!team) continue;
+            try {
+                const team = await Team.findById(teamId);
+                if (!team) continue;
 
-            // Check if already assigned
-            const existing = await JuryAssignment.findOne({ juryUserId, teamId });
-            if (existing) continue;
+                // Upsert assignment (prevents duplicate key errors)
+                await JuryAssignment.findOneAndUpdate(
+                    { juryUserId, teamId },
+                    {
+                        $setOnInsert: {
+                            eventId,
+                            juryUserId,
+                            juryEmail: user.email,
+                            juryName: user.name,
+                            teamId,
+                            teamCode: team.teamCode,
+                        },
+                    },
+                    { upsert: true, new: true }
+                );
 
-            await JuryAssignment.create({
-                eventId,
-                juryUserId,
-                juryEmail: user.email,
-                juryName: user.name,
-                teamId,
-                teamCode: team.teamCode,
-            });
-
-            // Create empty submission
-            await EvaluationSubmission.create({
-                eventId,
-                teamId,
-                teamCode: team.teamCode,
-                projectName: team.projectName,
-                juryUserId,
-                juryName: user.name,
-                juryEmail: user.email,
-                status: "draft",
-                ratings: [],
-                totalScore: 0,
-                maxPossibleScore: 0,
-                weightedScore: 0,
-            });
+                // Upsert submission (prevents duplicate key errors)
+                await EvaluationSubmission.findOneAndUpdate(
+                    { juryUserId, teamId },
+                    {
+                        $setOnInsert: {
+                            eventId,
+                            teamId,
+                            teamCode: team.teamCode,
+                            projectName: team.projectName,
+                            juryUserId,
+                            juryName: user.name,
+                            juryEmail: user.email,
+                            status: "draft",
+                            ratings: [],
+                            totalScore: 0,
+                            maxPossibleScore: 0,
+                            weightedScore: 0,
+                        },
+                    },
+                    { upsert: true, new: true }
+                );
+                assignedCount++;
+            } catch (err) {
+                console.error(`Error assigning team ${teamId} to jury ${juryUserId}:`, err);
+                // Continue with next team instead of failing everything
+            }
         }
 
         revalidatePath(`/${eventId}/jury`);
-        return { success: true, message: `Assigned ${teamIds.length} teams` };
+        return { success: true, message: `Assigned ${assignedCount} teams` };
     } catch (error) {
         console.error("Error assigning teams:", error);
         return { success: false, message: "Failed to assign teams" };
@@ -225,41 +241,50 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
             if (!user) continue;
 
             for (const team of approvedTeams) {
-                // Check if already assigned
-                const existing = await JuryAssignment.findOne({
-                    eventId,
-                    juryUserId: user._id,
-                    teamId: team._id,
-                });
+                try {
+                    // Upsert assignment (prevents duplicate key errors)
+                    await JuryAssignment.findOneAndUpdate(
+                        { juryUserId: user._id, teamId: team._id },
+                        {
+                            $setOnInsert: {
+                                eventId,
+                                juryUserId: user._id,
+                                juryEmail: user.email,
+                                juryName: user.name,
+                                teamId: team._id,
+                                teamCode: team.teamCode,
+                            },
+                        },
+                        { upsert: true, new: true }
+                    );
 
-                if (existing) continue;
+                    // Upsert submission (prevents duplicate key errors)
+                    await EvaluationSubmission.findOneAndUpdate(
+                        { juryUserId: user._id, teamId: team._id },
+                        {
+                            $setOnInsert: {
+                                eventId,
+                                teamId: team._id,
+                                teamCode: team.teamCode,
+                                projectName: team.projectName,
+                                juryUserId: user._id,
+                                juryName: user.name,
+                                juryEmail: user.email,
+                                status: "draft",
+                                ratings: [],
+                                totalScore: 0,
+                                maxPossibleScore: 0,
+                                weightedScore: 0,
+                            },
+                        },
+                        { upsert: true, new: true }
+                    );
 
-                await JuryAssignment.create({
-                    eventId,
-                    juryUserId: user._id,
-                    juryEmail: user.email,
-                    juryName: user.name,
-                    teamId: team._id,
-                    teamCode: team.teamCode,
-                });
-
-                // Create empty submission
-                await EvaluationSubmission.create({
-                    eventId,
-                    teamId: team._id,
-                    teamCode: team.teamCode,
-                    projectName: team.projectName,
-                    juryUserId: user._id,
-                    juryName: user.name,
-                    juryEmail: user.email,
-                    status: "draft",
-                    ratings: [],
-                    totalScore: 0,
-                    maxPossibleScore: 0,
-                    weightedScore: 0,
-                });
-
-                totalAssigned++;
+                    totalAssigned++;
+                } catch (err) {
+                    console.error(`Error assigning team ${team.teamCode} to jury ${user.email}:`, err);
+                    // Continue with next team
+                }
             }
         }
 

@@ -1,8 +1,8 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/mongodb";
-import { Event, Team, TeamMember, Coupon } from "@/models";
-import { requireEventRole } from "@/lib/auth-utils";
+import { Event, Team, TeamMember, Coupon, JuryAssignment, EvaluationSubmission } from "@/models";
+import { requireEventRole, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ActionState, TeamStatus } from "@/types";
@@ -302,6 +302,31 @@ export async function approveTeam(
             }
         }
 
+        // Generate coupons for guide/mentor if present
+        if (team.guide?.name) {
+            const guideMemberId = team._id;
+            for (const slotType of mealSlots) {
+                const existing = await Coupon.findOne({
+                    memberId: guideMemberId,
+                    type: slotType,
+                    eventId,
+                });
+                if (!existing) {
+                    await Coupon.create({
+                        eventId,
+                        teamId,
+                        memberId: guideMemberId,
+                        memberName: `${team.guide.name} (Guide)`,
+                        couponCode: generateCouponCode(team.teamCode, `G${slotType}`),
+                        type: slotType,
+                        date: event?.date || new Date(),
+                        isUsed: false,
+                    });
+                    generated++;
+                }
+            }
+        }
+
 
         revalidatePath(`/${eventId}/teams`);
         return { success: true, message: "Team approved and coupons generated" };
@@ -422,4 +447,123 @@ export async function getTeamStats(eventId: string) {
         members: { total: totalMembers, attending: attendingMembers },
         food: { veg: vegCount, nonVeg: nonVegCount },
     };
+}
+
+// Delete a team and ALL related data (super admin or registration committee)
+export async function deleteTeam(
+    eventId: string,
+    teamId: string
+): Promise<ActionState> {
+    // Allow super admin or registration committee
+    const user = await getCurrentUser();
+    if (!user) return { success: false, message: "Not authenticated" };
+
+    const isSuperAdmin = user.globalRole === "super_admin";
+    if (!isSuperAdmin) {
+        await requireEventRole(eventId, ["registration_committee"]);
+    }
+
+    try {
+        await connectToDatabase();
+
+        const team = await Team.findOne({ _id: teamId, eventId });
+        if (!team) return { success: false, message: "Team not found" };
+
+        // Delete all related data
+        await Promise.all([
+            TeamMember.deleteMany({ teamId }),
+            Coupon.deleteMany({ teamId }),
+            JuryAssignment.deleteMany({ teamId }),
+            EvaluationSubmission.deleteMany({ teamId }),
+        ]);
+
+        // Delete the team itself
+        await Team.findByIdAndDelete(teamId);
+
+        revalidatePath(`/${eventId}/teams`);
+        return { success: true, message: `Team ${team.teamCode} and all related data deleted` };
+    } catch (error) {
+        console.error("Error deleting team:", error);
+        return { success: false, message: "Failed to delete team" };
+    }
+}
+
+// Reset team status (super admin or registration committee)
+export async function resetTeamStatus(
+    eventId: string,
+    teamId: string,
+    newStatus: "pending" | "approved" | "rejected"
+): Promise<ActionState> {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, message: "Not authenticated" };
+
+    const isSuperAdmin = user.globalRole === "super_admin";
+    if (!isSuperAdmin) {
+        await requireEventRole(eventId, ["registration_committee"]);
+    }
+
+    try {
+        await connectToDatabase();
+
+        const team = await Team.findOne({ _id: teamId, eventId });
+        if (!team) return { success: false, message: "Team not found" };
+
+        const updateData: Record<string, unknown> = { status: newStatus };
+
+        if (newStatus === "approved") {
+            updateData.approvedBy = user.id;
+            updateData.approvedAt = new Date();
+            updateData.rejectionReason = undefined;
+        } else if (newStatus === "pending") {
+            updateData.approvedBy = undefined;
+            updateData.approvedAt = undefined;
+            updateData.rejectionReason = undefined;
+        }
+
+        await Team.findByIdAndUpdate(teamId, { $set: updateData });
+
+        // If approving, generate coupons (including for guide if present)
+        if (newStatus === "approved") {
+            const event = await Event.findById(eventId);
+            const mealSlots = event?.settings?.mealSlots?.length
+                ? event.settings.mealSlots
+                : ["lunch", "tea"];
+
+            const members = await TeamMember.find({ teamId, isAttending: { $ne: false } });
+            for (const member of members) {
+                for (const slotType of mealSlots) {
+                    const existing = await Coupon.findOne({ memberId: member._id, type: slotType, eventId });
+                    if (!existing) {
+                        await Coupon.create({
+                            eventId, teamId, memberId: member._id, memberName: member.name,
+                            couponCode: generateCouponCode(team.teamCode, slotType),
+                            type: slotType, date: event?.date || new Date(), isUsed: false,
+                        });
+                    }
+                }
+            }
+
+            // Generate coupons for guide if present
+            if (team.guide?.name) {
+                const guideMemberId = team._id; // Use team ID as guide's "member" ID
+                for (const slotType of mealSlots) {
+                    const existing = await Coupon.findOne({ memberId: guideMemberId, type: slotType, eventId });
+                    if (!existing) {
+                        await Coupon.create({
+                            eventId, teamId, memberId: guideMemberId,
+                            memberName: `${team.guide.name} (Guide)`,
+                            couponCode: generateCouponCode(team.teamCode, `G${slotType}`),
+                            type: slotType, date: event?.date || new Date(), isUsed: false,
+                        });
+                    }
+                }
+            }
+        }
+
+        revalidatePath(`/${eventId}/teams`);
+        return { success: true, message: `Team status changed to ${newStatus}` };
+    } catch (error) {
+        console.error("Error resetting team status:", error);
+        return { success: false, message: "Failed to update team status" };
+    }
 }

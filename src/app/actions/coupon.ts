@@ -168,6 +168,31 @@ export async function ensureTeamCoupons(teamId: string, eventId: string): Promis
         }
     }
 
+    // Generate coupons for guide/mentor if present
+    if (team.guide?.name) {
+        const guideMemberId = team._id;
+        for (const slotType of mealSlots) {
+            const existing = await Coupon.findOne({
+                memberId: guideMemberId,
+                type: slotType,
+                eventId,
+            });
+            if (!existing) {
+                await Coupon.create({
+                    eventId,
+                    teamId,
+                    memberId: guideMemberId,
+                    memberName: `${team.guide.name} (Guide)`,
+                    couponCode: genCode(team.teamCode, `G${slotType}`),
+                    type: slotType,
+                    date: event?.date || new Date(),
+                    isUsed: false,
+                });
+                generated++;
+            }
+        }
+    }
+
     return generated;
 }
 
@@ -261,6 +286,35 @@ export async function generateTeamCoupons(
                         memberId: member._id,
                         memberName: member.name,
                         couponCode: `${teamCode}-${typePrefix}${random}`,
+                        type: slotType,
+                        date: event.date || new Date(),
+                        isUsed: false,
+                    });
+                    generated++;
+                }
+            }
+        }
+
+        // Generate coupons for guide/mentor if present
+        const { Team: TeamModel } = await import("@/models");
+        const team = await TeamModel.findById(teamId).lean();
+        if (team?.guide?.name) {
+            const guideMemberId = team._id;
+            for (const slotType of mealSlots) {
+                const existing = await Coupon.findOne({
+                    memberId: guideMemberId,
+                    type: slotType,
+                    eventId,
+                });
+                if (!existing) {
+                    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    const typePrefix = slotType.substring(0, 2).toUpperCase();
+                    await Coupon.create({
+                        eventId,
+                        teamId,
+                        memberId: guideMemberId,
+                        memberName: `${team.guide.name} (Guide)`,
+                        couponCode: `${teamCode}-G${typePrefix}${random}`,
                         type: slotType,
                         date: event.date || new Date(),
                         isUsed: false,

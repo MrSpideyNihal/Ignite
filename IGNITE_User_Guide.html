@@ -852,7 +852,7 @@
 <tr>
 <td><strong>Approve</strong></td>
 <td>Green</td>
-<td>Status → Approved. Food coupons auto-generated for ALL members . Team can now access Team Portal.</td>
+<td>Status → Approved. Food coupons auto-generated for ALL members and guide/mentor (if added). Team can now access Team Portal.</td>
 </tr>
 <tr>
 <td><strong>Reject</strong></td>
@@ -861,6 +861,23 @@
 </tr>
 </tbody></table>
 <p>✅ Green notification confirms the action.</p>
+
+<h3>Step 4: Change Status After Approval/Rejection</h3>
+<p>If you need to change a team's status after it has already been approved or rejected:</p>
+<ul>
+<li><strong>Approved teams</strong> show a <strong>"↩ Reset to Pending"</strong> button to move them back to pending</li>
+<li><strong>Rejected teams</strong> show two buttons: <strong>"✓ Re-approve"</strong> (approve directly) and <strong>"↩ Reset to Pending"</strong></li>
+<li>When re-approving a team, food coupons are automatically generated (including for guide/mentor if present)</li>
+</ul>
+
+<h3>Step 5: Delete a Team</h3>
+<p>Super Admin or Registration Committee can permanently delete a team:</p>
+<ol>
+<li>Each team card has a red <strong>"🗑️ Delete Team"</strong> link at the bottom</li>
+<li>Click it → A confirmation dialog appears warning that ALL related data will be deleted</li>
+<li>This removes the team, all members, food coupons, jury assignments, and evaluation submissions</li>
+<li>⚠️ <strong>This action cannot be undone</strong></li>
+</ol>
 <hr>
 <h2>8. Team Portal (For Participants)</h2>
 <h3>Google Sign-In Required</h3>
@@ -999,6 +1016,7 @@
 <li>Click <strong>"Save Assignments"</strong></li>
 </ol>
 <p><strong>Tip:</strong> Distribute teams evenly — 20 teams ÷ 4 jury members = 5 teams each.</p>
+<p><strong>Note:</strong> A single jury member can be assigned multiple teams. The system handles duplicate assignments gracefully — if a jury member is already assigned to a team, the existing assignment is kept without errors.</p>
 <hr>
 <h2>10. QR Scanning & Logistics</h2>
 <h3>Who Does This: Logistics Committee</h3>
@@ -1053,6 +1071,7 @@
 <li><strong>Coupon statistics</strong> with meal-type breakdown and progress bars</li>
 <li><strong>QR Scanner</strong> for scanning food coupons</li>
 </ul>
+<p><strong>Guide/Mentor Coupons:</strong> If a team has a guide or mentor added during registration, food coupons are automatically generated for the guide as well (shown as "Name (Guide)" in the coupon list). This is optional — if no guide is added, no extra coupons are created.</p>
 <h3>Scanning Food Coupons</h3>
 <p>Same QR scanner as the Logistics page:</p>
 <ol>
@@ -1351,7 +1370,23 @@
 <h3>🔄 Need to Change Team Member Details</h3>
 <ol>
 <li>Team members can update accommodation preferences in Team Portal</li>
-<li>For major changes: Registration Committee rejects the team, team re-registers with correct info, Committee re-approves</li>
+<li>For major changes: Use the <strong>"↩ Reset to Pending"</strong> button on the team card to change status, then re-approve once changes are made</li>
+<li>Alternatively, Super Admin or Registration Committee can <strong>delete the team entirely</strong> using the <strong>"🗑️ Delete Team"</strong> button, then the team can re-register</li>
+</ol>
+
+<h3>🔄 Need to Delete a Team Completely</h3>
+<ol>
+<li>Go to the Teams List (<code class="inline">/{eventId}/teams</code>)</li>
+<li>Find the team card and click <strong>"🗑️ Delete Team"</strong></li>
+<li>Confirm in the dialog — this deletes the team and ALL related data (members, coupons, jury assignments, submissions)</li>
+</ol>
+
+<h3>❌ Jury member not seeing assigned teams</h3>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Ensure the jury member is assigned to the team in Jury Admin → "Assign Teams"</li>
+<li>A single judge can evaluate multiple teams — assign all needed teams at once</li>
+<li>If assignments seem stuck, try re-assigning — the system handles duplicates gracefully</li>
 </ol>
 <hr>
 <h2>18. Complete Route Reference</h2>

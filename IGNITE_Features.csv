@@ -60,3 +60,7 @@
 59,Website & Public Pages,Email-Based Team Lookup,Team Portal automatically shows all teams registered by your Google email,Working
 60,Login & Security,Google Login Required,Teams must sign in with Google before registration,Working
 61,Data Export,Export All Data,Download all event data in one ZIP file,Working
+62,Team Management,Delete Team,Super admin or registration committee can permanently delete a team and all related data,Working
+63,Team Management,Change Team Status,Reset approved/rejected teams back to pending or re-approve rejected teams,Working
+64,Team Management,Guide/Mentor Food Coupons,Auto-generate food coupons for guide/mentor when team is approved (if guide added),Working
+65,Jury & Evaluation,Multi-Team Jury Assignment,Single jury member can be assigned multiple teams with duplicate-safe assignment,Working
