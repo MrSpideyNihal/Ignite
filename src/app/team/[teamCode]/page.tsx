@@ -1,8 +1,12 @@
 import { getTeamByCode } from "@/app/actions/team";
 import { Card, CardHeader, CardContent, Badge } from "@/components/ui";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import TeamPortalClient from "./TeamPortalClient";
+import { auth } from "@/lib/auth";
+import { connectToDatabase } from "@/lib/mongodb";
+import { TeamMember } from "@/models";
+import { getCurrentUser } from "@/lib/auth-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +15,38 @@ interface Props {
 }
 
 export default async function TeamDetailPage({ params }: Props) {
+    const session = await auth();
+    if (!session?.user?.email) redirect("/auth/signin?callbackUrl=/team");
+
     const team = await getTeamByCode(params.teamCode);
     if (!team) notFound();
+
+    // Check if user is allowed to view this team
+    const userEmail = session.user.email.toLowerCase();
+    const isTeamOwner =
+        team.registeredByEmail?.toLowerCase() === userEmail ||
+        team.teamLead?.email?.toLowerCase() === userEmail;
+
+    let isTeamMember = false;
+    if (!isTeamOwner) {
+        await connectToDatabase();
+        const memberMatch = await TeamMember.findOne({
+            teamId: team._id,
+            email: { $regex: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+        }).lean();
+        isTeamMember = !!memberMatch;
+    }
+
+    // Allow staff (super admin or anyone with a role) to access any team
+    let isStaff = false;
+    if (!isTeamOwner && !isTeamMember) {
+        const currentUser = await getCurrentUser();
+        isStaff = currentUser?.globalRole === "super_admin";
+    }
+
+    if (!isTeamOwner && !isTeamMember && !isStaff) {
+        redirect("/team");
+    }
 
     // Fetch event for dates
     const { Event } = await import("@/models");

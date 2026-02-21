@@ -174,6 +174,7 @@ export async function getTeamByCode(teamCode: string) {
         projectName: team.projectName,
         projectCode: team.projectCode,
         status: team.status,
+        registeredByEmail: team.registeredByEmail,
         teamLead: team.teamLead,
         guide: team.guide,
         members: members.map((m) => ({

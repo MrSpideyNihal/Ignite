@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Team, TeamMember } from "@/models";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth-utils";
 import QRCode from "qrcode";
 import PrintButton from "./PrintButton";
 
@@ -22,13 +23,38 @@ async function fetchQRDataUrl(text: string): Promise<string> {
 }
 
 export default async function CouponPDFPage({ params }: Props) {
-    // Require Google sign-in (the team code URL itself is the access key)
+    // Require Google sign-in
     const session = await auth();
-    if (!session?.user?.email) redirect("/auth/signin");
+    if (!session?.user?.email) redirect("/auth/signin?callbackUrl=/team/" + params.teamCode + "/pdf");
 
     await connectToDatabase();
     const team = await Team.findOne({ teamCode: params.teamCode.toUpperCase() }).lean();
     if (!team) notFound();
+
+    // Verify the signed-in user is allowed to access this team's coupons
+    const userEmail = session.user.email.toLowerCase();
+    const isTeamOwner =
+        (team as any).registeredByEmail?.toLowerCase() === userEmail ||
+        (team as any).teamLead?.email?.toLowerCase() === userEmail;
+
+    let isTeamMember = false;
+    if (!isTeamOwner) {
+        const memberMatch = await TeamMember.findOne({
+            teamId: team._id,
+            email: { $regex: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+        }).lean();
+        isTeamMember = !!memberMatch;
+    }
+
+    let isStaff = false;
+    if (!isTeamOwner && !isTeamMember) {
+        const currentUser = await getCurrentUser();
+        isStaff = currentUser?.globalRole === "super_admin";
+    }
+
+    if (!isTeamOwner && !isTeamMember && !isStaff) {
+        redirect("/team");
+    }
 
     // Ensure coupons exist for approved teams (lazy generation)
     await ensureTeamCoupons(team._id.toString(), team.eventId.toString());
