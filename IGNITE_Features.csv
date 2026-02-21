@@ -2,7 +2,7 @@
 1,Website & Public Pages,Landing Page,Beautiful homepage with IGNITE branding and navigation,Working
 2,Website & Public Pages,Events Page,Browse all active IGNITE events and their details,Working
 3,Website & Public Pages,Team Registration,Register your team for an event with project details,Working
-4,Website & Public Pages,Team Portal,Access your team's dashboard using a unique team code,Working
+4,Website & Public Pages,Team Portal,Sign in with Google to view all teams registered under your email,Working
 5,Website & Public Pages,Accommodation Page,View accommodation options and manage bookings,Working
 6,Website & Public Pages,Volunteer Dashboard,Announcements and bus schedules for volunteers,Working
 7,Login & Security,Google Sign-In,One-click login using Google account,Working
@@ -19,7 +19,7 @@
 18,Team Management,Auto Team Code,Each team gets a unique 6-digit code to access their portal,Working
 19,Team Management,Team Portal Dashboard,View and edit team info and member details and preferences,Working
 20,Team Management,Mark Attendance,Team members can mark if they are attending or not,Working
-21,Team Management,Food Preference,Each member can choose Veg or Non-Veg,Working
+21,Team Management,Meal Slot Configuration,Admin configures meal types (breakfast lunch tea dinner) per event,Working
 22,Team Management,Accommodation Booking,Select accommodation type and dates needed,Working
 23,Team Management,Edit After Approval,Teams can still update preferences after being approved,Working
 24,Team Management,Teams List (Committee),Registration committee can see all team submissions,Working
@@ -38,7 +38,7 @@
 37,QR Code & Coupons,Mark Coupon Used,Manually mark a coupon as redeemed,Working
 38,QR Code & Coupons,Coupon Statistics,See how many lunch/tea/dinner/kit coupons are used vs available,Working
 39,Food Management,Food Dashboard,Overview of all food-related data for the event,Working
-40,Food Management,Veg/Non-Veg Count,See total counts of dietary preferences,Working
+40,Food Management,Coupon-Based Meal Tracking,Track meal coupon usage per type with progress bars,Working
 41,Food Management,Meal-wise Statistics,Track coupon usage per meal type,Working
 42,Accommodation,Accommodation Dashboard,Admin view of all accommodation requests,Working
 43,Accommodation,Date-wise Breakdown,See how many people need rooms on each date,Working
@@ -57,6 +57,6 @@
 56,Data Export,Export Attendance,Download meal attendance records as Excel,Working
 57,Login & Security,Smart Dashboard Navigation,Committee members automatically routed to their event dashboards,Working
 58,Team Management,Excel Team Import,Bulk import teams via Excel/CSV file upload,Working
-59,Website & Public Pages,Phone Portal Access,Access team portal using team lead phone number,Working
+59,Website & Public Pages,Email-Based Team Lookup,Team Portal automatically shows all teams registered by your Google email,Working
 60,Login & Security,Google Login Required,Teams must sign in with Google before registration,Working
 61,Data Export,Export All Data,Download all event data in one ZIP file,Working

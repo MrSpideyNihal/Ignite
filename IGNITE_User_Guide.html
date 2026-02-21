@@ -291,7 +291,7 @@
 <tr>
 <td>Middle</td>
 <td><strong>Team Portal</strong></td>
-<td>Enter your phone number or team code to check your team status</td>
+<td>Sign in with Google to view your registered teams and manage details</td>
 </tr>
 <tr>
 <td>Far right</td>
@@ -343,7 +343,7 @@
 <li><strong>Committee Members</strong> (registration, jury, food, logistics)</li>
 <li><strong>Teams registering</strong> for an event (Google sign-in required before filling the form)</li>
 </ul>
-<p><strong>Note:</strong> Team Portal access (<code class="inline">/team</code>) does NOT require login — anyone can check their team using phone number or team code.</p>
+<p><strong>Note:</strong> Team Portal (<code class="inline">/team</code>) requires Google sign-in — it automatically shows all teams registered under your email.</p>
 <h3>How to Log In</h3>
 <ol>
 <li>Look at the <strong>top-right corner</strong> of the page</li>
@@ -610,7 +610,7 @@
 </tr>
 <tr>
 <td><strong>Team Lead Phone</strong></td>
-<td>10-digit phone number ⚠️ <strong>REMEMBER THIS — needed to access Team Portal later</strong></td>
+<td>10-digit phone number</td>
 <td><code class="inline">9876543210</code></td>
 </tr>
 </tbody></table>
@@ -678,11 +678,6 @@
 <td>Email address</td>
 <td>Optional</td>
 </tr>
-<tr>
-<td><strong>Food Preference</strong></td>
-<td>Click dropdown → Vegetarian / Non-Vegetarian</td>
-<td>✅</td>
-</tr>
 </tbody></table>
 <ul>
 <li><strong>To add more members:</strong> Click <strong>"+ Add Member"</strong> button below the member cards</li>
@@ -693,7 +688,7 @@
 <ol>
 <li>Click the <strong>blue "Register Team" button</strong> at the bottom</li>
 <li><strong>If successful:</strong> A green box appears with your <strong>Team Code</strong> (e.g., <code class="inline">IGN26-A1B2</code>)</li>
-<li>⚠️ <strong>WRITE DOWN YOUR TEAM CODE</strong> — you need it to access Team Portal</li>
+<li>⚠️ <strong>SAVE YOUR TEAM CODE</strong> — you can also access your teams anytime by signing in with Google at the Team Portal</li>
 <li><strong>If error:</strong> A red box explains what's wrong (e.g., "Project name required"). Fix it and try again.</li>
 </ol>
 <hr>
@@ -759,11 +754,6 @@
 <td>Optional</td>
 <td><code class="inline">9876543210</code></td>
 </tr>
-<tr>
-<td><code class="inline">food_preference</code></td>
-<td>Optional (default: veg)</td>
-<td><code class="inline">veg</code> or <code class="inline">non-veg</code></td>
-</tr>
 </tbody></table>
 <p><strong>Rule:</strong> Rows with the <strong>same <code class="inline">project_code</code></strong> become <strong>one team</strong>. First row must have team lead info; other rows can leave team lead columns empty.</p>
 <p><strong>Example:</strong></p>
@@ -777,7 +767,6 @@
 <th>college</th>
 <th>branch</th>
 <th>year_of_passing</th>
-<th>food_preference</th>
 </tr></thead>
 <tbody>
 <tr>
@@ -789,7 +778,6 @@
 <td>IIT Delhi</td>
 <td>CSE</td>
 <td>2026</td>
-<td>veg</td>
 </tr>
 <tr>
 <td>Smart Bin</td>
@@ -800,7 +788,6 @@
 <td>IIT Delhi</td>
 <td>ECE</td>
 <td>2027</td>
-<td>non-veg</td>
 </tr>
 <tr>
 <td>EcoTrack</td>
@@ -811,7 +798,6 @@
 <td>NIT Trichy</td>
 <td>IT</td>
 <td>2026</td>
-<td>veg</td>
 </tr>
 </tbody></table>
 <p>This creates 2 teams: "Smart Bin" (2 members) and "EcoTrack" (1 member).</p>
@@ -839,7 +825,6 @@
 <li><strong>Pending</strong> — Waiting for your action (yellow border if > 0)</li>
 <li><strong>Approved</strong> — Already approved</li>
 <li><strong>Total Members</strong> — Total attending</li>
-<li><strong>Food stats card</strong> in the middle: Green number for <strong>Vegetarian</strong>, Red number for <strong>Non-Vegetarian</strong></li>
 <li><strong>Team list</strong> below</li>
 </ul>
 <h3>Step 2: Review Each Team</h3>
@@ -854,7 +839,7 @@
 <h3>Step 3: Approve or Reject</h3>
 <ol>
 <li>Click on a pending team to expand its full details</li>
-<li>Review member information (names, colleges, branches, food preferences)</li>
+<li>Review member information (names, colleges, branches)</li>
 <li>Click one of the two buttons:</li>
 </ol>
 <table>
@@ -878,48 +863,24 @@
 <p>✅ Green notification confirms the action.</p>
 <hr>
 <h2>8. Team Portal (For Participants)</h2>
-<h3>No Login Required — Anyone can use this</h3>
+<h3>Google Sign-In Required</h3>
 <h3>Step 1: Go to Team Portal</h3>
 <ol>
 <li>In the navbar, click <strong>"Team Portal"</strong> (or go to <code class="inline">/team</code>)</li>
-<li>You see a centered card with a 🎫 ticket icon</li>
+<li>You see a centered card prompting you to sign in</li>
+<li>Click the <strong>"Sign in with Google"</strong> button</li>
+<li>Sign in with the <strong>same Google account</strong> used when registering your team</li>
 </ol>
-<h3>Step 2: Choose How to Find Your Team</h3>
-<p>At the top of the card, you see a <strong>toggle bar</strong> with two tabs:</p>
-<table>
-<thead><tr>
-<th>Tab (click to select)</th>
-<th>What to Enter</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>📱 Phone Number</strong> (selected by default, highlighted)</td>
-<td>Team lead's phone number</td>
-</tr>
-<tr>
-<td><strong>🔑 Team Code</strong> (click to switch)</td>
-<td>Your team code (e.g., IGN26-A1B2)</td>
-</tr>
-</tbody></table>
-<p><strong>Using Phone Number (easiest):</strong></p>
-<ol>
-<li>The "📱 Phone Number" tab should already be highlighted</li>
-<li>Type the <strong>team lead's phone number</strong> (10 digits) in the input field</li>
-<li>Click the blue <strong>"Access Team"</strong> button</li>
-<li>✅ If found → You go to your team dashboard</li>
-<li>❌ If not found → Red error: <em>"No team found with this phone number. Make sure to use the team lead's phone number."</em></li>
-</ol>
-<p><strong>Using Team Code:</strong></p>
-<ol>
-<li>Click the <strong>"🔑 Team Code"</strong> tab (it becomes highlighted)</li>
-<li>The input field changes to show placeholder "IGN26-XXXX"</li>
-<li>Type your team code — it auto-converts to uppercase</li>
-<li>Click the blue <strong>"Access Team"</strong> button</li>
-<li>✅ If found → You go to your team dashboard</li>
-<li>❌ If not found → Red error: <em>"Team not found. Please check your team code."</em></li>
-</ol>
+<h3>Step 2: View Your Teams</h3>
+<p>After signing in, the system automatically finds all teams registered under your email address. You see:</p>
+<ul>
+<li>A list of <strong>all your team registrations</strong> across all events</li>
+<li>Each team card shows: <strong>Project Name</strong>, <strong>Team Code</strong>, <strong>Event Name</strong>, and <strong>Status</strong> (Pending/Approved/Rejected)</li>
+<li>Click on a team to go to its <strong>Team Dashboard</strong></li>
+</ul>
+<p>If no teams are found, you see a message: <em>"No teams found for your email"</em> with a link to register.</p>
 <h3>Step 3: Your Team Dashboard</h3>
-<p>Once you access your team, you see:</p>
+<p>Once you click on a team, you see:</p>
 <ol>
 <li><strong>Team Info:</strong> Project Name, Team Code, Status badge (Pending/Approved/Rejected)</li>
 <li><strong>Members List:</strong> Each member shown as a card with:</li>
@@ -934,10 +895,10 @@
 <li><strong>What You Can Update:</strong></li>
 </ol>
 <ul>
-<li><strong>Food Preference:</strong> Click the dropdown on any member → Select Vegetarian or Non-Vegetarian → ✅ <em>"Food preference updated"</em></li>
-<li><strong>Accommodation:</strong> Toggle "Need Accommodation" → Select Dorm or Suite → Select dates → Saves automatically</li>
+<li><strong>Accommodation:</strong> Select accommodation type (Dormitory or Suite) → Select dates you need → Saves automatically → ✅ <em>"Accommodation updated"</em></li>
 </ul>
 <ol>
+<li><strong>Download Coupons:</strong> Click <strong>"🎟️ Download Food Coupons PDF"</strong> to get all meal coupons for your team</li>
 <li><strong>At the bottom:</strong> "Don't have a team yet?" → Click <strong>"Register Now →"</strong> to go to events page</li>
 </ol>
 <hr>
@@ -1089,8 +1050,8 @@
 </ol>
 <p><strong>What you see:</strong></p>
 <ul>
-<li><strong>Vegetarian count</strong> (green number) and <strong>Non-Vegetarian count</strong> (red number)</li>
 <li><strong>Coupon statistics</strong> with meal-type breakdown and progress bars</li>
+<li><strong>QR Scanner</strong> for scanning food coupons</li>
 </ul>
 <h3>Scanning Food Coupons</h3>
 <p>Same QR scanner as the Logistics page:</p>
@@ -1185,7 +1146,7 @@
 <hr>
 <h2>14. Accommodation & Commute</h2>
 <h3>Accommodation (For Team Members)</h3>
-<p>In the <strong>Team Portal</strong> (<code class="inline">/team/[teamCode]</code>), each member can:</p>
+<p>In the <strong>Team Portal</strong> (<code class="inline">/team</code> → sign in → select team), each member can:</p>
 <ol>
 <li>Toggle <strong>"Need Accommodation"</strong> to ON</li>
 <li>Select <strong>Room Type</strong>: Dorm or Suite</li>
@@ -1240,7 +1201,7 @@
 </tr>
 <tr>
 <td><code class="inline">food.xlsx</code></td>
-<td>Food preferences for all attending members</td>
+<td>Meal coupon data for all attending members</td>
 </tr>
 <tr>
 <td><code class="inline">coupons.xlsx</code></td>
@@ -1273,7 +1234,7 @@
 </tr>
 <tr>
 <td><strong>Food Report</strong></td>
-<td>Veg/non-veg counts</td>
+<td>Meal coupon usage report</td>
 </tr>
 <tr>
 <td><strong>Coupons</strong></td>
@@ -1349,15 +1310,15 @@
 <li>Jury page needs → "Jury Admin" or "Jury Member" role</li>
 <li>Logistics page needs → "Logistics Committee" role</li>
 </ul>
-<h3>❌ "Team not found" on Team Portal</h3>
-<p><strong>Why:</strong> Wrong phone number or team code.</p>
+<h3>❌ "No teams found" on Team Portal</h3>
+<p><strong>Why:</strong> You're signed in with a different Google account than the one used to register.</p>
 <p><strong>Fix:</strong></p>
 <ul>
-<li>If using Phone: Enter the <strong>team lead's</strong> phone (not a member's)</li>
-<li>If using Code: Check for typos — codes look like <code class="inline">IGN26-XXXX</code> (uppercase)</li>
+<li>Make sure you're signed in with the <strong>same Google account</strong> used when registering the team</li>
+<li>If someone else registered the team, ask them to share the team code, or have the Registration Committee look it up</li>
 </ul>
-<h3>❌ "I don't remember my team code"</h3>
-<p><strong>Fix:</strong> Use the <strong>📱 Phone Number</strong> tab on Team Portal instead. Or ask the Registration Committee to look it up.</p>
+<h3>❌ "I don't remember which email I registered with"</h3>
+<p><strong>Fix:</strong> Ask the Registration Committee to look up your team in the Teams list. They can see which email registered each team.</p>
 <h3>❌ QR Scanner camera not opening</h3>
 <p><strong>Fix:</strong></p>
 <ol>
@@ -1389,7 +1350,7 @@
 </ol>
 <h3>🔄 Need to Change Team Member Details</h3>
 <ol>
-<li>Team members can update food preference and accommodation in Team Portal</li>
+<li>Team members can update accommodation preferences in Team Portal</li>
 <li>For major changes: Registration Committee rejects the team, team re-registers with correct info, Committee re-approves</li>
 </ol>
 <hr>
@@ -1420,12 +1381,12 @@
 <tr>
 <td>Team Portal Entry</td>
 <td><code class="inline">/team</code></td>
-<td>Enter phone/code to access team</td>
+<td>Sign in with Google to see your teams</td>
 </tr>
 <tr>
 <td>Team Dashboard</td>
 <td><code class="inline">/team/{teamCode}</code></td>
-<td>View/edit team details</td>
+<td>View/edit team details and accommodation</td>
 </tr>
 <tr>
 <td>Volunteer Page</td>

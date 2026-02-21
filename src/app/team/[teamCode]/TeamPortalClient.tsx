@@ -15,7 +15,6 @@ interface Member {
     yearOfPassing: number;
     isAttending: boolean;
     accommodation?: { required: boolean; type?: string; dates?: string[] };
-    foodPreference?: string;
 }
 
 interface Props {
@@ -40,17 +39,6 @@ export default function TeamPortalClient({ teamCode, members, isApproved, eventD
             const result = await updateTeamMember(teamCode, memberId, { isAttending });
             if (result.success) {
                 toast.success("Updated");
-            } else {
-                toast.error(result.message);
-            }
-        });
-    };
-
-    const handleUpdateFood = async (memberId: string, foodPreference: "veg" | "non-veg") => {
-        startTransition(async () => {
-            const result = await updateTeamMember(teamCode, memberId, { foodPreference });
-            if (result.success) {
-                toast.success("Food preference updated");
             } else {
                 toast.error(result.message);
             }
@@ -128,27 +116,8 @@ export default function TeamPortalClient({ teamCode, members, isApproved, eventD
 
                     {member.isAttending && (
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div className="grid md:grid-cols-2 gap-4">
-                                {/* Food Preference */}
-                                <div>
-                                    <label className="text-sm text-gray-500 block mb-1">
-                                        Food Preference
-                                    </label>
-                                    <select
-                                        value={member.foodPreference}
-                                        onChange={(e) =>
-                                            handleUpdateFood(member._id, e.target.value as "veg" | "non-veg")
-                                        }
-                                        disabled={isPending}
-                                        className="input text-sm"
-                                    >
-                                        <option value="veg">🥗 Vegetarian</option>
-                                        <option value="non-veg">🍗 Non-Vegetarian</option>
-                                    </select>
-                                </div>
-
-                                {/* Accommodation */}
-                                <div className="space-y-3">
+                            {/* Accommodation */}
+                            <div className="space-y-3">
                                     <div>
                                         <label className="text-sm text-gray-500 block mb-1">
                                             Accommodation Type
@@ -216,7 +185,6 @@ export default function TeamPortalClient({ teamCode, members, isApproved, eventD
                                         </div>
                                     )}
                                 </div>
-                            </div>
                         </div>
                     )}
 
