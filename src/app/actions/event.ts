@@ -75,6 +75,10 @@ export async function getEvents() {
         description: e.description || "",
         venue: e.venue || "",
         status: e.status,
+        projects: (e.projects || []).map((p: { projectName: string; projectCode: string }) => ({
+            projectName: p.projectName,
+            projectCode: p.projectCode,
+        })),
         settings: {
             registrationOpen: e.settings?.registrationOpen ?? false,
             evaluationOpen: e.settings?.evaluationOpen ?? false,
@@ -101,6 +105,10 @@ export async function getActiveEvents() {
         description: e.description || "",
         venue: e.venue || "",
         status: e.status,
+        projects: (e.projects || []).map((p: { projectName: string; projectCode: string }) => ({
+            projectName: p.projectName,
+            projectCode: p.projectCode,
+        })),
         settings: {
             registrationOpen: e.settings?.registrationOpen ?? false,
             evaluationOpen: e.settings?.evaluationOpen ?? false,
@@ -126,6 +134,10 @@ export async function getEvent(eventId: string) {
         description: event.description,
         venue: event.venue,
         status: event.status,
+        projects: (event.projects || []).map((p: { projectName: string; projectCode: string }) => ({
+            projectName: p.projectName,
+            projectCode: p.projectCode,
+        })),
         settings: event.settings,
     };
 }
@@ -259,6 +271,62 @@ export async function removeEventRole(roleId: string): Promise<ActionState> {
     }
 }
 
+// Add a project to an event
+export async function addEventProject(
+    eventId: string,
+    projectName: string,
+    projectCode: string
+): Promise<ActionState> {
+    await requireSuperAdmin();
+
+    try {
+        await connectToDatabase();
+
+        const event = await Event.findById(eventId);
+        if (!event) return { success: false, message: "Event not found" };
+
+        // Check for duplicate project code
+        const existing = event.projects?.find(
+            (p: { projectCode: string }) => p.projectCode.toLowerCase() === projectCode.toLowerCase()
+        );
+        if (existing) {
+            return { success: false, message: `Project code "${projectCode}" already exists` };
+        }
+
+        await Event.findByIdAndUpdate(eventId, {
+            $push: { projects: { projectName: projectName.trim(), projectCode: projectCode.trim() } },
+        });
+
+        revalidatePath(`/admin/events/${eventId}`);
+        return { success: true, message: `Project "${projectCode} - ${projectName}" added` };
+    } catch (error) {
+        console.error("Error adding project:", error);
+        return { success: false, message: "Failed to add project" };
+    }
+}
+
+// Remove a project from an event
+export async function removeEventProject(
+    eventId: string,
+    projectCode: string
+): Promise<ActionState> {
+    await requireSuperAdmin();
+
+    try {
+        await connectToDatabase();
+
+        await Event.findByIdAndUpdate(eventId, {
+            $pull: { projects: { projectCode } },
+        });
+
+        revalidatePath(`/admin/events/${eventId}`);
+        return { success: true, message: `Project "${projectCode}" removed` };
+    } catch (error) {
+        console.error("Error removing project:", error);
+        return { success: false, message: "Failed to remove project" };
+    }
+}
+
 // Duplicate event (copy structure, not data)
 export async function duplicateEvent(
     sourceEventId: string,
@@ -285,6 +353,7 @@ export async function duplicateEvent(
             description: sourceEvent.description,
             venue: sourceEvent.venue,
             status: "draft",
+            projects: sourceEvent.projects || [],
             settings: sourceEvent.settings,
         });
 

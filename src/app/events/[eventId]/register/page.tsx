@@ -80,6 +80,7 @@ export default async function RegisterPage({ params }: Props) {
                     eventId={params.eventId}
                     eventName={event.name}
                     maxTeamSize={event.settings.maxTeamSize}
+                    projects={event.projects || []}
                 />
             </div>
         </div>

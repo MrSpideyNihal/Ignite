@@ -64,3 +64,5 @@
 63,Team Management,Change Team Status,Reset approved/rejected teams back to pending or re-approve rejected teams,Working
 64,Team Management,Guide/Mentor Food Coupons,Auto-generate food coupons for guide/mentor when team is approved (if guide added),Working
 65,Jury & Evaluation,Multi-Team Jury Assignment,Single jury member can be assigned multiple teams with duplicate-safe assignment,Working
+66,Super Admin Panel,Predefined Projects,Admin can add project names and codes to an event so teams select from a dropdown during registration,Working
+67,Team Management,Project Selection on Registration,Teams select their project from a predefined list or type manually if no projects are configured,Working

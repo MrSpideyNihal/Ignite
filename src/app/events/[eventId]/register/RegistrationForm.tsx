@@ -10,6 +10,7 @@ interface Props {
     eventId: string;
     eventName: string;
     maxTeamSize: number;
+    projects?: { projectName: string; projectCode: string }[];
 }
 
 const prefixOptions = [
@@ -43,10 +44,11 @@ const emptyMember = (): Member => ({
     email: "",
 });
 
-export default function RegistrationForm({ eventId, eventName, maxTeamSize }: Props) {
+export default function RegistrationForm({ eventId, eventName, maxTeamSize, projects = [] }: Props) {
     const [isPending, startTransition] = useTransition();
     const [result, setResult] = useState<{ success: boolean; message: string; teamCode?: string } | null>(null);
 
+    const [selectedProject, setSelectedProject] = useState("");
     const [projectName, setProjectName] = useState("");
     const [projectCode, setProjectCode] = useState("");
     const [teamLead, setTeamLead] = useState({ name: "", email: "", phone: "" });
@@ -140,22 +142,63 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize }: Pr
             <Card>
                 <CardHeader title="Project Information" />
                 <CardContent className="space-y-4">
-                    <FormGroup label="Project Name" required>
-                        <Input
-                            value={projectName}
-                            onChange={(e) => setProjectName(e.target.value)}
-                            placeholder="Enter project name"
-                            required
-                        />
-                    </FormGroup>
-                    <FormGroup label="Project Code" required>
-                        <Input
-                            value={projectCode}
-                            onChange={(e) => setProjectCode(e.target.value)}
-                            placeholder="e.g., AI-01, IOT-05"
-                            required
-                        />
-                    </FormGroup>
+                    {projects.length > 0 ? (
+                        <>
+                            <FormGroup label="Select Project" required>
+                                <select
+                                    value={selectedProject}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSelectedProject(val);
+                                        if (val) {
+                                            const proj = projects.find(p => p.projectCode === val);
+                                            if (proj) {
+                                                setProjectName(proj.projectName);
+                                                setProjectCode(proj.projectCode);
+                                            }
+                                        } else {
+                                            setProjectName("");
+                                            setProjectCode("");
+                                        }
+                                    }}
+                                    className="input w-full"
+                                    required
+                                >
+                                    <option value="">-- Select a project --</option>
+                                    {projects.map((p) => (
+                                        <option key={p.projectCode} value={p.projectCode}>
+                                            {p.projectCode} — {p.projectName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </FormGroup>
+                            {selectedProject && (
+                                <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                                    <p className="text-sm"><strong>Project Code:</strong> {projectCode}</p>
+                                    <p className="text-sm"><strong>Project Name:</strong> {projectName}</p>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <FormGroup label="Project Name" required>
+                                <Input
+                                    value={projectName}
+                                    onChange={(e) => setProjectName(e.target.value)}
+                                    placeholder="Enter project name"
+                                    required
+                                />
+                            </FormGroup>
+                            <FormGroup label="Project Code" required>
+                                <Input
+                                    value={projectCode}
+                                    onChange={(e) => setProjectCode(e.target.value)}
+                                    placeholder="e.g., AI-01, IOT-05"
+                                    required
+                                />
+                            </FormGroup>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 

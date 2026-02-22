@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateEventStatus, updateEventSettings, addEventRole, removeEventRole, deleteEvent } from "@/app/actions/event";
+import { updateEventStatus, updateEventSettings, addEventRole, removeEventRole, deleteEvent, addEventProject, removeEventProject } from "@/app/actions/event";
 import { Input, Select, Button } from "@/components/forms";
 import { Badge } from "@/components/ui";
 import toast from "react-hot-toast";
@@ -19,6 +19,7 @@ interface EventInfo {
     _id: string;
     name: string;
     status: string;
+    projects?: { projectName: string; projectCode: string }[];
     settings: {
         registrationOpen: boolean;
         evaluationOpen: boolean;
@@ -55,6 +56,8 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
     const [newEmail, setNewEmail] = useState("");
     const [newRole, setNewRole] = useState<EventRoleType>("jury_member");
     const [mealSlots, setMealSlots] = useState<string[]>(event.settings.mealSlots ?? ["lunch", "tea"]);
+    const [newProjectName, setNewProjectName] = useState("");
+    const [newProjectCode, setNewProjectCode] = useState("");
 
     const handleStatusChange = async (status: "draft" | "active" | "archived") => {
         startTransition(async () => {
@@ -89,6 +92,37 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
             const result = await updateEventSettings(event._id, { allowJuryEdit: value });
             if (result.success) toast.success(value ? "Jury can now edit submitted scores" : "Jury edit locked");
             else toast.error(result.message);
+        });
+    };
+
+    const handleAddProject = async () => {
+        if (!newProjectName.trim() || !newProjectCode.trim()) {
+            toast.error("Both project name and code are required");
+            return;
+        }
+        startTransition(async () => {
+            const result = await addEventProject(event._id, newProjectName.trim(), newProjectCode.trim());
+            if (result.success) {
+                toast.success(result.message);
+                setNewProjectName("");
+                setNewProjectCode("");
+                router.refresh();
+            } else {
+                toast.error(result.message);
+            }
+        });
+    };
+
+    const handleRemoveProject = async (projectCode: string) => {
+        if (!confirm(`Remove project "${projectCode}"?`)) return;
+        startTransition(async () => {
+            const result = await removeEventProject(event._id, projectCode);
+            if (result.success) {
+                toast.success(result.message);
+                router.refresh();
+            } else {
+                toast.error(result.message);
+            }
         });
     };
 
@@ -245,6 +279,68 @@ export default function EventManageClient({ event, roles = [], showRoles }: Prop
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
                     Coupons will be generated for each selected meal per team member.
+                </p>
+            </div>
+
+            {/* Projects */}
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    📝 Projects / Topics
+                    <span className="text-xs text-gray-400 ml-2 font-normal">Teams will select from this list during registration</span>
+                </label>
+
+                {/* Add Project Form */}
+                <div className="flex gap-2 mb-3">
+                    <Input
+                        value={newProjectCode}
+                        onChange={(e) => setNewProjectCode(e.target.value)}
+                        placeholder="Project Code (e.g., AI-01)"
+                        className="w-36"
+                    />
+                    <Input
+                        value={newProjectName}
+                        onChange={(e) => setNewProjectName(e.target.value)}
+                        placeholder="Project Name"
+                        className="flex-1"
+                    />
+                    <Button onClick={handleAddProject} loading={isPending} size="sm">
+                        + Add
+                    </Button>
+                </div>
+
+                {/* Projects List */}
+                {(event.projects && event.projects.length > 0) ? (
+                    <div className="space-y-1 max-h-60 overflow-y-auto">
+                        {event.projects.map((project) => (
+                            <div
+                                key={project.projectCode}
+                                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-mono bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-2 py-0.5 rounded">
+                                        {project.projectCode}
+                                    </span>
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                        {project.projectName}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => handleRemoveProject(project.projectCode)}
+                                    className="text-red-500 hover:text-red-700 text-sm px-1"
+                                    disabled={isPending}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-xs text-gray-400 italic">
+                        No projects added. Teams will type project name/code manually during registration.
+                    </p>
+                )}
+                <p className="text-xs text-gray-400 mt-2">
+                    {event.projects?.length || 0} project(s). If empty, teams enter project details manually.
                 </p>
             </div>
 

@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IEventProject {
+    projectName: string;
+    projectCode: string;
+}
+
 export interface IEvent extends Document {
     _id: mongoose.Types.ObjectId;
     name: string;
@@ -8,6 +13,7 @@ export interface IEvent extends Document {
     description?: string;
     venue?: string;
     status: "draft" | "active" | "archived";
+    projects: IEventProject[]; // predefined projects that teams can select
     settings: {
         registrationOpen: boolean;
         evaluationOpen: boolean;
@@ -30,6 +36,13 @@ const EventSchema = new Schema<IEvent>(
             type: String,
             enum: ["draft", "active", "archived"],
             default: "draft",
+        },
+        projects: {
+            type: [{
+                projectName: { type: String, required: true },
+                projectCode: { type: String, required: true },
+            }],
+            default: [],
         },
         settings: {
             registrationOpen: { type: Boolean, default: false },
