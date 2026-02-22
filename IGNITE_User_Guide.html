@@ -354,6 +354,7 @@
 <li>Your <strong>name and profile photo</strong> now appear in the top-right corner</li>
 <li>A <strong>"Dashboard"</strong> link appears in the navbar — click it to go to your dashboard</li>
 </ol>
+<p><strong>Smart Dashboard:</strong> When you click "Dashboard", the system automatically detects your role and redirects you to the right page. For example, Registration Committee members go directly to the Teams page; Jury Members go to the Evaluation page; Super Admins go to the Admin Dashboard.</p>
 <h3>How to Log Out</h3>
 <ol>
 <li>Click the <strong>gray "Logout" button</strong> in the top-right corner (next to your profile photo)</li>
@@ -463,6 +464,48 @@
 <li>Toggle <strong>"Evaluation Open"</strong> to <strong>ON</strong> when you want jury members to start evaluating</li>
 <li>Toggle it <strong>OFF</strong> when evaluation period is over</li>
 </ul>
+<h3>Allow Jury to Edit Submitted Scores</h3>
+<p>Below the Evaluation toggle, there's another toggle switch:</p>
+<ul>
+<li><strong>"Allow Jury to Edit Submitted Scores"</strong> — Slide right to turn ON (turns blue)</li>
+<li>When <strong>ON</strong>: Jury members can go back and change scores even after submitting. ✅ <em>"Jury can now edit submitted scores"</em></li>
+<li>When <strong>OFF</strong>: Submitted evaluations are locked (default behavior). ✅ <em>"Jury edit locked"</em></li>
+</ul>
+<p><strong>Tip:</strong> Keep this OFF by default. Turn it ON only if a jury member needs to fix a mistake.</p>
+<h3>Configure Meal Slots</h3>
+<p>Below the toggles, you see a section titled <strong>"🍽️ Food / Meal Slots"</strong>:</p>
+<ul>
+<li>A checkbox grid with <strong>4 meal options</strong>:</li>
+</ul>
+<table>
+<thead><tr>
+<th>Checkbox</th>
+<th>Meal Type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>🌅</td>
+<td><strong>Breakfast</strong></td>
+</tr>
+<tr>
+<td>🍱</td>
+<td><strong>Lunch</strong></td>
+</tr>
+<tr>
+<td>☕</td>
+<td><strong>Tea / Snacks</strong></td>
+</tr>
+<tr>
+<td>🍛</td>
+<td><strong>Dinner</strong></td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Check the meals</strong> your event will provide (default: Lunch + Tea)</li>
+<li>When a team is approved, <strong>food coupons are generated only for the selected meals</strong></li>
+<li>Helper text: <em>"Coupons will be generated for each selected meal per team member"</em></li>
+</ul>
+<p><strong>Example:</strong> If you only check Lunch and Tea, approved teams will receive 2 coupons per member (one for Lunch, one for Tea).</p>
 <h3>Add Predefined Projects</h3>
 <p>Admin can add a list of projects so teams select from a dropdown instead of typing manually:</p>
 <ol>
@@ -473,6 +516,65 @@
 <li>Projects appear as a scrollable list with delete (✕) buttons</li>
 </ol>
 <p><strong>Note:</strong> If no projects are added, teams will type project name and code manually during registration (old behavior). If projects are added, teams will see a dropdown to select their project.</p>
+<h3>Delete Event (Danger Zone)</h3>
+<p>At the very bottom of the Event Settings card, there is a red-bordered <strong>"Danger Zone"</strong> section:</p>
+<ol>
+<li>Click the red <strong>"🗑️ Delete Event"</strong> button</li>
+<li>A confirmation dialog appears showing the event name and warning that <strong>ALL related data</strong> will be deleted: teams, members, coupons, evaluations, jury assignments, and committee roles</li>
+<li>Click <strong>OK</strong> → A second confirmation asks if you're absolutely sure (irreversible action)</li>
+<li>Click <strong>OK</strong> again → ✅ Event is permanently deleted and you are redirected to the admin dashboard</li>
+</ol>
+<p>⚠️ <strong>This action cannot be undone.</strong> Export all data before deleting if you need records.</p>
+<h3>Manage Global Users</h3>
+<p>On the Super Admin Dashboard, click the <strong>"Manage Global Users"</strong> button (outlined, next to "+ Create New Event").</p>
+<p><strong>What you see on the Users page (<code class="inline">/admin/users</code>):</strong></p>
+<ul>
+<li>A <strong>search bar</strong> at the top — type an email or name to filter users in real time</li>
+<li>A <strong>"+ Add User"</strong> button to create new users manually</li>
+<li>A grid of <strong>user cards</strong>, each showing:</li>
+<li>Profile photo (or letter avatar), name, and email</li>
+<li><strong>Global role badge</strong>: "Super Admin" (red) or "User" (neutral)</li>
+<li><strong>Event role badges</strong>: Shows roles per event (e.g., "2026: Jury Admin", "2026: Food Committee")</li>
+<li>Joined date</li>
+</ul>
+<h4>Create a User Manually</h4>
+<ol>
+<li>Click <strong>"+ Add User"</strong></li>
+<li>A modal appears with three fields:</li>
+</ol>
+<table>
+<thead><tr>
+<th>Field</th>
+<th>What to Enter</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Email</strong></td>
+<td>The person's Google email (required)</td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>Full name (required)</td>
+</tr>
+<tr>
+<td><strong>Role</strong></td>
+<td>Select "Regular User" or "Super Admin" from dropdown</td>
+</tr>
+</tbody></table>
+<ol>
+<li>Click <strong>"Create User"</strong></li>
+<li>✅ The user is created — they can now be assigned committee roles without needing to sign in first</li>
+</ol>
+<h4>Promote or Demote a User</h4>
+<ul>
+<li><strong>Regular users</strong> show a <strong>"Make Admin"</strong> button → Click to promote to Super Admin (with confirmation)</li>
+<li><strong>Super Admins</strong> show a <strong>"Remove Admin"</strong> button → Click to demote back to regular user</li>
+</ul>
+<h4>Delete a User</h4>
+<ul>
+<li>Every user card has a red <strong>"Delete"</strong> button</li>
+<li>Click it → Confirm → The user and all their event roles are removed</li>
+</ul>
 <hr>
 <h2>4. Super Admin: Assigning Committee Members</h2>
 <h3>Where to Do This</h3>
@@ -836,12 +938,44 @@
 <p><strong>What you see:</strong></p>
 <ul>
 <li><strong>Page title:</strong> "Team Registration" with event name below</li>
+<li><strong>Filter tabs</strong> at the top — 4 buttons in a row:</li>
+</ul>
+<table>
+<thead><tr>
+<th>Tab</th>
+<th>Shows</th>
+<th>Note</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>All</strong></td>
+<td>Every registered team</td>
+<td>Default view</td>
+</tr>
+<tr>
+<td><strong>Pending</strong></td>
+<td>Awaiting approval</td>
+<td>Red badge shows count (e.g., "Pending 12")</td>
+</tr>
+<tr>
+<td><strong>Approved</strong></td>
+<td>Already approved teams</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Rejected</strong></td>
+<td>Rejected teams</td>
+<td></td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>"📥 Import from Excel"</strong> button (green) — Click to expand an inline Excel import section right on this page (same functionality as the Import page). Click again to collapse.</li>
 <li><strong>4 stat boxes</strong> in a row:</li>
 <li><strong>Total Teams</strong> — All registered teams</li>
 <li><strong>Pending</strong> — Waiting for your action (yellow border if > 0)</li>
 <li><strong>Approved</strong> — Already approved</li>
 <li><strong>Total Members</strong> — Total attending</li>
-<li><strong>Team list</strong> below</li>
+<li><strong>Team cards</strong> below (filtered by selected tab)</li>
 </ul>
 <h3>Step 2: Review Each Team</h3>
 <p>Each team in the list shows:</p>
@@ -873,7 +1007,7 @@
 <tr>
 <td><strong>Reject</strong></td>
 <td>Red</td>
-<td>Status → Rejected.</td>
+<td>A dialog opens where you can optionally type a rejection reason → Click "Confirm Reject" → Status → Rejected.</td>
 </tr>
 </tbody></table>
 <p>✅ Green notification confirms the action.</p>
@@ -1210,9 +1344,66 @@
 <h3>Step 1: Go to Event Dashboard</h3>
 <ol>
 <li>Log in → Click <strong>"Dashboard"</strong> → Go to <code class="inline">/{eventId}/dashboard</code></li>
-<li>Scroll down past the stat boxes and Quick Access cards</li>
-<li>Find the section titled <strong>"Export Data"</strong></li>
 </ol>
+<p><strong>What you see on the Event Dashboard:</strong></p>
+<ul>
+<li><strong>Header:</strong> Event name, date, and status badges ("Registration Open" / "Evaluation Open" if enabled)</li>
+<li><strong>Stats grid</strong> — 8 boxes in two rows:</li>
+<li>Row 1: <strong>Total Teams</strong>, <strong>Approved</strong>, <strong>Pending</strong>, <strong>Attending Members</strong></li>
+<li>Row 2: <strong>Veg</strong>, <strong>Non-Veg</strong>, <strong>Coupons Used</strong> (used/total), <strong>Evaluations Locked</strong> (locked/total)</li>
+<li><strong>Quick Access cards</strong> — 8 shortcut cards in a grid:</li>
+</ul>
+<table>
+<thead><tr>
+<th>Icon</th>
+<th>Label</th>
+<th>Goes To</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>👥</td>
+<td><strong>Teams</strong></td>
+<td>Team registrations list</td>
+</tr>
+<tr>
+<td>📥</td>
+<td><strong>Import Teams</strong></td>
+<td>Bulk import via Excel</td>
+</tr>
+<tr>
+<td>⚖️</td>
+<td><strong>Jury</strong></td>
+<td>Evaluation management</td>
+</tr>
+<tr>
+<td>🍽️</td>
+<td><strong>Food</strong></td>
+<td>Food preferences &amp; coupons</td>
+</tr>
+<tr>
+<td>📦</td>
+<td><strong>Logistics</strong></td>
+<td>QR scanning &amp; attendance</td>
+</tr>
+<tr>
+<td>🏨</td>
+<td><strong>Accommodation</strong></td>
+<td>Room assignments</td>
+</tr>
+<tr>
+<td>📢</td>
+<td><strong>Announcements</strong></td>
+<td>Event updates</td>
+</tr>
+<tr>
+<td>🚌</td>
+<td><strong>Commute</strong></td>
+<td>Bus schedules</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Export Data section</strong> at the bottom (see below)</li>
+</ul>
 <h3>Option 1: Export Everything (Recommended)</h3>
 <ol>
 <li>You see a <strong>large blue button</strong> at the top of the Export section:</li>
@@ -1550,6 +1741,12 @@
 <h3>📅 2–3 Weeks Before</h3>
 <ul class="checklist">
 <li class="checkbox ">☐ Super Admin: Create event → Set to Active → Open Registration</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Configure meal slots (Breakfast / Lunch / Tea / Dinner) in Event Settings</li>
+</ul>
+<ul class="checklist">
+<li class="checkbox ">☐ Super Admin: Add predefined projects/topics to the event (if applicable)</li>
 </ul>
 <ul class="checklist">
 <li class="checkbox ">☐ Super Admin: Add all committee members with their roles</li>
