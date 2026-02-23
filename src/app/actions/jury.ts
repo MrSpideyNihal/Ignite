@@ -13,32 +13,67 @@ import { requireEventRole, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { ActionState } from "@/types";
 
-// Drop any stale sole-field unique indexes on teamId / juryUserId.
-// Only the compound { juryUserId, teamId } should be unique.
-// Must be AWAITED before assignment operations.
-async function dropStaleJuryIndexes(): Promise<void> {
-    const collections = [
-        JuryAssignment.collection,
-        EvaluationSubmission.collection,
-    ];
-    for (const col of collections) {
+/**
+ * Core helper: assign ONE jury user to a list of teams.
+ * No auth check — callers must verify permissions.
+ * Returns { assigned, failed, lastError }.
+ */
+async function _assignJuryToTeamIds(
+    eventId: string,
+    juryUserId: string,
+    juryEmail: string,
+    juryName: string,
+    teamIds: string[]
+): Promise<{ assigned: number; failed: number; lastError: string }> {
+    let assigned = 0;
+    let failed = 0;
+    let lastError = "";
+
+    for (const teamId of teamIds) {
         try {
-            const indexes = await col.indexes();
-            for (const idx of indexes) {
-                const keys = Object.keys(idx.key);
-                if (
-                    idx.unique &&
-                    keys.length === 1 &&
-                    (keys[0] === "teamId" || keys[0] === "juryUserId")
-                ) {
-                    await col.dropIndex(idx.name!);
-                    console.log(`Dropped stale unique index ${idx.name} on ${col.collectionName}`);
-                }
+            const team = await Team.findById(teamId).lean();
+            if (!team) { failed++; lastError = `Team ${teamId} not found`; continue; }
+
+            // Check if assignment already exists (avoids any unique index issues)
+            const existingAssignment = await JuryAssignment.findOne({ juryUserId, teamId }).lean();
+            if (!existingAssignment) {
+                await JuryAssignment.create({
+                    eventId,
+                    juryUserId,
+                    juryEmail,
+                    juryName,
+                    teamId,
+                    teamCode: team.teamCode,
+                });
             }
-        } catch {
-            // collection may not exist yet — safe to ignore
+
+            const existingSubmission = await EvaluationSubmission.findOne({ juryUserId, teamId }).lean();
+            if (!existingSubmission) {
+                await EvaluationSubmission.create({
+                    eventId,
+                    teamId,
+                    teamCode: team.teamCode,
+                    projectName: team.projectName,
+                    juryUserId,
+                    juryName,
+                    juryEmail,
+                    status: "draft",
+                    ratings: [],
+                    totalScore: 0,
+                    maxPossibleScore: 0,
+                    weightedScore: 0,
+                });
+            }
+            assigned++;
+        } catch (err: unknown) {
+            failed++;
+            const msg = err instanceof Error ? err.message : String(err);
+            lastError = msg;
+            console.error(`Jury assign error [jury=${juryEmail}, team=${teamId}]: ${msg}`);
         }
     }
+
+    return { assigned, failed, lastError };
 }
 
 // Get evaluation questions for an event
@@ -181,69 +216,21 @@ export async function assignJuryToTeams(
 
     try {
         await connectToDatabase();
-        await dropStaleJuryIndexes();
 
         const user = await User.findById(juryUserId);
         if (!user) {
             return { success: false, message: "Jury member not found" };
         }
 
-        let assignedCount = 0;
-        let errors = 0;
-        for (const teamId of teamIds) {
-            try {
-                const team = await Team.findById(teamId);
-                if (!team) continue;
-
-                // Upsert assignment (prevents duplicate key errors)
-                await JuryAssignment.findOneAndUpdate(
-                    { juryUserId, teamId },
-                    {
-                        $setOnInsert: {
-                            eventId,
-                            juryUserId,
-                            juryEmail: user.email,
-                            juryName: user.name,
-                            teamId,
-                            teamCode: team.teamCode,
-                        },
-                    },
-                    { upsert: true, new: true }
-                );
-
-                // Upsert submission (prevents duplicate key errors)
-                await EvaluationSubmission.findOneAndUpdate(
-                    { juryUserId, teamId },
-                    {
-                        $setOnInsert: {
-                            eventId,
-                            teamId,
-                            teamCode: team.teamCode,
-                            projectName: team.projectName,
-                            juryUserId,
-                            juryName: user.name,
-                            juryEmail: user.email,
-                            status: "draft",
-                            ratings: [],
-                            totalScore: 0,
-                            maxPossibleScore: 0,
-                            weightedScore: 0,
-                        },
-                    },
-                    { upsert: true, new: true }
-                );
-                assignedCount++;
-            } catch (err) {
-                errors++;
-                console.error(`Error assigning team ${teamId} to jury ${juryUserId}:`, err);
-            }
-        }
+        const { assigned, failed, lastError } = await _assignJuryToTeamIds(
+            eventId, juryUserId, user.email, user.name, teamIds
+        );
 
         revalidatePath(`/${eventId}/jury`);
-        const msg = errors > 0
-            ? `Assigned ${assignedCount} teams (${errors} failed)`
-            : `Assigned ${assignedCount} teams`;
-        return { success: errors === 0, message: msg };
+        if (failed > 0) {
+            return { success: false, message: `Assigned ${assigned}, ${failed} failed: ${lastError}` };
+        }
+        return { success: true, message: `Assigned ${assigned} teams` };
     } catch (error) {
         console.error("Error assigning teams:", error);
         return { success: false, message: "Failed to assign teams" };
@@ -256,7 +243,6 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
 
     try {
         await connectToDatabase();
-        await dropStaleJuryIndexes();
 
         const juryRoles = await EventRole.find({ eventId, role: "jury_member" }).lean();
         if (!juryRoles.length) {
@@ -268,70 +254,42 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
             return { success: false, message: "No approved teams found for this event" };
         }
 
+        const allTeamIds = approvedTeams.map((t) => t._id.toString());
+
         let totalAssigned = 0;
-        let errors = 0;
+        let totalFailed = 0;
+        let lastError = "";
+        const skippedMembers: string[] = [];
 
         for (const role of juryRoles) {
-            const user = await User.findOne({ email: role.userEmail }).lean();
-            if (!user) continue;
-
-            for (const team of approvedTeams) {
-                try {
-                    // Upsert assignment (prevents duplicate key errors)
-                    await JuryAssignment.findOneAndUpdate(
-                        { juryUserId: user._id, teamId: team._id },
-                        {
-                            $setOnInsert: {
-                                eventId,
-                                juryUserId: user._id,
-                                juryEmail: user.email,
-                                juryName: user.name,
-                                teamId: team._id,
-                                teamCode: team.teamCode,
-                            },
-                        },
-                        { upsert: true, new: true }
-                    );
-
-                    // Upsert submission (prevents duplicate key errors)
-                    await EvaluationSubmission.findOneAndUpdate(
-                        { juryUserId: user._id, teamId: team._id },
-                        {
-                            $setOnInsert: {
-                                eventId,
-                                teamId: team._id,
-                                teamCode: team.teamCode,
-                                projectName: team.projectName,
-                                juryUserId: user._id,
-                                juryName: user.name,
-                                juryEmail: user.email,
-                                status: "draft",
-                                ratings: [],
-                                totalScore: 0,
-                                maxPossibleScore: 0,
-                                weightedScore: 0,
-                            },
-                        },
-                        { upsert: true, new: true }
-                    );
-
-                    totalAssigned++;
-                } catch (err) {
-                    errors++;
-                    console.error(`Error assigning team ${team.teamCode} to jury ${user.email}:`, err);
-                    // Continue with next team
-                }
+            // Use findById (same approach as single-assignment) instead of email lookup
+            const user = await User.findById(role.userId).lean();
+            if (!user) {
+                skippedMembers.push(role.userEmail);
+                continue;
             }
+
+            const { assigned, failed, lastError: err } = await _assignJuryToTeamIds(
+                eventId, user._id.toString(), user.email, user.name, allTeamIds
+            );
+            totalAssigned += assigned;
+            totalFailed += failed;
+            if (err) lastError = err;
         }
 
         revalidatePath(`/${eventId}/jury`);
-        const msg = errors > 0
-            ? `Assigned ${totalAssigned} team-jury pairs (${errors} failed — check for stale indexes)`
-            : `Successfully assigned ${juryRoles.length} judges × ${approvedTeams.length} teams (${totalAssigned} pairs)`;
-        return { success: true, message: msg };
+
+        const parts: string[] = [];
+        parts.push(`${totalAssigned} pairs assigned`);
+        if (totalFailed > 0) parts.push(`${totalFailed} failed`);
+        if (skippedMembers.length > 0) parts.push(`${skippedMembers.length} members skipped (user not found)`);
+        if (lastError) parts.push(`last error: ${lastError}`);
+
+        const msg = `${juryRoles.length} judges × ${approvedTeams.length} teams — ${parts.join(", ")}`;
+        return { success: totalFailed === 0, message: msg };
     } catch (error) {
         console.error("Error assigning all jury to all teams:", error);
-        return { success: false, message: "Failed to assign all jury to all teams" };
+        return { success: false, message: `Failed to assign all jury to all teams: ${error instanceof Error ? error.message : String(error)}` };
     }
 }
 
