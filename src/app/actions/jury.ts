@@ -13,6 +13,34 @@ import { requireEventRole, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { ActionState } from "@/types";
 
+// Drop any stale sole-field unique indexes on teamId / juryUserId.
+// Only the compound { juryUserId, teamId } should be unique.
+// Must be AWAITED before assignment operations.
+async function dropStaleJuryIndexes(): Promise<void> {
+    const collections = [
+        JuryAssignment.collection,
+        EvaluationSubmission.collection,
+    ];
+    for (const col of collections) {
+        try {
+            const indexes = await col.indexes();
+            for (const idx of indexes) {
+                const keys = Object.keys(idx.key);
+                if (
+                    idx.unique &&
+                    keys.length === 1 &&
+                    (keys[0] === "teamId" || keys[0] === "juryUserId")
+                ) {
+                    await col.dropIndex(idx.name!);
+                    console.log(`Dropped stale unique index ${idx.name} on ${col.collectionName}`);
+                }
+            }
+        } catch {
+            // collection may not exist yet — safe to ignore
+        }
+    }
+}
+
 // Get evaluation questions for an event
 export async function getEventQuestions(eventId: string) {
     await connectToDatabase();
@@ -153,6 +181,7 @@ export async function assignJuryToTeams(
 
     try {
         await connectToDatabase();
+        await dropStaleJuryIndexes();
 
         const user = await User.findById(juryUserId);
         if (!user) {
@@ -227,6 +256,7 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
 
     try {
         await connectToDatabase();
+        await dropStaleJuryIndexes();
 
         const juryRoles = await EventRole.find({ eventId, role: "jury_member" }).lean();
         if (!juryRoles.length) {
