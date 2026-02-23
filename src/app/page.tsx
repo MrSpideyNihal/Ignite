@@ -328,11 +328,10 @@ export default function HomePage() {
             <footer className="bg-gray-900 text-gray-400 py-12">
                 <div className="container-custom">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden">
-                                <img src="/logo.jpg" alt="IGNITE Logo" className="w-full h-full object-cover" />
+                        <div className="flex items-center">
+                            <div className="h-12 rounded-xl overflow-hidden">
+                                <img src="/logo.jpg" alt="IGNITE Logo" className="h-full w-auto object-contain" />
                             </div>
-                            <span className="text-xl font-bold text-white">IGNITE 2026</span>
                         </div>
                         <div className="flex items-center gap-6 text-sm">
                             <Link

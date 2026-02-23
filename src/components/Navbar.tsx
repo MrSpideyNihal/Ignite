@@ -14,13 +14,10 @@ export function Navbar() {
             <div className="container-custom">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow">
-                            <img src="/logo.jpg" alt="IGNITE Logo" className="w-full h-full object-cover" />
+                    <Link href="/" className="flex items-center group">
+                        <div className="h-12 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow">
+                            <img src="/logo.jpg" alt="IGNITE Logo" className="h-full w-auto object-contain" />
                         </div>
-                        <span className="text-xl font-bold gradient-text hidden sm:block">
-                            IGNITE 2026
-                        </span>
                     </Link>
 
                     {/* Desktop Navigation */}
