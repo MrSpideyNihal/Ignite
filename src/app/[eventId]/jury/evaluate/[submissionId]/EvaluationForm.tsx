@@ -71,11 +71,12 @@ export default function EvaluationForm({
         });
     };
 
-    const hasAnyScore = ratings.some((r) => r.score > 0);
+    const allScored = ratings.length > 0 && ratings.every((r) => r.score > 0);
+    const unscoredCount = ratings.filter((r) => r.score === 0).length;
 
     const handleSubmit = async () => {
-        if (!hasAnyScore) {
-            toast.error("Please add a score for at least one question before submitting.");
+        if (!allScored) {
+            toast.error(`Please score all questions before submitting. ${unscoredCount} question(s) still have a score of 0.`);
             return;
         }
         if (!confirm("Submit this evaluation? You won't be able to edit after submission.")) return;
@@ -191,8 +192,8 @@ export default function EvaluationForm({
                             onClick={handleSubmit}
                             loading={isPending}
                             className="flex-1"
-                            disabled={!hasAnyScore}
-                            title={!hasAnyScore ? "Score at least one question to submit" : ""}
+                            disabled={!allScored}
+                            title={!allScored ? `Score all questions to submit (${unscoredCount} remaining)` : ""}
                         >
                             ✓ Submit Evaluation
                         </Button>
