@@ -1013,6 +1013,8 @@ export default function TeamsClient({ eventId, teams, maxTeamSize, projects }: P
                 isOpen={showAddTeam}
                 onClose={() => setShowAddTeam(false)}
                 title="Add Team Manually"
+                size="4xl"
+                resizable
             >
                 <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
                     <p className="text-xs text-gray-500">Register a team without requiring Google sign-in. Same as the public registration form.</p>

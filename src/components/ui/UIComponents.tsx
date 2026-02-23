@@ -265,10 +265,11 @@ interface ModalProps {
     onClose: () => void;
     title: string;
     children: React.ReactNode;
-    size?: "sm" | "md" | "lg" | "xl";
+    size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+    resizable?: boolean;
 }
 
-export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, size = "md", resizable = false }: ModalProps) {
     if (!isOpen) return null;
 
     const sizes = {
@@ -276,6 +277,10 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
         md: "max-w-md",
         lg: "max-w-lg",
         xl: "max-w-xl",
+        "2xl": "max-w-2xl",
+        "3xl": "max-w-3xl",
+        "4xl": "max-w-4xl",
+        "5xl": "max-w-5xl",
     };
 
     return (
@@ -285,6 +290,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
                 onClick={onClose}
             />
             <div
+                style={resizable ? { resize: "both", overflow: "auto", minWidth: 340, minHeight: 300 } : undefined}
                 className={cn(
                     "relative w-full mx-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl animate-slide-up",
                     sizes[size]
