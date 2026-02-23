@@ -71,7 +71,13 @@ export default function EvaluationForm({
         });
     };
 
+    const hasAnyScore = ratings.some((r) => r.score > 0);
+
     const handleSubmit = async () => {
+        if (!hasAnyScore) {
+            toast.error("Please add a score for at least one question before submitting.");
+            return;
+        }
         if (!confirm("Submit this evaluation? You won't be able to edit after submission.")) return;
 
         startTransition(async () => {
@@ -181,7 +187,13 @@ export default function EvaluationForm({
                         <Button onClick={handleSave} loading={isPending} variant="outline" className="flex-1">
                             💾 Save Draft
                         </Button>
-                        <Button onClick={handleSubmit} loading={isPending} className="flex-1">
+                        <Button
+                            onClick={handleSubmit}
+                            loading={isPending}
+                            className="flex-1"
+                            disabled={!hasAnyScore}
+                            title={!hasAnyScore ? "Score at least one question to submit" : ""}
+                        >
                             ✓ Submit Evaluation
                         </Button>
                     </div>

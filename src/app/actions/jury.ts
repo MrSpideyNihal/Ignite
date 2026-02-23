@@ -434,6 +434,11 @@ export async function submitEvaluation(
             return { success: false, message: "Please score all questions first" };
         }
 
+        const hasAnyScore = submission.ratings.some((r: { score: number }) => r.score > 0);
+        if (!hasAnyScore) {
+            return { success: false, message: "Please add a score for at least one question before submitting" };
+        }
+
         await EvaluationSubmission.findByIdAndUpdate(submissionId, {
             status: "submitted",
             submittedAt: new Date(),
