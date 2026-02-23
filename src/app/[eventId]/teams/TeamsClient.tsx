@@ -940,6 +940,8 @@ export default function TeamsClient({ eventId, teams, maxTeamSize, projects }: P
                 isOpen={!!detailModal}
                 onClose={() => setDetailModal(null)}
                 title={`${detailModal?.teamCode} — ${detailModal?.projectName}`}
+                size="4xl"
+                resizable
             >
                 {detailModal && (
                     <div className="space-y-4 max-h-[70vh] overflow-y-auto">
