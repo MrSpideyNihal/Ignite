@@ -12,6 +12,41 @@ import {
 import { requireEventRole, getCurrentUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { ActionState } from "@/types";
+import mongoose from "mongoose";
+
+/* ── one-shot stale-index cleanup (per cold-start) ── */
+let _indexesCleanedUp = false;
+
+async function _dropStaleIndexesOnce() {
+    if (_indexesCleanedUp) return;
+    _indexesCleanedUp = true;
+
+    // Known stale index names from previous schema versions
+    const staleIndexes: { collection: string; indexName: string }[] = [
+        { collection: "evaluationsubmissions", indexName: "teamId_1_juryMemberId_1" },
+        { collection: "juryassignments", indexName: "teamId_1_juryMemberId_1" },
+        // Also try singular names in case Mongoose used different collection naming
+        { collection: "evaluationsubmissions", indexName: "juryMemberId_1_teamId_1" },
+        { collection: "juryassignments", indexName: "juryMemberId_1_teamId_1" },
+        // Single-field stale indexes
+        { collection: "juryassignments", indexName: "teamId_1" },
+        { collection: "juryassignments", indexName: "juryUserId_1" },
+        { collection: "evaluationsubmissions", indexName: "teamId_1" },
+        { collection: "evaluationsubmissions", indexName: "juryUserId_1" },
+    ];
+
+    const db = mongoose.connection.db;
+    if (!db) return;
+
+    for (const { collection, indexName } of staleIndexes) {
+        try {
+            await db.collection(collection).dropIndex(indexName);
+            console.log(`Dropped stale index ${indexName} from ${collection}`);
+        } catch {
+            // Index doesn't exist — fine
+        }
+    }
+}
 
 /**
  * Core helper: assign ONE jury user to a list of teams.
@@ -25,6 +60,8 @@ async function _assignJuryToTeamIds(
     juryName: string,
     teamIds: string[]
 ): Promise<{ assigned: number; failed: number; lastError: string }> {
+    await _dropStaleIndexesOnce();
+
     let assigned = 0;
     let failed = 0;
     let lastError = "";
