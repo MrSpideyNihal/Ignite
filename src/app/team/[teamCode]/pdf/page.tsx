@@ -223,6 +223,110 @@ export default async function CouponPDFPage({ params }: Props) {
                         </div>
                     );
                 })}
+
+                {/* Guide / Mentor coupons */}
+                {(team as any).guide?.name && (() => {
+                    const guideCoupons = memberCouponMap[team._id.toString()] ?? {};
+                    const hasAnyCoupon = mealSlots.some((s) => guideCoupons[s]);
+                    if (!hasAnyCoupon) return null;
+                    return (
+                        <div style={{ padding: "16px" }}>
+                            <div
+                                style={{
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    color: "#1a1a2e",
+                                    padding: "8px 12px",
+                                    background: "#fef3c7",
+                                    borderRadius: "8px",
+                                    marginBottom: "12px",
+                                }}
+                            >
+                                🎓 {(team as any).guide.name} (Guide / Mentor)
+                            </div>
+                            <div
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                                    gap: "12px",
+                                    marginBottom: "20px",
+                                }}
+                            >
+                                {mealSlots.map((slot) => {
+                                    const c = guideCoupons[slot];
+                                    if (!c) {
+                                        return (
+                                            <div
+                                                key={slot}
+                                                style={{
+                                                    background: "#f9fafb",
+                                                    border: "2px dashed #d1d5db",
+                                                    borderRadius: "12px",
+                                                    padding: "16px",
+                                                    textAlign: "center",
+                                                    color: "#9ca3af",
+                                                    fontSize: "13px",
+                                                }}
+                                            >
+                                                {mealEmojis[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}
+                                                <br />
+                                                <span>No coupon</span>
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div
+                                            key={slot}
+                                            className="coupon-card-border"
+                                            style={{
+                                                background: "white",
+                                                border: "2px dashed #6366f1",
+                                                borderRadius: "12px",
+                                                padding: "16px",
+                                                textAlign: "center",
+                                                pageBreakInside: "avoid",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    fontSize: "14px",
+                                                    fontWeight: "bold",
+                                                    color: "#4338ca",
+                                                    textTransform: "uppercase",
+                                                    letterSpacing: "1px",
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
+                                                {mealEmojis[slot] ?? "🍽️"} {slot.charAt(0).toUpperCase() + slot.slice(1)}
+                                            </div>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={c.qrUrl}
+                                                alt={`QR for ${c.code}`}
+                                                style={{ width: 140, height: 140, display: "block", margin: "0 auto 8px" }}
+                                            />
+                                            <div
+                                                style={{
+                                                    fontFamily: "monospace",
+                                                    fontSize: "13px",
+                                                    color: "#374151",
+                                                    background: "#f3f4f6",
+                                                    padding: "4px 8px",
+                                                    borderRadius: "4px",
+                                                }}
+                                            >
+                                                {c.code}
+                                            </div>
+                                            <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "6px" }}>
+                                                {(team as any).guide.name} (Guide)
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
         </>
     );

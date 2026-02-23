@@ -100,20 +100,34 @@ export async function importTeams(
                         : undefined,
                 });
 
-                // Create team members
-                const memberDocs = row.members.map((m) => ({
-                    teamId: team._id,
-                    eventId,
-                    prefix: m.prefix || "Mr",
-                    name: m.name,
-                    college: m.college || "N/A",
-                    branch: m.branch || "N/A",
-                    yearOfPassing: m.yearOfPassing || new Date().getFullYear(),
-                    phone: m.phone || "",
-                    email: m.email || "",
-                    foodPreference: m.foodPreference === "non-veg" ? "non-veg" : "veg",
-                    isAttending: true,
-                }));
+                // Create team members (team lead is auto-added as first member)
+                const memberDocs = [
+                    {
+                        teamId: team._id,
+                        eventId,
+                        prefix: "Mr" as const,
+                        name: row.teamLeadName,
+                        college: "N/A",
+                        branch: "N/A",
+                        yearOfPassing: new Date().getFullYear(),
+                        phone: row.teamLeadPhone || "",
+                        email: row.teamLeadEmail?.toLowerCase() || "",
+                        isAttending: true,
+                    },
+                    ...row.members.map((m) => ({
+                        teamId: team._id,
+                        eventId,
+                        prefix: m.prefix || "Mr",
+                        name: m.name,
+                        college: m.college || "N/A",
+                        branch: m.branch || "N/A",
+                        yearOfPassing: m.yearOfPassing || new Date().getFullYear(),
+                        phone: m.phone || "",
+                        email: m.email || "",
+                        foodPreference: m.foodPreference === "non-veg" ? "non-veg" : "veg",
+                        isAttending: true,
+                    })),
+                ];
 
                 await TeamMember.insertMany(memberDocs);
                 imported++;
