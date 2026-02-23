@@ -2,10 +2,10 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { approveTeam, rejectTeam, deleteTeam, resetTeamStatus } from "@/app/actions/team";
+import { approveTeam, rejectTeam, deleteTeam, resetTeamStatus, getTeamById, adminRegisterTeam } from "@/app/actions/team";
 import { importTeams, ImportRow } from "@/app/actions/import";
 import { Card, CardContent, CardHeader, Badge, Modal, Alert } from "@/components/ui";
-import { Button, Textarea } from "@/components/forms";
+import { Button, Input, Select, Textarea, FormGroup } from "@/components/forms";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 
@@ -256,9 +256,57 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
     const [filter, setFilter] = useState<string>("all");
+    const [searchQuery, setSearchQuery] = useState("");
     const [rejectModal, setRejectModal] = useState<{ teamId: string; teamCode: string } | null>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [deleteModal, setDeleteModal] = useState<{ teamId: string; teamCode: string } | null>(null);
+
+    // Team detail modal
+    const [detailModal, setDetailModal] = useState<{
+        _id: string;
+        teamCode: string;
+        projectName: string;
+        projectCode: string;
+        status: string;
+        teamLead: { name: string; phone: string; email?: string };
+        guide?: { name?: string; phone?: string; email?: string };
+        members: Array<{
+            _id: string;
+            prefix: string;
+            name: string;
+            college: string;
+            branch: string;
+            yearOfPassing: number;
+            phone?: string;
+            email?: string;
+            foodPreference?: string;
+        }>;
+        registrationDate?: string;
+        registeredByEmail?: string;
+    } | null>(null);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+
+    // Add team modal
+    const [showAddTeam, setShowAddTeam] = useState(false);
+    const [addTeamData, setAddTeamData] = useState({
+        projectName: "",
+        projectCode: "",
+        teamLead: { name: "", email: "", phone: "" },
+        guide: { name: "", email: "", phone: "" },
+    });
+    const [addTeamMembers, setAddTeamMembers] = useState<Array<{
+        id: string;
+        prefix: "Mr" | "Ms" | "Dr" | "NA";
+        name: string;
+        college: string;
+        branch: string;
+        yearOfPassing: number;
+        phone: string;
+        email: string;
+    }>>([{
+        id: "m1", prefix: "Mr", name: "", college: "", branch: "",
+        yearOfPassing: new Date().getFullYear(), phone: "", email: "",
+    }]);
 
     // Import state
     const [showImport, setShowImport] = useState(false);
@@ -273,8 +321,71 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
         errors?: string[];
     } | null>(null);
 
-    const filteredTeams =
-        filter === "all" ? teams : teams.filter((t) => t.status === filter);
+    const filteredTeams = (() => {
+        let list = filter === "all" ? teams : teams.filter((t) => t.status === filter);
+        if (searchQuery.trim()) {
+            const q = searchQuery.trim().toLowerCase();
+            list = list.filter(
+                (t) =>
+                    t.teamCode.toLowerCase().includes(q) ||
+                    t.projectName.toLowerCase().includes(q) ||
+                    t.projectCode.toLowerCase().includes(q) ||
+                    t.teamLead.name.toLowerCase().includes(q) ||
+                    t.teamLead.phone.includes(q)
+            );
+        }
+        return list;
+    })();
+
+    const handleViewDetail = async (teamId: string) => {
+        setLoadingDetail(true);
+        try {
+            const detail = await getTeamById(eventId, teamId);
+            if (detail) setDetailModal(detail);
+            else toast.error("Team not found");
+        } catch {
+            toast.error("Failed to load team details");
+        } finally {
+            setLoadingDetail(false);
+        }
+    };
+
+    const handleAddTeamSubmit = async () => {
+        if (!addTeamData.projectName || !addTeamData.projectCode) {
+            toast.error("Project name and code are required"); return;
+        }
+        if (!addTeamData.teamLead.name || !addTeamData.teamLead.phone) {
+            toast.error("Team lead name and phone are required"); return;
+        }
+        if (addTeamMembers.some((m) => !m.name || !m.college || !m.branch)) {
+            toast.error("All member fields (name, college, branch) are required"); return;
+        }
+        startTransition(async () => {
+            const res = await adminRegisterTeam(eventId, {
+                projectName: addTeamData.projectName,
+                projectCode: addTeamData.projectCode,
+                teamLead: addTeamData.teamLead,
+                guide: addTeamData.guide.name ? addTeamData.guide : undefined,
+                members: addTeamMembers.map(({ id, ...m }) => m),
+            });
+            if (res.success) {
+                toast.success(res.message);
+                setShowAddTeam(false);
+                setAddTeamData({ projectName: "", projectCode: "", teamLead: { name: "", email: "", phone: "" }, guide: { name: "", email: "", phone: "" } });
+                setAddTeamMembers([{ id: "m1", prefix: "Mr", name: "", college: "", branch: "", yearOfPassing: new Date().getFullYear(), phone: "", email: "" }]);
+                router.refresh();
+            } else {
+                toast.error(res.message);
+            }
+        });
+    };
+
+    const prefixOptions = [
+        { value: "Mr", label: "Mr" },
+        { value: "Ms", label: "Ms" },
+        { value: "Dr", label: "Dr" },
+        { value: "NA", label: "N/A" },
+    ];
 
     const handleApprove = async (teamId: string) => {
         startTransition(async () => {
@@ -408,10 +519,21 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
 
     return (
         <>
+            {/* Search Bar */}
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search by team code, project, team lead name or phone..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="input w-full"
+                />
+            </div>
+
             {/* Top Actions Bar */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
                 {/* Filters */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     {["all", "pending", "approved", "rejected"].map((status) => (
                         <button
                             key={status}
@@ -431,16 +553,24 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                     ))}
                 </div>
 
-                {/* Import Button */}
-                <button
-                    onClick={() => setShowImport(!showImport)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${showImport
-                        ? "bg-primary-500 text-white shadow-lg"
-                        : "bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/40"
-                        }`}
-                >
-                    📥 {showImport ? "Hide Import" : "Import from Excel"}
-                </button>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowAddTeam(true)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/40"
+                    >
+                        ➕ Add Team
+                    </button>
+                    <button
+                        onClick={() => setShowImport(!showImport)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${showImport
+                            ? "bg-primary-500 text-white shadow-lg"
+                            : "bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/40"
+                            }`}
+                    >
+                        📥 {showImport ? "Hide Import" : "Import from Excel"}
+                    </button>
+                </div>
             </div>
 
             {/* Excel Import Section (Collapsible) */}
@@ -624,28 +754,33 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
             {/* Teams Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredTeams.map((team) => (
-                    <Card key={team._id}>
+                    <Card key={team._id} className="cursor-pointer hover:shadow-lg transition-shadow">
                         <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                                <div>
-                                    <p className="font-bold text-gray-900 dark:text-gray-100">
-                                        {team.teamCode}
-                                    </p>
-                                    <p className="text-sm text-gray-500">{team.projectCode}</p>
+                            <div
+                                onClick={() => handleViewDetail(team._id)}
+                                className="mb-3"
+                            >
+                                <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                        <p className="font-bold text-gray-900 dark:text-gray-100">
+                                            {team.teamCode}
+                                        </p>
+                                        <p className="text-sm text-gray-500">{team.projectCode}</p>
+                                    </div>
+                                    <Badge variant={statusColors[team.status as keyof typeof statusColors] as "warning" | "success" | "danger"}>
+                                        {team.status}
+                                    </Badge>
                                 </div>
-                                <Badge variant={statusColors[team.status as keyof typeof statusColors] as "warning" | "success" | "danger"}>
-                                    {team.status}
-                                </Badge>
-                            </div>
 
-                            <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2 line-clamp-1">
-                                {team.projectName}
-                            </h3>
+                                <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2 line-clamp-1">
+                                    {team.projectName}
+                                </h3>
 
-                            <div className="text-sm text-gray-500 space-y-1 mb-4">
-                                <p>👤 {team.teamLead.name}</p>
-                                <p>📱 {team.teamLead.phone}</p>
-                                <p>👥 {team.memberCount} members</p>
+                                <div className="text-sm text-gray-500 space-y-1">
+                                    <p>👤 {team.teamLead.name}</p>
+                                    <p>📱 {team.teamLead.phone}</p>
+                                    <p>👥 {team.memberCount} members</p>
+                                </div>
                             </div>
 
                             {team.status === "pending" && (
@@ -721,7 +856,13 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
 
             {filteredTeams.length === 0 && (
                 <p className="text-center text-gray-500 py-12">
-                    No teams found for this filter.
+                    {searchQuery ? "No teams match your search." : "No teams found for this filter."}
+                </p>
+            )}
+
+            {searchQuery && filteredTeams.length > 0 && (
+                <p className="text-sm text-gray-400 mt-2 text-center">
+                    Showing {filteredTeams.length} of {teams.length} teams
                 </p>
             )}
 
@@ -764,6 +905,271 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                             🗑️ Delete Permanently
                         </Button>
                         <Button onClick={() => setDeleteModal(null)} variant="outline">
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Team Detail Modal */}
+            <Modal
+                isOpen={!!detailModal}
+                onClose={() => setDetailModal(null)}
+                title={`${detailModal?.teamCode} — ${detailModal?.projectName}`}
+            >
+                {detailModal && (
+                    <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <span className="text-gray-500">Project Code:</span>
+                                <p className="font-medium">{detailModal.projectCode}</p>
+                            </div>
+                            <div>
+                                <span className="text-gray-500">Status:</span>
+                                <p><Badge variant={statusColors[detailModal.status as keyof typeof statusColors] as "warning" | "success" | "danger"}>{detailModal.status}</Badge></p>
+                            </div>
+                            <div>
+                                <span className="text-gray-500">Team Lead:</span>
+                                <p className="font-medium">{detailModal.teamLead.name}</p>
+                                <p className="text-xs text-gray-400">{detailModal.teamLead.phone}</p>
+                                {detailModal.teamLead.email && <p className="text-xs text-gray-400">{detailModal.teamLead.email}</p>}
+                            </div>
+                            {detailModal.guide?.name && (
+                                <div>
+                                    <span className="text-gray-500">Guide:</span>
+                                    <p className="font-medium">{detailModal.guide.name}</p>
+                                    {detailModal.guide.phone && <p className="text-xs text-gray-400">{detailModal.guide.phone}</p>}
+                                </div>
+                            )}
+                            {detailModal.registrationDate && (
+                                <div>
+                                    <span className="text-gray-500">Registered:</span>
+                                    <p className="text-xs">{new Date(detailModal.registrationDate).toLocaleDateString()}</p>
+                                </div>
+                            )}
+                            {detailModal.registeredByEmail && (
+                                <div>
+                                    <span className="text-gray-500">Registered By:</span>
+                                    <p className="text-xs">{detailModal.registeredByEmail}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <hr className="border-gray-200 dark:border-gray-700" />
+
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                            Members ({detailModal.members.length})
+                        </h4>
+                        <div className="space-y-3">
+                            {detailModal.members.map((m, i) => (
+                                <div key={m._id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-sm">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium">{i + 1}. {m.prefix} {m.name}</span>
+                                        {m.foodPreference && (
+                                            <Badge variant={m.foodPreference === "veg" ? "success" : "danger"}>
+                                                {m.foodPreference}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
+                                        <span>🏫 {m.college || "—"}</span>
+                                        <span>📚 {m.branch || "—"} ({m.yearOfPassing})</span>
+                                        {m.phone && <span>📱 {m.phone}</span>}
+                                        {m.email && <span>✉️ {m.email}</span>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Add Team Modal */}
+            <Modal
+                isOpen={showAddTeam}
+                onClose={() => setShowAddTeam(false)}
+                title="Add Team Manually"
+            >
+                <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+                    <p className="text-xs text-gray-500">Register a team without requiring Google sign-in.</p>
+
+                    {/* Project Info */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <FormGroup label="Project Name" required>
+                            <Input
+                                value={addTeamData.projectName}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, projectName: e.target.value })}
+                                placeholder="Project name"
+                                required
+                            />
+                        </FormGroup>
+                        <FormGroup label="Project Code" required>
+                            <Input
+                                value={addTeamData.projectCode}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, projectCode: e.target.value })}
+                                placeholder="e.g., AI-01"
+                                required
+                            />
+                        </FormGroup>
+                    </div>
+
+                    {/* Team Lead */}
+                    <h4 className="font-semibold text-sm mt-2">Team Lead</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                        <FormGroup label="Name" required>
+                            <Input
+                                value={addTeamData.teamLead.name}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, name: e.target.value } })}
+                                placeholder="Full name"
+                                required
+                            />
+                        </FormGroup>
+                        <FormGroup label="Phone" required>
+                            <Input
+                                value={addTeamData.teamLead.phone}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, phone: e.target.value } })}
+                                placeholder="10-digit"
+                                required
+                            />
+                        </FormGroup>
+                        <FormGroup label="Email">
+                            <Input
+                                type="email"
+                                value={addTeamData.teamLead.email}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, email: e.target.value } })}
+                                placeholder="email"
+                            />
+                        </FormGroup>
+                    </div>
+
+                    {/* Guide */}
+                    <h4 className="font-semibold text-sm mt-2">Guide (Optional)</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                        <FormGroup label="Name">
+                            <Input
+                                value={addTeamData.guide.name}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, name: e.target.value } })}
+                                placeholder="Guide name"
+                            />
+                        </FormGroup>
+                        <FormGroup label="Phone">
+                            <Input
+                                value={addTeamData.guide.phone}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, phone: e.target.value } })}
+                                placeholder="Phone"
+                            />
+                        </FormGroup>
+                        <FormGroup label="Email">
+                            <Input
+                                type="email"
+                                value={addTeamData.guide.email}
+                                onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, email: e.target.value } })}
+                                placeholder="Email"
+                            />
+                        </FormGroup>
+                    </div>
+
+                    {/* Members */}
+                    <div className="flex items-center justify-between mt-2">
+                        <h4 className="font-semibold text-sm">Members ({addTeamMembers.length})</h4>
+                        {addTeamMembers.length < maxTeamSize && (
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setAddTeamMembers([...addTeamMembers, {
+                                    id: Math.random().toString(36).substring(7),
+                                    prefix: "Mr", name: "", college: "", branch: "",
+                                    yearOfPassing: new Date().getFullYear(), phone: "", email: "",
+                                }])}
+                            >
+                                + Add Member
+                            </Button>
+                        )}
+                    </div>
+
+                    {addTeamMembers.map((m, i) => (
+                        <div key={m.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Badge variant="primary">Member {i + 1}</Badge>
+                                {addTeamMembers.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setAddTeamMembers(addTeamMembers.filter((x) => x.id !== m.id))}
+                                        className="text-red-500 text-xs hover:underline"
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                                <FormGroup label="Prefix">
+                                    <Select
+                                        value={m.prefix}
+                                        options={prefixOptions}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, prefix: e.target.value as "Mr" | "Ms" | "Dr" | "NA" } : x))}
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Name" required className="col-span-3">
+                                    <Input
+                                        value={m.name}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, name: e.target.value } : x))}
+                                        placeholder="Full name"
+                                        required
+                                    />
+                                </FormGroup>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <FormGroup label="College" required>
+                                    <Input
+                                        value={m.college}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, college: e.target.value } : x))}
+                                        placeholder="College"
+                                        required
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Branch" required>
+                                    <Input
+                                        value={m.branch}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, branch: e.target.value } : x))}
+                                        placeholder="CSE, ECE..."
+                                        required
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Year">
+                                    <Input
+                                        type="number"
+                                        value={m.yearOfPassing}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, yearOfPassing: parseInt(e.target.value) } : x))}
+                                        min={2020} max={2030}
+                                    />
+                                </FormGroup>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <FormGroup label="Phone">
+                                    <Input
+                                        value={m.phone}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, phone: e.target.value } : x))}
+                                        placeholder="Phone"
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Email">
+                                    <Input
+                                        type="email"
+                                        value={m.email}
+                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, email: e.target.value } : x))}
+                                        placeholder="Email"
+                                    />
+                                </FormGroup>
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="flex gap-2 pt-2">
+                        <Button onClick={handleAddTeamSubmit} loading={isPending} className="flex-1">
+                            ✓ Register Team
+                        </Button>
+                        <Button onClick={() => setShowAddTeam(false)} variant="outline" className="flex-1">
                             Cancel
                         </Button>
                     </div>

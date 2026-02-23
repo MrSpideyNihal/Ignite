@@ -125,6 +125,124 @@ export async function registerTeam(
     }
 }
 
+// Get full team details by ID (for admin team detail view)
+export async function getTeamById(eventId: string, teamId: string) {
+    await requireEventRole(eventId, ["registration_committee"]);
+    await connectToDatabase();
+
+    const team = await Team.findById(teamId).lean();
+    if (!team) return null;
+
+    const members = await TeamMember.find({ teamId: team._id }).lean();
+
+    return {
+        _id: team._id.toString(),
+        eventId: team.eventId.toString(),
+        teamCode: team.teamCode,
+        projectName: team.projectName,
+        projectCode: team.projectCode,
+        status: team.status,
+        registeredByEmail: team.registeredByEmail,
+        teamLead: team.teamLead,
+        guide: team.guide,
+        members: members.map((m) => ({
+            _id: m._id.toString(),
+            prefix: m.prefix,
+            name: m.name,
+            college: m.college,
+            branch: m.branch,
+            yearOfPassing: m.yearOfPassing,
+            phone: m.phone,
+            email: m.email,
+            isAttending: m.isAttending,
+            foodPreference: m.foodPreference,
+        })),
+        registrationDate: team.registrationDate?.toISOString(),
+    };
+}
+
+// Admin: manually register a team (no Google auth required)
+export async function adminRegisterTeam(
+    eventId: string,
+    data: {
+        projectName: string;
+        projectCode: string;
+        teamLead: { name: string; email?: string; phone: string };
+        guide?: { name: string; email?: string; phone?: string };
+        members: Array<{
+            prefix: "Mr" | "Ms" | "Dr" | "NA";
+            name: string;
+            college: string;
+            branch: string;
+            yearOfPassing: number;
+            phone?: string;
+            email?: string;
+            foodPreference?: "veg" | "non-veg";
+        }>;
+    }
+): Promise<ActionState & { teamCode?: string }> {
+    await requireEventRole(eventId, ["registration_committee"]);
+
+    try {
+        await connectToDatabase();
+
+        const event = await Event.findById(eventId);
+        if (!event) return { success: false, message: "Event not found" };
+
+        if (!data.projectName || !data.projectCode) {
+            return { success: false, message: "Project name and code are required" };
+        }
+        if (!data.teamLead.name || !data.teamLead.phone) {
+            return { success: false, message: "Team lead name and phone are required" };
+        }
+        if (!data.members || data.members.length === 0) {
+            return { success: false, message: "At least one member is required" };
+        }
+
+        // Check for duplicate project code
+        const existing = await Team.findOne({ eventId, projectCode: data.projectCode });
+        if (existing) {
+            return { success: false, message: `Project code "${data.projectCode}" already exists` };
+        }
+
+        // Generate unique team code
+        let teamCode = generateTeamCode(event.year);
+        while (await Team.findOne({ teamCode })) {
+            teamCode = generateTeamCode(event.year);
+        }
+
+        // Create team
+        const team = await Team.create({
+            eventId,
+            teamCode,
+            projectName: data.projectName,
+            projectCode: data.projectCode,
+            status: "pending",
+            teamLead: data.teamLead,
+            guide: data.guide,
+            registeredByEmail: "admin-manual",
+            registrationDate: new Date(),
+        });
+
+        // Create team members
+        for (const member of data.members) {
+            await TeamMember.create({
+                teamId: team._id,
+                eventId,
+                ...member,
+                isAttending: true,
+                accommodation: { required: false },
+            });
+        }
+
+        revalidatePath(`/${eventId}/teams`);
+        return { success: true, message: `Team registered: ${teamCode}`, teamCode };
+    } catch (error) {
+        console.error("Error admin registering team:", error);
+        return { success: false, message: "Failed to register team" };
+    }
+}
+
 // Get teams for an event (for committee)
 export async function getEventTeams(eventId: string, status?: TeamStatus) {
     await connectToDatabase();
