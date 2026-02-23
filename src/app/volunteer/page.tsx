@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Announcement, CommuteSchedule } from "@/models";
 import { Card, CardHeader, CardContent, Badge } from "@/components/ui";
 import Link from "next/link";
+import { SITE } from "@/lib/config";
 
 async function getAnnouncements() {
     await connectToDatabase();
@@ -53,14 +54,14 @@ export default async function VolunteerDashboard() {
                 {/* Header */}
                 <div className="page-header">
                     <h1 className="page-title">Volunteer Dashboard</h1>
-                    <p className="page-subtitle">Welcome to IGNITE 2026</p>
+                    <p className="page-subtitle">Welcome to {SITE.fullName}</p>
                 </div>
 
                 {/* Event Info */}
                 <Card className="mb-8 bg-gradient-to-r from-primary-500 to-secondary-500 text-white border-0">
                     <CardContent className="py-8 text-center">
-                        <h2 className="text-3xl font-bold mb-2">IGNITE 2026</h2>
-                        <p className="text-white/90 text-lg">February 28, 2026</p>
+                        <h2 className="text-3xl font-bold mb-2">{SITE.fullName}</h2>
+                        <p className="text-white/90 text-lg">{SITE.formattedDate}</p>
                         <p className="text-white/80 mt-2">Innovation Hub, Tech Park</p>
                     </CardContent>
                 </Card>

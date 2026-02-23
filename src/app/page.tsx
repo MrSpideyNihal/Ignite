@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SITE } from "@/lib/config";
 
 export default function HomePage() {
 
@@ -13,14 +14,14 @@ export default function HomePage() {
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border border-gray-200 dark:border-gray-800 shadow-lg mb-8 animate-fade-in">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                February 28, 2026 • Registration Open
+                                {SITE.formattedDate} • Registration Open
                             </span>
                         </div>
 
                         {/* Main Heading */}
                         <h1 className="text-5xl md:text-7xl font-extrabold mb-6 animate-fade-in">
-                            <span className="gradient-text">IGNITE</span>
-                            <span className="text-gray-900 dark:text-gray-100"> 2026</span>
+                            <span className="gradient-text">{SITE.name}</span>
+                            <span className="text-gray-900 dark:text-gray-100"> {SITE.year}</span>
                         </h1>
 
                         {/* Tagline */}
@@ -196,7 +197,7 @@ export default function HomePage() {
                                             Date
                                         </h4>
                                         <p className="text-gray-600 dark:text-gray-400">
-                                            February 28, 2026
+                                            {SITE.formattedDate}
                                         </p>
                                     </div>
                                 </div>
@@ -355,7 +356,7 @@ export default function HomePage() {
                         </div>
                     </div>
                     <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm">
-                        © 2026 IGNITE Event. All rights reserved.
+                        © {SITE.year} {SITE.fullName}. All rights reserved.
                     </div>
                 </div>
             </footer>

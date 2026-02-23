@@ -3,27 +3,28 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Providers } from "@/components/Providers";
+import { SITE } from "@/lib/config";
 
 export const metadata: Metadata = {
-    title: "IGNITE 2026 - Innovation & Technology Event",
+    title: `${SITE.fullName} - Innovation & Technology Event`,
     description:
-        "Join IGNITE 2026, the premier innovation and technology event happening on February 28, 2026. Register your team, explore cutting-edge projects, and ignite your passion for technology.",
+        `Join ${SITE.fullName}, the premier innovation and technology event happening on ${SITE.formattedDate}. Register your team, explore cutting-edge projects, and ignite your passion for technology.`,
     keywords: [
-        "IGNITE",
+        SITE.name,
         "technology event",
         "innovation",
         "hackathon",
         "engineering",
         "projects",
     ],
-    authors: [{ name: "IGNITE Team" }],
+    authors: [{ name: `${SITE.name} Team` }],
     openGraph: {
-        title: "IGNITE 2026 - Innovation & Technology Event",
+        title: `${SITE.fullName} - Innovation & Technology Event`,
         description:
-            "Join IGNITE 2026, the premier innovation and technology event.",
+            `Join ${SITE.fullName}, the premier innovation and technology event.`,
         type: "website",
         locale: "en_US",
-        siteName: "IGNITE 2026",
+        siteName: SITE.fullName,
     },
 };
 

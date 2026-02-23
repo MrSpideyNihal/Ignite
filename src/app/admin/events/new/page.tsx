@@ -6,6 +6,7 @@ import { Input, Select, Button, FormGroup, Textarea } from "@/components/forms";
 import { Card, CardHeader, CardContent, Alert } from "@/components/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SITE } from "@/lib/config";
 
 const currentYear = new Date().getFullYear();
 const startYear = 2020;
@@ -50,7 +51,7 @@ export default function CreateEventPage() {
                             <FormGroup label="Event Name" required>
                                 <Input
                                     name="name"
-                                    placeholder="IGNITE 2026"
+                                    placeholder={`${SITE.fullName}`}
                                     required
                                 />
                             </FormGroup>

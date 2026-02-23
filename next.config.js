@@ -15,10 +15,11 @@ const nextConfig = {
             },
         ],
     },
-    // Environment variables that can be exposed to the browser
+    // Environment variables — change these to rebrand the event
     env: {
-        NEXT_PUBLIC_APP_NAME: "IGNITE Event",
-        NEXT_PUBLIC_EVENT_DATE: "2026-02-28",
+        NEXT_PUBLIC_EVENT_NAME: "IGNITE",
+        NEXT_PUBLIC_EVENT_YEAR: "2025",
+        NEXT_PUBLIC_EVENT_DATE: "2025-02-28",
     },
 };
 
