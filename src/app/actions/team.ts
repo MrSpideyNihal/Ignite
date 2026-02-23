@@ -414,6 +414,205 @@ export async function updateTeamMember(
     }
 }
 
+// Update team details (only allowed when status is "pending")
+// Called by team owner from Team Portal
+export async function updateTeamDetails(
+    teamCode: string,
+    data: {
+        projectName?: string;
+        projectCode?: string;
+        teamLead?: { name: string; email?: string; phone: string };
+        guide?: { name?: string; email?: string; phone?: string } | null;
+        members?: Array<{
+            _id?: string; // existing member — update; omit for new
+            prefix: "Mr" | "Ms" | "Dr" | "NA";
+            name: string;
+            college: string;
+            branch: string;
+            yearOfPassing: number;
+            phone?: string;
+            email?: string;
+        }>;
+    }
+): Promise<ActionState> {
+    try {
+        await connectToDatabase();
+
+        // Auth check
+        const { auth: getAuth } = await import("@/lib/auth");
+        const session = await getAuth();
+        const email = session?.user?.email?.toLowerCase();
+        if (!email) {
+            return { success: false, message: "Sign in required" };
+        }
+
+        const team = await Team.findOne({ teamCode: teamCode.toUpperCase() });
+        if (!team) {
+            return { success: false, message: "Team not found" };
+        }
+
+        // CRITICAL: Only allow editing when team is pending
+        if (team.status !== "pending") {
+            return {
+                success: false,
+                message: "Team details can only be edited while registration is under review (pending status)",
+            };
+        }
+
+        // Verify user is team owner (registered the team or is team lead)
+        const isOwner =
+            team.registeredByEmail?.toLowerCase() === email ||
+            team.teamLead?.email?.toLowerCase() === email;
+        if (!isOwner) {
+            return { success: false, message: "Only the person who registered this team can edit it" };
+        }
+
+        // Fetch event for validation
+        const event = await Event.findById(team.eventId);
+        if (!event) {
+            return { success: false, message: "Event not found" };
+        }
+
+        // Validate project details
+        if (data.projectName !== undefined || data.projectCode !== undefined) {
+            const projectName = data.projectName ?? team.projectName;
+            const projectCode = data.projectCode ?? team.projectCode;
+
+            if (!projectName || projectName.trim().length < 2) {
+                return { success: false, message: "Project name must be at least 2 characters" };
+            }
+            if (!projectCode || projectCode.trim().length < 1) {
+                return { success: false, message: "Project code is required" };
+            }
+
+            // If event has predefined projects, validate selection
+            if (event.projects && event.projects.length > 0) {
+                const validProject = event.projects.some(
+                    (p) => p.projectCode === projectCode && p.projectName === projectName
+                );
+                if (!validProject) {
+                    return { success: false, message: "Please select a valid project from the list" };
+                }
+            }
+
+            team.projectName = projectName.trim();
+            team.projectCode = projectCode.trim();
+        }
+
+        // Validate & update team lead
+        if (data.teamLead) {
+            if (!data.teamLead.name || data.teamLead.name.trim().length < 2) {
+                return { success: false, message: "Team lead name must be at least 2 characters" };
+            }
+            if (!data.teamLead.phone || data.teamLead.phone.trim().length < 10) {
+                return { success: false, message: "Team lead phone must be at least 10 digits" };
+            }
+            team.teamLead = {
+                name: data.teamLead.name.trim(),
+                email: data.teamLead.email?.trim() || undefined,
+                phone: data.teamLead.phone.trim(),
+            };
+        }
+
+        // Update guide (null = remove guide)
+        if (data.guide !== undefined) {
+            if (data.guide === null || !data.guide.name?.trim()) {
+                team.guide = undefined;
+            } else {
+                team.guide = {
+                    name: data.guide.name.trim(),
+                    email: data.guide.email?.trim() || undefined,
+                    phone: data.guide.phone?.trim() || undefined,
+                };
+            }
+        }
+
+        await team.save();
+
+        // Handle member updates
+        if (data.members) {
+            if (data.members.length === 0) {
+                return { success: false, message: "Team must have at least one member" };
+            }
+            if (data.members.length > event.settings.maxTeamSize) {
+                return {
+                    success: false,
+                    message: `Maximum ${event.settings.maxTeamSize} members allowed`,
+                };
+            }
+
+            // Validate each member
+            for (let i = 0; i < data.members.length; i++) {
+                const m = data.members[i];
+                if (!m.name || m.name.trim().length < 2) {
+                    return { success: false, message: `Member ${i + 1}: Name must be at least 2 characters` };
+                }
+                if (!m.college || m.college.trim().length < 2) {
+                    return { success: false, message: `Member ${i + 1}: College is required` };
+                }
+                if (!m.branch || m.branch.trim().length < 1) {
+                    return { success: false, message: `Member ${i + 1}: Branch is required` };
+                }
+                if (!m.yearOfPassing || m.yearOfPassing < 2020 || m.yearOfPassing > 2035) {
+                    return { success: false, message: `Member ${i + 1}: Year of passing must be between 2020 and 2035` };
+                }
+            }
+
+            // Get existing member IDs
+            const existingMembers = await TeamMember.find({ teamId: team._id }).lean();
+            const existingIds = existingMembers.map((m) => m._id.toString());
+
+            // Track which existing members are being kept
+            const keptIds = new Set<string>();
+
+            for (const m of data.members) {
+                if (m._id && existingIds.includes(m._id)) {
+                    // Update existing member
+                    keptIds.add(m._id);
+                    await TeamMember.findByIdAndUpdate(m._id, {
+                        $set: {
+                            prefix: m.prefix,
+                            name: m.name.trim(),
+                            college: m.college.trim(),
+                            branch: m.branch.trim(),
+                            yearOfPassing: m.yearOfPassing,
+                            phone: m.phone?.trim() || undefined,
+                            email: m.email?.trim()?.toLowerCase() || undefined,
+                        },
+                    });
+                } else {
+                    // Create new member
+                    await TeamMember.create({
+                        teamId: team._id,
+                        eventId: team.eventId,
+                        prefix: m.prefix,
+                        name: m.name.trim(),
+                        college: m.college.trim(),
+                        branch: m.branch.trim(),
+                        yearOfPassing: m.yearOfPassing,
+                        phone: m.phone?.trim() || undefined,
+                        email: m.email?.trim()?.toLowerCase() || undefined,
+                        isAttending: true,
+                        accommodation: { required: false },
+                    });
+                }
+            }
+
+            // Delete removed members
+            const toDelete = existingIds.filter((id) => !keptIds.has(id));
+            if (toDelete.length > 0) {
+                await TeamMember.deleteMany({ _id: { $in: toDelete } });
+            }
+        }
+
+        revalidatePath(`/team/${teamCode}`);
+        return { success: true, message: "Team details updated successfully" };
+    } catch (error) {
+        console.error("Error updating team details:", error);
+        return { success: false, message: "Failed to update team details. Please try again." };
+    }
+}
+
 // Get team stats for event
 export async function getTeamStats(eventId: string) {
     await connectToDatabase();

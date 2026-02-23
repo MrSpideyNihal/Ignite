@@ -48,10 +48,12 @@ export default async function TeamDetailPage({ params }: Props) {
         redirect("/team");
     }
 
-    // Fetch event for dates
+    // Fetch event for dates and project data
     const { Event } = await import("@/models");
     const event = await Event.findById(team.eventId).lean();
     const eventDate = event?.date ? new Date(event.date) : new Date();
+    const eventProjects = event?.projects ?? [];
+    const maxTeamSize = event?.settings?.maxTeamSize ?? 8;
 
     const statusColors = {
         pending: "warning",
@@ -84,7 +86,7 @@ export default async function TeamDetailPage({ params }: Props) {
                 {team.status === "pending" && (
                     <Card className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10">
                         <CardContent className="py-4 text-center text-yellow-800 dark:text-yellow-200">
-                            ⏳ Your registration is under review. You&apos;ll be notified once approved.
+                            ⏳ Your registration is under review. You can still edit your team details until it is approved.
                         </CardContent>
                     </Card>
                 )}
@@ -184,7 +186,17 @@ export default async function TeamDetailPage({ params }: Props) {
                             teamCode={team.teamCode}
                             members={team.members}
                             isApproved={team.status === "approved"}
+                            isPending={team.status === "pending"}
                             eventDate={eventDate.toISOString()}
+                            projectName={team.projectName}
+                            projectCode={team.projectCode}
+                            teamLead={team.teamLead}
+                            guide={team.guide}
+                            eventProjects={eventProjects.map((p: { projectName: string; projectCode: string }) => ({
+                                projectName: p.projectName,
+                                projectCode: p.projectCode,
+                            }))}
+                            maxTeamSize={maxTeamSize}
                         />
                     </CardContent>
                 </Card>
