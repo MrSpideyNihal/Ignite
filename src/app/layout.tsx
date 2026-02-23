@@ -35,6 +35,31 @@ export default function RootLayout({
 
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                {/* Auto-reload on ChunkLoadError (stale cache after deployment) */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            window.addEventListener('error', function(e) {
+                                if (
+                                    e.message && (
+                                        e.message.indexOf('ChunkLoadError') !== -1 ||
+                                        e.message.indexOf('Loading chunk') !== -1
+                                    )
+                                ) {
+                                    if (!sessionStorage.getItem('chunk_reload')) {
+                                        sessionStorage.setItem('chunk_reload', '1');
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                            window.addEventListener('load', function() {
+                                sessionStorage.removeItem('chunk_reload');
+                            });
+                        `,
+                    }}
+                />
+            </head>
             <body className="min-h-screen bg-white dark:bg-gray-950 antialiased" style={{ backgroundColor: '#f3f4f6', minHeight: '100vh' }}>
                 <Providers>
                     <Navbar />

@@ -15,8 +15,8 @@ export function Navbar() {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                            <span className="text-white font-bold text-xl">🔥</span>
+                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow">
+                            <img src="/logo.jpg" alt="IGNITE Logo" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-xl font-bold gradient-text hidden sm:block">
                             IGNITE 2026

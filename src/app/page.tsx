@@ -329,8 +329,8 @@ export default function HomePage() {
                 <div className="container-custom">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                                <span className="text-white font-bold text-xl">🔥</span>
+                            <div className="w-10 h-10 rounded-xl overflow-hidden">
+                                <img src="/logo.jpg" alt="IGNITE Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="text-xl font-bold text-white">IGNITE 2026</span>
                         </div>
