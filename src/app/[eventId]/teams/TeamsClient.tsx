@@ -250,9 +250,10 @@ interface Props {
     eventId: string;
     teams: TeamInfo[];
     maxTeamSize: number;
+    projects: { projectName: string; projectCode: string }[];
 }
 
-export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
+export default function TeamsClient({ eventId, teams, maxTeamSize, projects }: Props) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
     const [filter, setFilter] = useState<string>("all");
@@ -288,11 +289,18 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
 
     // Add team modal
     const [showAddTeam, setShowAddTeam] = useState(false);
+    const [addSelectedProject, setAddSelectedProject] = useState("");
     const [addTeamData, setAddTeamData] = useState({
         projectName: "",
         projectCode: "",
         teamLead: { name: "", email: "", phone: "" },
         guide: { name: "", email: "", phone: "" },
+    });
+    const [addLeadExtra, setAddLeadExtra] = useState({
+        prefix: "Mr" as "Mr" | "Ms" | "Dr" | "NA",
+        college: "",
+        branch: "",
+        yearOfPassing: new Date().getFullYear(),
     });
     const [addTeamMembers, setAddTeamMembers] = useState<Array<{
         id: string;
@@ -303,10 +311,8 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
         yearOfPassing: number;
         phone: string;
         email: string;
-    }>>([{
-        id: "m1", prefix: "Mr", name: "", college: "", branch: "",
-        yearOfPassing: new Date().getFullYear(), phone: "", email: "",
-    }]);
+    }>>([]);
+
 
     // Import state
     const [showImport, setShowImport] = useState(false);
@@ -357,22 +363,40 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
         if (!addTeamData.teamLead.name || !addTeamData.teamLead.phone) {
             toast.error("Team lead name and phone are required"); return;
         }
+        if (!addLeadExtra.college || !addLeadExtra.branch) {
+            toast.error("Team lead college and branch are required"); return;
+        }
         if (addTeamMembers.some((m) => !m.name || !m.college || !m.branch)) {
             toast.error("All member fields (name, college, branch) are required"); return;
         }
+
+        // Build member 1 from team lead
+        const leadMember = {
+            prefix: addLeadExtra.prefix,
+            name: addTeamData.teamLead.name,
+            college: addLeadExtra.college,
+            branch: addLeadExtra.branch,
+            yearOfPassing: addLeadExtra.yearOfPassing,
+            phone: addTeamData.teamLead.phone,
+            email: addTeamData.teamLead.email,
+        };
+        const allMembers = [leadMember, ...addTeamMembers.map(({ id, ...m }) => m)];
+
         startTransition(async () => {
             const res = await adminRegisterTeam(eventId, {
                 projectName: addTeamData.projectName,
                 projectCode: addTeamData.projectCode,
                 teamLead: addTeamData.teamLead,
                 guide: addTeamData.guide.name ? addTeamData.guide : undefined,
-                members: addTeamMembers.map(({ id, ...m }) => m),
+                members: allMembers,
             });
             if (res.success) {
                 toast.success(res.message);
                 setShowAddTeam(false);
+                setAddSelectedProject("");
                 setAddTeamData({ projectName: "", projectCode: "", teamLead: { name: "", email: "", phone: "" }, guide: { name: "", email: "", phone: "" } });
-                setAddTeamMembers([{ id: "m1", prefix: "Mr", name: "", college: "", branch: "", yearOfPassing: new Date().getFullYear(), phone: "", email: "" }]);
+                setAddLeadExtra({ prefix: "Mr", college: "", branch: "", yearOfPassing: new Date().getFullYear() });
+                setAddTeamMembers([]);
                 router.refresh();
             } else {
                 toast.error(res.message);
@@ -990,183 +1014,299 @@ export default function TeamsClient({ eventId, teams, maxTeamSize }: Props) {
                 onClose={() => setShowAddTeam(false)}
                 title="Add Team Manually"
             >
-                <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-                    <p className="text-xs text-gray-500">Register a team without requiring Google sign-in.</p>
+                <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
+                    <p className="text-xs text-gray-500">Register a team without requiring Google sign-in. Same as the public registration form.</p>
 
-                    {/* Project Info */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <FormGroup label="Project Name" required>
-                            <Input
-                                value={addTeamData.projectName}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, projectName: e.target.value })}
-                                placeholder="Project name"
-                                required
-                            />
-                        </FormGroup>
-                        <FormGroup label="Project Code" required>
-                            <Input
-                                value={addTeamData.projectCode}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, projectCode: e.target.value })}
-                                placeholder="e.g., AI-01"
-                                required
-                            />
-                        </FormGroup>
-                    </div>
+                    {/* Project Information */}
+                    <Card>
+                        <CardHeader title="Project Information" />
+                        <CardContent className="space-y-4">
+                            {projects.length > 0 ? (
+                                <>
+                                    <FormGroup label="Select Project" required>
+                                        <select
+                                            value={addSelectedProject}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setAddSelectedProject(val);
+                                                if (val) {
+                                                    const proj = projects.find(p => p.projectCode === val);
+                                                    if (proj) {
+                                                        setAddTeamData({ ...addTeamData, projectName: proj.projectName, projectCode: proj.projectCode });
+                                                    }
+                                                } else {
+                                                    setAddTeamData({ ...addTeamData, projectName: "", projectCode: "" });
+                                                }
+                                            }}
+                                            className="input w-full"
+                                        >
+                                            <option value="">-- Select a project --</option>
+                                            {projects.map((p) => (
+                                                <option key={p.projectCode} value={p.projectCode}>
+                                                    {p.projectCode} — {p.projectName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </FormGroup>
+                                    {addSelectedProject && (
+                                        <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                                            <p className="text-sm"><strong>Project Code:</strong> {addTeamData.projectCode}</p>
+                                            <p className="text-sm"><strong>Project Name:</strong> {addTeamData.projectName}</p>
+                                        </div>
+                                    )}
+                                    {/* Allow manual entry too */}
+                                    {!addSelectedProject && (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <FormGroup label="Project Name" required>
+                                                <Input
+                                                    value={addTeamData.projectName}
+                                                    onChange={(e) => setAddTeamData({ ...addTeamData, projectName: e.target.value })}
+                                                    placeholder="Or type project name"
+                                                />
+                                            </FormGroup>
+                                            <FormGroup label="Project Code" required>
+                                                <Input
+                                                    value={addTeamData.projectCode}
+                                                    onChange={(e) => setAddTeamData({ ...addTeamData, projectCode: e.target.value })}
+                                                    placeholder="e.g., AI-01"
+                                                />
+                                            </FormGroup>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <FormGroup label="Project Name" required>
+                                        <Input
+                                            value={addTeamData.projectName}
+                                            onChange={(e) => setAddTeamData({ ...addTeamData, projectName: e.target.value })}
+                                            placeholder="Enter project name"
+                                        />
+                                    </FormGroup>
+                                    <FormGroup label="Project Code" required>
+                                        <Input
+                                            value={addTeamData.projectCode}
+                                            onChange={(e) => setAddTeamData({ ...addTeamData, projectCode: e.target.value })}
+                                            placeholder="e.g., AI-01, IOT-05"
+                                        />
+                                    </FormGroup>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                    {/* Team Lead */}
-                    <h4 className="font-semibold text-sm mt-2">Team Lead</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                        <FormGroup label="Name" required>
-                            <Input
-                                value={addTeamData.teamLead.name}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, name: e.target.value } })}
-                                placeholder="Full name"
-                                required
-                            />
-                        </FormGroup>
-                        <FormGroup label="Phone" required>
-                            <Input
-                                value={addTeamData.teamLead.phone}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, phone: e.target.value } })}
-                                placeholder="10-digit"
-                                required
-                            />
-                        </FormGroup>
-                        <FormGroup label="Email">
-                            <Input
-                                type="email"
-                                value={addTeamData.teamLead.email}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, email: e.target.value } })}
-                                placeholder="email"
-                            />
-                        </FormGroup>
-                    </div>
+                    {/* Team Lead Details */}
+                    <Card>
+                        <CardHeader title="Team Lead Details" />
+                        <CardContent className="grid grid-cols-3 gap-4">
+                            <FormGroup label="Name" required>
+                                <Input
+                                    value={addTeamData.teamLead.name}
+                                    onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, name: e.target.value } })}
+                                    placeholder="Full name"
+                                />
+                            </FormGroup>
+                            <FormGroup label="Phone" required>
+                                <Input
+                                    value={addTeamData.teamLead.phone}
+                                    onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, phone: e.target.value } })}
+                                    placeholder="10-digit mobile"
+                                />
+                            </FormGroup>
+                            <FormGroup label="Email">
+                                <Input
+                                    type="email"
+                                    value={addTeamData.teamLead.email}
+                                    onChange={(e) => setAddTeamData({ ...addTeamData, teamLead: { ...addTeamData.teamLead, email: e.target.value } })}
+                                    placeholder="email@example.com"
+                                />
+                            </FormGroup>
+                        </CardContent>
+                    </Card>
 
-                    {/* Guide */}
-                    <h4 className="font-semibold text-sm mt-2">Guide (Optional)</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                        <FormGroup label="Name">
-                            <Input
-                                value={addTeamData.guide.name}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, name: e.target.value } })}
-                                placeholder="Guide name"
-                            />
-                        </FormGroup>
-                        <FormGroup label="Phone">
-                            <Input
-                                value={addTeamData.guide.phone}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, phone: e.target.value } })}
-                                placeholder="Phone"
-                            />
-                        </FormGroup>
-                        <FormGroup label="Email">
-                            <Input
-                                type="email"
-                                value={addTeamData.guide.email}
-                                onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, email: e.target.value } })}
-                                placeholder="Email"
-                            />
-                        </FormGroup>
-                    </div>
+                    {/* Guide / Mentor */}
+                    <Card>
+                        <CardHeader title="Guide / Mentor (Optional)" />
+                        <CardContent className="grid grid-cols-3 gap-4">
+                            <FormGroup label="Name">
+                                <Input
+                                    value={addTeamData.guide.name}
+                                    onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, name: e.target.value } })}
+                                    placeholder="Guide name"
+                                />
+                            </FormGroup>
+                            <FormGroup label="Phone">
+                                <Input
+                                    value={addTeamData.guide.phone}
+                                    onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, phone: e.target.value } })}
+                                    placeholder="Phone number"
+                                />
+                            </FormGroup>
+                            <FormGroup label="Email">
+                                <Input
+                                    type="email"
+                                    value={addTeamData.guide.email}
+                                    onChange={(e) => setAddTeamData({ ...addTeamData, guide: { ...addTeamData.guide, email: e.target.value } })}
+                                    placeholder="email@example.com"
+                                />
+                            </FormGroup>
+                        </CardContent>
+                    </Card>
 
-                    {/* Members */}
-                    <div className="flex items-center justify-between mt-2">
-                        <h4 className="font-semibold text-sm">Members ({addTeamMembers.length})</h4>
-                        {addTeamMembers.length < maxTeamSize && (
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setAddTeamMembers([...addTeamMembers, {
-                                    id: Math.random().toString(36).substring(7),
-                                    prefix: "Mr", name: "", college: "", branch: "",
-                                    yearOfPassing: new Date().getFullYear(), phone: "", email: "",
-                                }])}
-                            >
-                                + Add Member
-                            </Button>
-                        )}
-                    </div>
-
-                    {addTeamMembers.map((m, i) => (
-                        <div key={m.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Badge variant="primary">Member {i + 1}</Badge>
-                                {addTeamMembers.length > 1 && (
-                                    <button
+                    {/* Team Members */}
+                    <Card>
+                        <CardHeader
+                            title={`Team Members (${addTeamMembers.length + 1}/${maxTeamSize})`}
+                            action={
+                                addTeamMembers.length + 1 < maxTeamSize && (
+                                    <Button
                                         type="button"
-                                        onClick={() => setAddTeamMembers(addTeamMembers.filter((x) => x.id !== m.id))}
-                                        className="text-red-500 text-xs hover:underline"
+                                        size="sm"
+                                        onClick={() => setAddTeamMembers([...addTeamMembers, {
+                                            id: Math.random().toString(36).substring(7),
+                                            prefix: "Mr", name: "", college: "", branch: "",
+                                            yearOfPassing: new Date().getFullYear(), phone: "", email: "",
+                                        }])}
                                     >
-                                        Remove
-                                    </button>
-                                )}
+                                        + Add Member
+                                    </Button>
+                                )
+                            }
+                        />
+                        <CardContent className="space-y-6">
+                            {/* Member 1 (Team Lead) */}
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                                <div className="flex items-center justify-between mb-4">
+                                    <Badge variant="primary">Member 1 (Team Lead)</Badge>
+                                    <span className="text-xs text-gray-400">Auto-filled from Team Lead</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-sm">
+                                    <div>
+                                        <span className="text-gray-500">Name:</span>{" "}
+                                        <span className="font-medium">{addTeamData.teamLead.name || "—"}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500">Phone:</span>{" "}
+                                        <span className="font-medium">{addTeamData.teamLead.phone || "—"}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500">Email:</span>{" "}
+                                        <span className="font-medium">{addTeamData.teamLead.email || "—"}</span>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-4 gap-4">
+                                    <FormGroup label="Prefix" required>
+                                        <Select
+                                            value={addLeadExtra.prefix}
+                                            options={prefixOptions}
+                                            onChange={(e) => setAddLeadExtra({ ...addLeadExtra, prefix: e.target.value as "Mr" | "Ms" | "Dr" | "NA" })}
+                                        />
+                                    </FormGroup>
+                                    <FormGroup label="College" required className="col-span-3">
+                                        <Input
+                                            value={addLeadExtra.college}
+                                            onChange={(e) => setAddLeadExtra({ ...addLeadExtra, college: e.target.value })}
+                                            placeholder="College name"
+                                        />
+                                    </FormGroup>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                    <FormGroup label="Branch" required>
+                                        <Input
+                                            value={addLeadExtra.branch}
+                                            onChange={(e) => setAddLeadExtra({ ...addLeadExtra, branch: e.target.value })}
+                                            placeholder="e.g., CSE, ECE"
+                                        />
+                                    </FormGroup>
+                                    <FormGroup label="Year of Passing" required>
+                                        <Input
+                                            type="number"
+                                            value={addLeadExtra.yearOfPassing}
+                                            onChange={(e) => setAddLeadExtra({ ...addLeadExtra, yearOfPassing: parseInt(e.target.value) })}
+                                            min={2020} max={2030}
+                                        />
+                                    </FormGroup>
+                                </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-2">
-                                <FormGroup label="Prefix">
-                                    <Select
-                                        value={m.prefix}
-                                        options={prefixOptions}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, prefix: e.target.value as "Mr" | "Ms" | "Dr" | "NA" } : x))}
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Name" required className="col-span-3">
-                                    <Input
-                                        value={m.name}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, name: e.target.value } : x))}
-                                        placeholder="Full name"
-                                        required
-                                    />
-                                </FormGroup>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <FormGroup label="College" required>
-                                    <Input
-                                        value={m.college}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, college: e.target.value } : x))}
-                                        placeholder="College"
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Branch" required>
-                                    <Input
-                                        value={m.branch}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, branch: e.target.value } : x))}
-                                        placeholder="CSE, ECE..."
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Year">
-                                    <Input
-                                        type="number"
-                                        value={m.yearOfPassing}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, yearOfPassing: parseInt(e.target.value) } : x))}
-                                        min={2020} max={2030}
-                                    />
-                                </FormGroup>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                <FormGroup label="Phone">
-                                    <Input
-                                        value={m.phone}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, phone: e.target.value } : x))}
-                                        placeholder="Phone"
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Email">
-                                    <Input
-                                        type="email"
-                                        value={m.email}
-                                        onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, email: e.target.value } : x))}
-                                        placeholder="Email"
-                                    />
-                                </FormGroup>
-                            </div>
-                        </div>
-                    ))}
 
-                    <div className="flex gap-2 pt-2">
-                        <Button onClick={handleAddTeamSubmit} loading={isPending} className="flex-1">
+                            {/* Extra Members */}
+                            {addTeamMembers.map((m, i) => (
+                                <div key={m.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <Badge variant="primary">Member {i + 2}</Badge>
+                                        <button
+                                            type="button"
+                                            onClick={() => setAddTeamMembers(addTeamMembers.filter((x) => x.id !== m.id))}
+                                            className="text-red-500 hover:text-red-700 text-sm"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <FormGroup label="Prefix" required>
+                                            <Select
+                                                value={m.prefix}
+                                                options={prefixOptions}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, prefix: e.target.value as "Mr" | "Ms" | "Dr" | "NA" } : x))}
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Full Name" required className="col-span-3">
+                                            <Input
+                                                value={m.name}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, name: e.target.value } : x))}
+                                                placeholder="Full name"
+                                            />
+                                        </FormGroup>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4 mt-4">
+                                        <FormGroup label="College" required>
+                                            <Input
+                                                value={m.college}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, college: e.target.value } : x))}
+                                                placeholder="College name"
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Branch" required>
+                                            <Input
+                                                value={m.branch}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, branch: e.target.value } : x))}
+                                                placeholder="e.g., CSE, ECE"
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Year of Passing" required>
+                                            <Input
+                                                type="number"
+                                                value={m.yearOfPassing}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, yearOfPassing: parseInt(e.target.value) } : x))}
+                                                min={2020} max={2030}
+                                            />
+                                        </FormGroup>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 mt-4">
+                                        <FormGroup label="Phone">
+                                            <Input
+                                                value={m.phone}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, phone: e.target.value } : x))}
+                                                placeholder="Mobile number"
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Email">
+                                            <Input
+                                                type="email"
+                                                value={m.email}
+                                                onChange={(e) => setAddTeamMembers(addTeamMembers.map((x) => x.id === m.id ? { ...x, email: e.target.value } : x))}
+                                                placeholder="email@example.com"
+                                            />
+                                        </FormGroup>
+                                    </div>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+
+                    {/* Submit */}
+                    <div className="flex gap-4 pt-2">
+                        <Button onClick={handleAddTeamSubmit} loading={isPending} className="flex-1" size="lg">
                             ✓ Register Team
                         </Button>
                         <Button onClick={() => setShowAddTeam(false)} variant="outline" className="flex-1">

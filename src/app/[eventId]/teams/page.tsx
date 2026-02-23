@@ -74,6 +74,7 @@ export default async function TeamsPage({ params }: Props) {
                     eventId={params.eventId}
                     teams={teams}
                     maxTeamSize={event.settings?.maxTeamSize || 6}
+                    projects={event.projects || []}
                 />
             </div>
         </div>
