@@ -160,6 +160,7 @@ export async function assignJuryToTeams(
         }
 
         let assignedCount = 0;
+        let errors = 0;
         for (const teamId of teamIds) {
             try {
                 const team = await Team.findById(teamId);
@@ -204,13 +205,16 @@ export async function assignJuryToTeams(
                 );
                 assignedCount++;
             } catch (err) {
+                errors++;
                 console.error(`Error assigning team ${teamId} to jury ${juryUserId}:`, err);
-                // Continue with next team instead of failing everything
             }
         }
 
         revalidatePath(`/${eventId}/jury`);
-        return { success: true, message: `Assigned ${assignedCount} teams` };
+        const msg = errors > 0
+            ? `Assigned ${assignedCount} teams (${errors} failed)`
+            : `Assigned ${assignedCount} teams`;
+        return { success: errors === 0, message: msg };
     } catch (error) {
         console.error("Error assigning teams:", error);
         return { success: false, message: "Failed to assign teams" };
@@ -235,6 +239,7 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
         }
 
         let totalAssigned = 0;
+        let errors = 0;
 
         for (const role of juryRoles) {
             const user = await User.findOne({ email: role.userEmail }).lean();
@@ -282,6 +287,7 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
 
                     totalAssigned++;
                 } catch (err) {
+                    errors++;
                     console.error(`Error assigning team ${team.teamCode} to jury ${user.email}:`, err);
                     // Continue with next team
                 }
@@ -289,7 +295,10 @@ export async function assignAllJuryToAllTeams(eventId: string): Promise<ActionSt
         }
 
         revalidatePath(`/${eventId}/jury`);
-        return { success: true, message: `Successfully made ${totalAssigned} new assignments` };
+        const msg = errors > 0
+            ? `Assigned ${totalAssigned} team-jury pairs (${errors} failed — check for stale indexes)`
+            : `Successfully assigned ${juryRoles.length} judges × ${approvedTeams.length} teams (${totalAssigned} pairs)`;
+        return { success: true, message: msg };
     } catch (error) {
         console.error("Error assigning all jury to all teams:", error);
         return { success: false, message: "Failed to assign all jury to all teams" };

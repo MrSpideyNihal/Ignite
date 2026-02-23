@@ -46,3 +46,25 @@ JuryAssignmentSchema.index({ eventId: 1, juryUserId: 1 });
 export const JuryAssignment: Model<IJuryAssignment> =
     mongoose.models.JuryAssignment ||
     mongoose.model<IJuryAssignment>("JuryAssignment", JuryAssignmentSchema);
+
+// Drop stale sole-field unique indexes that block multi-judge assignment.
+// Only the compound { juryUserId, teamId } should be unique.
+const _jaG = globalThis as Record<string, unknown>;
+if (!_jaG.__jaIndexCleaned) {
+    _jaG.__jaIndexCleaned = true;
+    JuryAssignment.collection.indexes().then((idxs) => {
+        for (const idx of idxs) {
+            const keys = Object.keys(idx.key);
+            if (
+                idx.unique &&
+                keys.length === 1 &&
+                (keys[0] === "teamId" || keys[0] === "juryUserId")
+            ) {
+                JuryAssignment.collection
+                    .dropIndex(idx.name!)
+                    .then(() => console.log(`Dropped stale unique index ${idx.name} on juryassignments`))
+                    .catch(() => {});
+            }
+        }
+    }).catch(() => {});
+}

@@ -98,3 +98,25 @@ export const EvaluationSubmission: Model<IEvaluationSubmission> =
         "EvaluationSubmission",
         EvaluationSubmissionSchema
     );
+
+// Drop stale sole-field unique indexes that block multi-judge-per-team.
+// Only the compound { juryUserId, teamId } should be unique.
+const _esG = globalThis as Record<string, unknown>;
+if (!_esG.__esIndexCleaned) {
+    _esG.__esIndexCleaned = true;
+    EvaluationSubmission.collection.indexes().then((idxs) => {
+        for (const idx of idxs) {
+            const keys = Object.keys(idx.key);
+            if (
+                idx.unique &&
+                keys.length === 1 &&
+                (keys[0] === "teamId" || keys[0] === "juryUserId")
+            ) {
+                EvaluationSubmission.collection
+                    .dropIndex(idx.name!)
+                    .then(() => console.log(`Dropped stale unique index ${idx.name} on evaluationsubmissions`))
+                    .catch(() => {});
+            }
+        }
+    }).catch(() => {});
+}
