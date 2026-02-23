@@ -192,14 +192,7 @@ export default function HomePage() {
                                             />
                                         </svg>
                                     </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                                            Date
-                                        </h4>
-                                        <p className="text-gray-600 dark:text-gray-400">
-                                            {SITE.formattedDate}
-                                        </p>
-                                    </div>
+                                    
                                 </div>
 
                                 <div className="flex items-start gap-4">
@@ -224,14 +217,7 @@ export default function HomePage() {
                                             />
                                         </svg>
                                     </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                                            Venue
-                                        </h4>
-                                        <p className="text-gray-600 dark:text-gray-400">
-                                            Innovation Hub, Tech Park
-                                        </p>
-                                    </div>
+                                    
                                 </div>
 
                                 <div className="flex items-start gap-4">
