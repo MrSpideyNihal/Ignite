@@ -53,14 +53,23 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
     const [projectCode, setProjectCode] = useState("");
     const [teamLead, setTeamLead] = useState({ name: "", email: "", phone: "" });
     const [guide, setGuide] = useState({ name: "", email: "", phone: "" });
-    // Member 1 is always the team lead (auto-populated, read-only)
-    const leadAsMember: Member = {
-        id: "lead",
-        prefix: "Mr",
-        name: teamLead.name,
+
+    // Extra fields for Member 1 (team lead) — college, branch, etc.
+    const [leadExtra, setLeadExtra] = useState({
+        prefix: "Mr" as "Mr" | "Ms" | "Dr" | "NA",
         college: "",
         branch: "",
         yearOfPassing: new Date().getFullYear(),
+    });
+
+    // Member 1 combines team lead identity + editable extra fields
+    const leadAsMember: Member = {
+        id: "lead",
+        prefix: leadExtra.prefix,
+        name: teamLead.name,
+        college: leadExtra.college,
+        branch: leadExtra.branch,
+        yearOfPassing: leadExtra.yearOfPassing,
         phone: teamLead.phone,
         email: teamLead.email,
     };
@@ -82,7 +91,13 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
     };
 
     const updateMember = (id: string, field: keyof Member, value: string | number) => {
-        if (id === "lead") return; // Lead fields are read-only here
+        if (id === "lead") {
+            // Only allow editing extra fields for lead
+            if (field === "prefix" || field === "college" || field === "branch" || field === "yearOfPassing") {
+                setLeadExtra({ ...leadExtra, [field]: value });
+            }
+            return;
+        }
         setExtraMembers(
             extraMembers.map((m) => (m.id === id ? { ...m, [field]: value } : m))
         );
@@ -98,6 +113,10 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
         }
         if (!teamLead.name || !teamLead.phone) {
             setResult({ success: false, message: "Team lead name and phone are required" });
+            return;
+        }
+        if (!leadExtra.college || !leadExtra.branch) {
+            setResult({ success: false, message: "Team lead college and branch are required" });
             return;
         }
         if (extraMembers.some((m) => !m.name || !m.college || !m.branch)) {
@@ -313,21 +332,62 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
                             </div>
 
                             {index === 0 ? (
-                                /* Member 1 (Team Lead) — display-only summary */
-                                <div className="grid md:grid-cols-3 gap-4 text-sm">
-                                    <div>
-                                        <span className="text-gray-500">Name:</span>{" "}
-                                        <span className="font-medium">{teamLead.name || "—"}</span>
+                                /* Member 1 (Team Lead) — name/phone/email from lead, rest editable */
+                                <>
+                                    <div className="grid md:grid-cols-3 gap-4 mb-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-sm">
+                                        <div>
+                                            <span className="text-gray-500">Name:</span>{" "}
+                                            <span className="font-medium">{teamLead.name || "—"}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500">Phone:</span>{" "}
+                                            <span className="font-medium">{teamLead.phone || "—"}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500">Email:</span>{" "}
+                                            <span className="font-medium">{teamLead.email || "—"}</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="text-gray-500">Phone:</span>{" "}
-                                        <span className="font-medium">{teamLead.phone || "—"}</span>
+
+                                    <div className="grid md:grid-cols-4 gap-4">
+                                        <FormGroup label="Prefix" required>
+                                            <Select
+                                                value={leadExtra.prefix}
+                                                options={prefixOptions}
+                                                onChange={(e) => setLeadExtra({ ...leadExtra, prefix: e.target.value as Member["prefix"] })}
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="College" required className="md:col-span-3">
+                                            <Input
+                                                value={leadExtra.college}
+                                                onChange={(e) => setLeadExtra({ ...leadExtra, college: e.target.value })}
+                                                placeholder="College name"
+                                                required
+                                            />
+                                        </FormGroup>
                                     </div>
-                                    <div>
-                                        <span className="text-gray-500">Email:</span>{" "}
-                                        <span className="font-medium">{teamLead.email || "—"}</span>
+
+                                    <div className="grid md:grid-cols-2 gap-4 mt-4">
+                                        <FormGroup label="Branch" required>
+                                            <Input
+                                                value={leadExtra.branch}
+                                                onChange={(e) => setLeadExtra({ ...leadExtra, branch: e.target.value })}
+                                                placeholder="e.g., CSE, ECE"
+                                                required
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Year of Passing" required>
+                                            <Input
+                                                type="number"
+                                                value={leadExtra.yearOfPassing}
+                                                onChange={(e) => setLeadExtra({ ...leadExtra, yearOfPassing: parseInt(e.target.value) })}
+                                                min={2020}
+                                                max={2030}
+                                                required
+                                            />
+                                        </FormGroup>
                                     </div>
-                                </div>
+                                </>
                             ) : (
                                 /* Other members — editable */
                                 <>
