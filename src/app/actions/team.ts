@@ -103,22 +103,7 @@ export async function registerTeam(
             registrationDate: new Date(),
         });
 
-        // Auto-add team lead as first member
-        await TeamMember.create({
-            teamId: team._id,
-            eventId,
-            prefix: "Mr",
-            name: data.teamLead.name,
-            college: "N/A",
-            branch: "N/A",
-            yearOfPassing: new Date().getFullYear(),
-            phone: data.teamLead.phone,
-            email: data.teamLead.email?.toLowerCase() || undefined,
-            isAttending: true,
-            accommodation: { required: false },
-        });
-
-        // Create team members
+        // Create team members (Member 1 = team lead, sent from client)
         for (const member of data.members) {
             await TeamMember.create({
                 teamId: team._id,

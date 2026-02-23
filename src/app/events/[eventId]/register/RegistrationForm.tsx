@@ -53,23 +53,38 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
     const [projectCode, setProjectCode] = useState("");
     const [teamLead, setTeamLead] = useState({ name: "", email: "", phone: "" });
     const [guide, setGuide] = useState({ name: "", email: "", phone: "" });
-    const [members, setMembers] = useState<Member[]>([emptyMember()]);
+    // Member 1 is always the team lead (auto-populated, read-only)
+    const leadAsMember: Member = {
+        id: "lead",
+        prefix: "Mr",
+        name: teamLead.name,
+        college: "",
+        branch: "",
+        yearOfPassing: new Date().getFullYear(),
+        phone: teamLead.phone,
+        email: teamLead.email,
+    };
+
+    const [extraMembers, setExtraMembers] = useState<Member[]>([]);
+
+    // Combined: lead + extra members
+    const members = [leadAsMember, ...extraMembers];
 
     const addMember = () => {
         if (members.length < maxTeamSize) {
-            setMembers([...members, emptyMember()]);
+            setExtraMembers([...extraMembers, emptyMember()]);
         }
     };
 
     const removeMember = (id: string) => {
-        if (members.length > 1) {
-            setMembers(members.filter((m) => m.id !== id));
-        }
+        if (id === "lead") return; // Can't remove lead
+        setExtraMembers(extraMembers.filter((m) => m.id !== id));
     };
 
     const updateMember = (id: string, field: keyof Member, value: string | number) => {
-        setMembers(
-            members.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+        if (id === "lead") return; // Lead fields are read-only here
+        setExtraMembers(
+            extraMembers.map((m) => (m.id === id ? { ...m, [field]: value } : m))
         );
     };
 
@@ -85,7 +100,7 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
             setResult({ success: false, message: "Team lead name and phone are required" });
             return;
         }
-        if (members.some((m) => !m.name || !m.college || !m.branch)) {
+        if (extraMembers.some((m) => !m.name || !m.college || !m.branch)) {
             setResult({ success: false, message: "All member fields are required" });
             return;
         }
@@ -281,8 +296,12 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
                             className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg relative"
                         >
                             <div className="flex items-center justify-between mb-4">
-                                <Badge variant="primary">Member {index + 1}</Badge>
-                                {members.length > 1 && (
+                                <Badge variant="primary">
+                                    {index === 0 ? "Member 1 (Team Lead)" : `Member ${index + 1}`}
+                                </Badge>
+                                {index === 0 ? (
+                                    <span className="text-xs text-gray-400">Auto-filled from Team Lead</span>
+                                ) : (
                                     <button
                                         type="button"
                                         onClick={() => removeMember(member.id)}
@@ -293,70 +312,91 @@ export default function RegistrationForm({ eventId, eventName, maxTeamSize, proj
                                 )}
                             </div>
 
-                            <div className="grid md:grid-cols-4 gap-4">
-                                <FormGroup label="Prefix" required>
-                                    <Select
-                                        value={member.prefix}
-                                        options={prefixOptions}
-                                        onChange={(e) => updateMember(member.id, "prefix", e.target.value)}
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Full Name" required className="md:col-span-3">
-                                    <Input
-                                        value={member.name}
-                                        onChange={(e) => updateMember(member.id, "name", e.target.value)}
-                                        placeholder="Full name"
-                                        required
-                                    />
-                                </FormGroup>
-                            </div>
+                            {index === 0 ? (
+                                /* Member 1 (Team Lead) — display-only summary */
+                                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-gray-500">Name:</span>{" "}
+                                        <span className="font-medium">{teamLead.name || "—"}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500">Phone:</span>{" "}
+                                        <span className="font-medium">{teamLead.phone || "—"}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500">Email:</span>{" "}
+                                        <span className="font-medium">{teamLead.email || "—"}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Other members — editable */
+                                <>
+                                    <div className="grid md:grid-cols-4 gap-4">
+                                        <FormGroup label="Prefix" required>
+                                            <Select
+                                                value={member.prefix}
+                                                options={prefixOptions}
+                                                onChange={(e) => updateMember(member.id, "prefix", e.target.value)}
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Full Name" required className="md:col-span-3">
+                                            <Input
+                                                value={member.name}
+                                                onChange={(e) => updateMember(member.id, "name", e.target.value)}
+                                                placeholder="Full name"
+                                                required
+                                            />
+                                        </FormGroup>
+                                    </div>
 
-                            <div className="grid md:grid-cols-3 gap-4 mt-4">
-                                <FormGroup label="College" required>
-                                    <Input
-                                        value={member.college}
-                                        onChange={(e) => updateMember(member.id, "college", e.target.value)}
-                                        placeholder="College name"
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Branch" required>
-                                    <Input
-                                        value={member.branch}
-                                        onChange={(e) => updateMember(member.id, "branch", e.target.value)}
-                                        placeholder="e.g., CSE, ECE"
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Year of Passing" required>
-                                    <Input
-                                        type="number"
-                                        value={member.yearOfPassing}
-                                        onChange={(e) => updateMember(member.id, "yearOfPassing", parseInt(e.target.value))}
-                                        min={2020}
-                                        max={2030}
-                                        required
-                                    />
-                                </FormGroup>
-                            </div>
+                                    <div className="grid md:grid-cols-3 gap-4 mt-4">
+                                        <FormGroup label="College" required>
+                                            <Input
+                                                value={member.college}
+                                                onChange={(e) => updateMember(member.id, "college", e.target.value)}
+                                                placeholder="College name"
+                                                required
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Branch" required>
+                                            <Input
+                                                value={member.branch}
+                                                onChange={(e) => updateMember(member.id, "branch", e.target.value)}
+                                                placeholder="e.g., CSE, ECE"
+                                                required
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Year of Passing" required>
+                                            <Input
+                                                type="number"
+                                                value={member.yearOfPassing}
+                                                onChange={(e) => updateMember(member.id, "yearOfPassing", parseInt(e.target.value))}
+                                                min={2020}
+                                                max={2030}
+                                                required
+                                            />
+                                        </FormGroup>
+                                    </div>
 
-                            <div className="grid md:grid-cols-2 gap-4 mt-4">
-                                <FormGroup label="Phone">
-                                    <Input
-                                        value={member.phone}
-                                        onChange={(e) => updateMember(member.id, "phone", e.target.value)}
-                                        placeholder="Mobile number"
-                                    />
-                                </FormGroup>
-                                <FormGroup label="Email">
-                                    <Input
-                                        type="email"
-                                        value={member.email}
-                                        onChange={(e) => updateMember(member.id, "email", e.target.value)}
-                                        placeholder="email@example.com"
-                                    />
-                                </FormGroup>
-                            </div>
+                                    <div className="grid md:grid-cols-2 gap-4 mt-4">
+                                        <FormGroup label="Phone">
+                                            <Input
+                                                value={member.phone}
+                                                onChange={(e) => updateMember(member.id, "phone", e.target.value)}
+                                                placeholder="Mobile number"
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Email">
+                                            <Input
+                                                type="email"
+                                                value={member.email}
+                                                onChange={(e) => updateMember(member.id, "email", e.target.value)}
+                                                placeholder="email@example.com"
+                                            />
+                                        </FormGroup>
+                                    </div>
+                                </>
+                            )}
 
 
                         </div>
